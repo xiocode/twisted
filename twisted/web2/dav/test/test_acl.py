@@ -32,6 +32,7 @@ from twisted.web2.stream import MemoryStream
 from twisted.web2.dav import davxml
 from twisted.web2.dav.util import davXMLFromStream
 from twisted.web2.dav.auth import TwistedPasswordProperty, IPrincipal, DavRealm, TwistedPropertyChecker, AuthenticationWrapper
+from twisted.web2.dav.fileop import rmdir
 
 import twisted.web2.dav.test.util
 from twisted.web2.test.test_server import SimpleRequest
@@ -106,18 +107,21 @@ class ACL(twisted.web2.dav.test.util.TestCase):
 
     docroot = property(_getDocumentRoot)
 
+    def restore(self):
+        if hasattr(self, "_docroot"):
+            print "*"*40
+            rmdir(self._docroot)
+            del self._docroot
+
     def test_COPY_MOVE_source(self):
         """
         Verify source access controls during COPY and MOVE.
         """
-        # Restore starter files
-        self.setUp()
-
         def work():
             dst_path = os.path.join(self.docroot, "copy_dst")
             dst_uri = "/" + os.path.basename(dst_path)
 
-            for src, rcode in (
+            for src, status in (
                 ("nobind", responsecode.FORBIDDEN),
                 ("bind",   responsecode.FORBIDDEN),
                 ("unbind", responsecode.CREATED),
@@ -142,16 +146,15 @@ class ACL(twisted.web2.dav.test.util.TestCase):
                     filename = os.path.join(src_path, name)
                     if not os.path.isfile(filename):
                         file(filename, "w").close()
-                    resource = self.resource_class(filename)
-                    resource.setAccessControlList(acl)
+                    self.resource_class(filename).setAccessControlList(acl)
 
                 for method in ("COPY", "MOVE"):
                     for name, code in (
-                        ("none"       , {"COPY": responsecode.FORBIDDEN, "MOVE": rcode}[method]),
-                        ("read"       , {"COPY": responsecode.CREATED,   "MOVE": rcode}[method]),
-                        ("read-write" , {"COPY": responsecode.CREATED,   "MOVE": rcode}[method]),
-                        ("unlock"     , {"COPY": responsecode.FORBIDDEN, "MOVE": rcode}[method]),
-                        ("all"        , {"COPY": responsecode.CREATED,   "MOVE": rcode}[method]),
+                        ("none"       , {"COPY": responsecode.FORBIDDEN, "MOVE": status}[method]),
+                        ("read"       , {"COPY": responsecode.CREATED,   "MOVE": status}[method]),
+                        ("read-write" , {"COPY": responsecode.CREATED,   "MOVE": status}[method]),
+                        ("unlock"     , {"COPY": responsecode.FORBIDDEN, "MOVE": status}[method]),
+                        ("all"        , {"COPY": responsecode.CREATED,   "MOVE": status}[method]),
                     ):
                         path = os.path.join(src_path, name)
                         uri = src_uri + "/" + name
@@ -176,8 +179,8 @@ class ACL(twisted.web2.dav.test.util.TestCase):
         Verify destination access controls during COPY and MOVE.
         """
         def work():
-            path = os.path.join(self.docroot, "read")
-            uri  = "/" + os.path.basename(path)
+            src_path = os.path.join(self.docroot, "read")
+            uri = "/" + os.path.basename(src_path)
 
             for method in ("COPY", "MOVE"):
                 for name, code in (
@@ -185,8 +188,8 @@ class ACL(twisted.web2.dav.test.util.TestCase):
                     ("bind"   , responsecode.CREATED),
                     ("unbind" , responsecode.CREATED),
                 ):
-                    collection_path = os.path.join(self.docroot, name)
-                    dst_path = os.path.join(collection_path, "dst")
+                    dst_parent_path = os.path.join(self.docroot, name)
+                    dst_path = os.path.join(dst_parent_path, "dst")
 
                     request = SimpleRequest(self.site, method, uri)
                     request.headers.setHeader("destination", "/" + name + "/dst")
@@ -199,8 +202,7 @@ class ACL(twisted.web2.dav.test.util.TestCase):
                         if response.code != code:
                             return self.oops(request, response, code, method, name)
 
-                    # Restore starter files
-                    self.setUp()
+                    #self.restore()
 
                     yield (request, test)
 
@@ -210,9 +212,6 @@ class ACL(twisted.web2.dav.test.util.TestCase):
         """
         Verify access controls during DELETE.
         """
-        # Restore starter files
-        self.setUp()
-
         def work():
             for name, code in (
                 ("nobind" , responsecode.FORBIDDEN),
@@ -247,9 +246,6 @@ class ACL(twisted.web2.dav.test.util.TestCase):
         """
         Verify access controls during MKCOL.
         """
-        # Restore starter files
-        self.setUp()
-
         for method in ("MKCOL", "PUT"):
             def work():
                 for name, code in (
@@ -280,9 +276,6 @@ class ACL(twisted.web2.dav.test.util.TestCase):
         """
         Verify access controls during PUT of existing file.
         """
-        # Restore starter files
-        self.setUp()
-
         def work():
             for name, code in (
                 ("none"       , responsecode.FORBIDDEN),
@@ -316,9 +309,6 @@ class ACL(twisted.web2.dav.test.util.TestCase):
         """
         Verify access controls during PROPPATCH.
         """
-        # Restore starter files
-        self.setUp()
-
         def work():
             for name, code in (
                 ("none"       , responsecode.FORBIDDEN),
@@ -347,9 +337,6 @@ class ACL(twisted.web2.dav.test.util.TestCase):
         """
         Verify access controls during GET and REPORT.
         """
-        # Restore starter files
-        self.setUp()
-
         def work():
             for method in ("GET", "REPORT"):
                 if method == "GET":
@@ -393,11 +380,11 @@ class ACL(twisted.web2.dav.test.util.TestCase):
                           % (response.code, code, method, request.uri, name, doc_xml, acl.toxml()))
 
 
-            def gotResource(resource):
+            def getACL(resource):
                 return resource.accessControlList(request)
 
             d = request.locateResource(request.uri)
-            d.addCallback(gotResource)
+            d.addCallback(getACL)
             d.addCallback(fail)
             return d
 
