@@ -165,9 +165,7 @@ class ACL(twisted.web2.dav.test.util.TestCase):
                                 os.remove(dst_path)
     
                             if response.code != code:
-                                d = davXMLFromStream(response.stream)
-                                d.addCallback(self.oops, request, response, code, method, name)
-                                return d
+                                return self.oops(request, response, code, method, name)
     
                         yield (request, test)
 
@@ -199,9 +197,7 @@ class ACL(twisted.web2.dav.test.util.TestCase):
                             os.remove(dst_path)
 
                         if response.code != code:
-                            d = davXMLFromStream(response.stream)
-                            d.addCallback(self.oops, request, response, code, method, name)
-                            return d
+                            return self.oops(request, response, code, method, name)
 
                     # Restore starter files
                     self.setUp()
@@ -233,9 +229,7 @@ class ACL(twisted.web2.dav.test.util.TestCase):
 
                 def test(response, code=code, path=path):
                     if response.code != code:
-                        d = davXMLFromStream(response.stream)
-                        d.addCallback(self.oops, request, response, code, "DELETE", name)
-                        return d
+                        return self.oops(request, response, code, "DELETE", name)
 
                 yield (request, test)
 
@@ -276,9 +270,7 @@ class ACL(twisted.web2.dav.test.util.TestCase):
 
                     def test(response, code=code, path=path):
                         if response.code != code:
-                            d = davXMLFromStream(response.stream)
-                            d.addCallback(self.oops, request, response, code, method, name)
-                            return d
+                            return self.oops(request, response, code, method, name)
 
                     yield (request, test)
 
@@ -306,9 +298,7 @@ class ACL(twisted.web2.dav.test.util.TestCase):
 
                 def test(response, code=code, path=path):
                     if response.code != code:
-                        d = davXMLFromStream(response.stream)
-                        d.addCallback(self.oops, request, response, code, "PUT", name)
-                        return d
+                        return self.oops(request, response, code, "PUT", name)
 
                 yield (request, test)
 
@@ -347,9 +337,7 @@ class ACL(twisted.web2.dav.test.util.TestCase):
 
                 def test(response, code=code, path=path):
                     if response.code != code:
-                        d = davXMLFromStream(response.stream)
-                        d.addCallback(self.oops, request, response, code, "PROPPATCH", name)
-                        return d
+                        return self.oops(request, response, code, "PROPPATCH", name)
 
                 yield (request, test)
 
@@ -387,31 +375,34 @@ class ACL(twisted.web2.dav.test.util.TestCase):
 
                     def test(response, code=code, path=path):
                         if response.code != code:
-                            d = davXMLFromStream(response.stream)
-                            d.addCallback(self.oops, request, response, code, method, name)
-                            return d
+                            return self.oops(request, response, code, method, name)
 
                     yield (request, test)
 
         return serialize(self.send, work())
 
-    def oops(self, doc, request, response, code, method, name):
-        if doc is None:
-            doc_xml = None
-        else:
-            doc_xml = doc.toxml()
+    def oops(self, request, response, code, method, name):
+        def gotResponseData(doc):
+            if doc is None:
+                doc_xml = None
+            else:
+                doc_xml = doc.toxml()
     
-        def gotResource(resource):
-            return resource.accessControlList(request)
+            def fail(acl):
+                self.fail("Incorrect status code %s (!= %s) for %s of resource %s with %s ACL: %s\nACL: %s"
+                          % (response.code, code, method, request.uri, name, doc_xml, acl.toxml()))
 
-        def fail(acl):
-            self.fail("Incorrect status code %s (!= %s) for %s of resource %s with %s ACL: %s\nACL: %s"
-                      % (response.code, code, method, request.uri, name, doc_xml, acl.toxml()))
 
-        d = request.locateResource(request.uri)
-        d.addCallback(gotResource)
-        d.addCallback(fail)
+            def gotResource(resource):
+                return resource.accessControlList(request)
 
+            d = request.locateResource(request.uri)
+            d.addCallback(gotResource)
+            d.addCallback(fail)
+            return d
+
+        d = davXMLFromStream(response.stream)
+        d.addCallback(gotResponseData)
         return d
 
 def _add_auth_header(request):
