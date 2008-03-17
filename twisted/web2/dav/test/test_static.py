@@ -29,33 +29,33 @@ from twisted.web2.test.test_server import SimpleRequest
 
 class DAVFileTest(util.TestCase):
     def test_renderPrivileges(self):
-        request = SimpleRequest(self.site, 'GET', '/')
+        """
+        Verify that a directory listing includes children which you
+        don't have access to.
+        """
+        request = SimpleRequest(self.site, "GET", "/")
 
-        def setDir2ACLs(dir2):
-            dir2.setAccessControlList(davxml.ACL(
-                    davxml.ACE(davxml.Principal(davxml.Authenticated()),
-                               davxml.Grant(davxml.Privilege(davxml.All())))))
-            return dir2
+        def setEmptyACL(resource):
+            resource.setAccessControlList(davxml.ACL()) # Empty ACL = no access
+            return resource
 
-        def renderRoot(ign):
-            d = request.locateResource('/')
+        def renderRoot(_):
+            d = request.locateResource("/")
             d.addCallback(lambda r: r.render(request))
 
             return d
 
         def assertListing(response):
             data = []
-            def _collectData(sdata):
-                data.append(str(sdata))
-
-            d = readStream(response.stream, _collectData)
-
-            d.addCallback(lambda ign: self.failIf('dir2' in ''.join(data)))
-
+            d = readStream(response.stream, lambda s: data.append(str(s)))
+            d.addCallback(lambda _: self.failIf(
+                'href="dir2/"' not in "".join(data),
+                "'dir2' expected in listing: %r" % (data,)
+            ))
             return d
 
-        d = request.locateResource('/dir2')
-        d.addCallback(setDir2ACLs)
+        d = request.locateResource("/dir2")
+        d.addCallback(setEmptyACL)
         d.addCallback(renderRoot)
         d.addCallback(assertListing)
 
