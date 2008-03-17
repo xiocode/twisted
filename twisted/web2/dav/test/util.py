@@ -177,8 +177,8 @@ class TestCase (unittest.TestCase):
 
     def tearDown(self):
         unittest.TestCase.tearDown(self)
-        if self.docroot is not None:
-            rmdir(self.docroot)
+        if hasattr(self, "_docroot"):
+            rmdir(self._docroot)
 
     def mkdtemp(self, prefix):
         """
