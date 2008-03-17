@@ -26,7 +26,8 @@ class TestResource (RenderMixin):
     implements(IResource)
 
     def _handler(self, request):
-        assert request is not None
+        if request is None:
+            return responsecode.INTERNAL_SERVER_ERROR
         return responsecode.NO_CONTENT
 
     http_BLEARGH       = _handler
@@ -151,7 +152,7 @@ class RenderMixInTestCase (unittest.TestCase):
         """
         raise NotImplementedError()
 
-    test_TRACE_body.todo = "Not implemented"
+    test_TRACE_body.todo = "Someone should write this test"
 
     def test_HEAD_status(self):
         """
