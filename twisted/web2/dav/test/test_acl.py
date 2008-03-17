@@ -42,11 +42,11 @@ class ACL(twisted.web2.dav.test.util.TestCase):
     """
     RFC 3744 (WebDAV ACL) tests.
     """
-    def setUp(self):
-        if not hasattr(self, "docroot"):
-            self.docroot = self.mktemp()
-            os.mkdir(self.docroot)
-            rootresource = self.resource_class(self.docroot)
+    def _getDocumentRoot(self):
+        if not hasattr(self, "_docroot"):
+            docroot = self.mktemp()
+            os.mkdir(docroot)
+            rootresource = self.resource_class(docroot)
 
             portal = Portal(DavRealm())
             portal.registerChecker(TwistedPropertyChecker())
@@ -76,29 +76,35 @@ class ACL(twisted.web2.dav.test.util.TestCase):
                 davxml.PrincipalCollectionSet(davxml.HRef("/principals/"))
             )
 
-        for name, acl in (
-            ("none"       , self.grant()),
-            ("read"       , self.grant(davxml.Read())),
-            ("read-write" , self.grant(davxml.Read(), davxml.Write())),
-            ("unlock"     , self.grant(davxml.Unlock())),
-            ("all"        , self.grant(davxml.All())),
-        ):
-            filename = os.path.join(self.docroot, name)
-            if not os.path.isfile(filename):
-                file(filename, "w").close()
-            resource = self.resource_class(filename)
-            resource.setAccessControlList(acl)
+            for name, acl in (
+                ("none"       , self.grant()),
+                ("read"       , self.grant(davxml.Read())),
+                ("read-write" , self.grant(davxml.Read(), davxml.Write())),
+                ("unlock"     , self.grant(davxml.Unlock())),
+                ("all"        , self.grant(davxml.All())),
+            ):
+                filename = os.path.join(docroot, name)
+                if not os.path.isfile(filename):
+                    file(filename, "w").close()
+                resource = self.resource_class(filename)
+                resource.setAccessControlList(acl)
 
-        for name, acl in (
-            ("nobind" , self.grant()),
-            ("bind"   , self.grant(davxml.Bind())),
-            ("unbind" , self.grant(davxml.Bind(), davxml.Unbind())),
-        ):
-            dirname = os.path.join(self.docroot, name)
-            if not os.path.isdir(dirname):
-                os.mkdir(dirname)
-            resource = self.resource_class(dirname)
-            resource.setAccessControlList(acl)
+            for name, acl in (
+                ("nobind" , self.grant()),
+                ("bind"   , self.grant(davxml.Bind())),
+                ("unbind" , self.grant(davxml.Bind(), davxml.Unbind())),
+            ):
+                dirname = os.path.join(docroot, name)
+                if not os.path.isdir(dirname):
+                    os.mkdir(dirname)
+                resource = self.resource_class(dirname)
+                resource.setAccessControlList(acl)
+
+            self._docroot = docroot
+
+        return self._docroot
+
+    docroot = property(_getDocumentRoot)
 
     def test_COPY_MOVE_source(self):
         """

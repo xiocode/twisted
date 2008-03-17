@@ -32,28 +32,35 @@ from twisted.web2.dav import davxml
 from twisted.web2.dav.resource import DAVResource, AccessDeniedError, DAVPrincipalResource, davPrivilegeSet
 from twisted.web2.dav.auth import TwistedPasswordProperty, DavRealm, TwistedPropertyChecker, IPrincipal, AuthenticationWrapper
 from twisted.web2.test.test_server import SimpleRequest
-from twisted.web2.dav.test.util import TestCase, InMemoryPropertyStore
+from twisted.web2.dav.test.util import InMemoryPropertyStore
+import twisted.web2.dav.test.util
+
+class TestCase(twisted.web2.dav.test.util.TestCase):
+    def setUp(self):
+        twisted.web2.dav.test.util.TestCase.setUp(self)
+        TestResource._cachedPropertyStores = {}
 
 class GenericDAVResource(TestCase):
     def setUp(self):
+        TestCase.setUp(self)
+
         rootresource = TestResource(None, {
-                'file1': TestResource('/file1'),
-                'file2': AuthAllResource('/file2'),
-                'dir1': TestResource('/dir1/', {
-                        'subdir1': TestResource('/dir1/subdir1/',{})
-                        }),
-                'dir2': AuthAllResource('/dir2/', {
-                        'file1': TestResource('/dir2/file1'),
-                        'file2': TestResource('/dir2/file2'),
-                        'subdir1': TestResource('/dir2/subdir1/', {
-                                'file1': TestResource('/dir2/subdir1/file1'),
-                                'file2': TestResource('/dir2/subdir1/file2')
-                                })})})
+            "file1": TestResource("/file1"),
+            "file2": AuthAllResource("/file2"),
+            "dir1": TestResource("/dir1/", {
+                "subdir1": TestResource("/dir1/subdir1/",{})
+            }),
+            "dir2": AuthAllResource("/dir2/", {
+                "file1": TestResource("/dir2/file1"),
+                "file2": TestResource("/dir2/file2"),
+                "subdir1": TestResource("/dir2/subdir1/", {
+                    "file1": TestResource("/dir2/subdir1/file1"),
+                    "file2": TestResource("/dir2/subdir1/file2")
+                })
+            })
+        })
 
         self.site = Site(rootresource)
-
-    def tearDown(self):
-        pass
 
     def test_findChildren(self):
         """
@@ -61,32 +68,32 @@ class GenericDAVResource(TestCase):
         1) not found any unexpected children
         2) found all expected children
 
-        It does this for all depths C{'0'}, C{'1'}, and C{'infintiy'}
+        It does this for all depths C{"0"}, C{"1"}, and C{"infintiy"}
         """
         expected_children = {
-            '0': [],
-            '1': [
-                '/file1',
-                '/file2',
-                '/dir1/',
-                '/dir2/',
-                ],
-            'infinity': [
-                '/file1',
-                '/file2',
-                '/dir1/',
-                '/dir1/subdir1/',
-                '/dir2/',
-                '/dir2/file1',
-                '/dir2/file2',
-                '/dir2/subdir1/',
-                '/dir2/subdir1/file1',
-                '/dir2/subdir1/file2',
-                ]
+            "0": [],
+            "1": [
+                "/file1",
+                "/file2",
+                "/dir1/",
+                "/dir2/",
+            ],
+            "infinity": [
+                "/file1",
+                "/file2",
+                "/dir1/",
+                "/dir1/subdir1/",
+                "/dir2/",
+                "/dir2/file1",
+                "/dir2/file2",
+                "/dir2/subdir1/",
+                "/dir2/subdir1/file1",
+                "/dir2/subdir1/file2",
+            ],
         }
 
-        request = SimpleRequest(self.site, 'GET', '/')
-        resource = waitForDeferred(request.locateResource('/'))
+        request = SimpleRequest(self.site, "GET", "/")
+        resource = waitForDeferred(request.locateResource("/"))
         yield resource
         resource = resource.getResult()
 
@@ -99,7 +106,7 @@ class GenericDAVResource(TestCase):
             else:
                 found_children.append(uri)
 
-        for depth in ['0', '1', 'infinity']:
+        for depth in ["0", "1", "infinity"]:
             found_children = []
             unexpected_children = []
 
@@ -108,9 +115,10 @@ class GenericDAVResource(TestCase):
             yield completed
             completed.getResult()
 
-            self.assertEquals(unexpected_children, [],
-                              "Found unexpected children: %r" % 
-                              (unexpected_children,))
+            self.assertEquals(
+                unexpected_children, [],
+                "Found unexpected children: %r" % (unexpected_children,)
+            )
 
             expected_children[depth].sort()
             found_children.sort()
@@ -121,17 +129,18 @@ class GenericDAVResource(TestCase):
 
     def test_findChildrenWithPrivileges(self):
         """
-        This test revokes read privileges for the C{'/file2'} and C{'/dir2/'}
+        This test revokes read privileges for the C{"/file2"} and C{"/dir2/"}
         resource to verify that we can not find them giving our unauthenticated
         privileges.
         """
         
         expected_children = [
-            '/file1',
-            '/dir1/']
+            "/file1",
+            "/dir1/",
+        ]
 
-        request = SimpleRequest(self.site, 'GET', '/')
-        resource = waitForDeferred(request.locateResource('/'))
+        request = SimpleRequest(self.site, "GET", "/")
+        resource = waitForDeferred(request.locateResource("/"))
         yield resource
         resource = resource.getResult()
 
@@ -140,7 +149,6 @@ class GenericDAVResource(TestCase):
 
             if uri not in expected_children:
                 unexpected_children.append(uri)
-
             else:
                 found_children.append(uri)
 
@@ -151,14 +159,15 @@ class GenericDAVResource(TestCase):
         yield privileges
         privileges = privileges.getResult()
 
-        fc = resource.findChildren('1', request, checkChildren, privileges)
+        fc = resource.findChildren("1", request, checkChildren, privileges)
         completed = waitForDeferred(fc)
         yield completed
         completed.getResult()
 
-        self.assertEquals(unexpected_children, [],
-                          "Found unexpected children: %r" % 
-                          (unexpected_children,))
+        self.assertEquals(
+            unexpected_children, [],
+            "Found unexpected children: %r" % (unexpected_children,)
+        )
 
         expected_children.sort()
         found_children.sort()
@@ -178,45 +187,46 @@ class GenericDAVResource(TestCase):
         def raiseOnChild(resource, uri):
             raise Exception("Oh no!")
 
-        def _findChildren(resource):
+        def findChildren(resource):
             return self.assertFailure(
-                resource.findChildren('infinity', request, raiseOnChild),
-                Exception)
+                resource.findChildren("infinity", request, raiseOnChild),
+                Exception
+            )
         
-        request = SimpleRequest(self.site, 'GET', '/')
-        d = request.locateResource('/').addCallback(_findChildren)
+        request = SimpleRequest(self.site, "GET", "/")
+        d = request.locateResource("/").addCallback(findChildren)
 
         return d
 
-
 class AccessTests(TestCase):
     def setUp(self):
-        gooduser = TestDAVPrincipalResource('/users/gooduser')
+        TestCase.setUp(self)
+
+        gooduser = TestDAVPrincipalResource("/users/gooduser")
 
         gooduser.writeDeadProperty(
-            TwistedPasswordProperty.fromString('goodpass'))
+            TwistedPasswordProperty.fromString("goodpass"))
 
-        baduser = TestDAVPrincipalResource('/users/baduser')
-        baduser.writeDeadProperty(
-            TwistedPasswordProperty.fromString('badpass'))
+        baduser = TestDAVPrincipalResource("/users/baduser")
+        baduser.writeDeadProperty(TwistedPasswordProperty.fromString("badpass"))
 
-        protected = TestResource('/protected')
+        protected = TestResource("/protected")
         protected.setAccessControlList(davxml.ACL(
-                davxml.ACE(
-                    davxml.Principal(davxml.HRef('/users/gooduser')),
-                    davxml.Grant(davxml.Privilege(davxml.All())),
-                    davxml.Protected()
-                    )
-                ))
+            davxml.ACE(
+                davxml.Principal(davxml.HRef("/users/gooduser")),
+                davxml.Grant(davxml.Privilege(davxml.All())),
+                davxml.Protected()
+            )
+        ))
         
         rootresource = TestResource(None, {
-                'users': TestResource('/users/', {
-                        'gooduser': gooduser,
-                        'baduser': baduser,}),
-                'protected': protected
+                "users": TestResource("/users/", {
+                        "gooduser": gooduser,
+                        "baduser": baduser,}),
+                "protected": protected
                 })
 
-        rootresource.writeDeadProperty(davxml.PrincipalCollectionSet(davxml.HRef('/users/')))
+        rootresource.writeDeadProperty(davxml.PrincipalCollectionSet(davxml.HRef("/users/")))
 
         portal = Portal(DavRealm())
         portal.registerChecker(TwistedPropertyChecker())
@@ -226,18 +236,16 @@ class AccessTests(TestCase):
         loginInterfaces = (IPrincipal,)
 
         self.rootresource = rootresource
-        self.site = Site(AuthenticationWrapper(self.rootresource,
-                                               portal,
-                                               credentialFactories,
-                                               loginInterfaces))
-
-    def tearDown(self):
-        pass
+        self.site = Site(AuthenticationWrapper(
+            self.rootresource,
+            portal,
+            credentialFactories,
+            loginInterfaces,
+        ))
 
     def checkSecurity(self, request):        
         d = request.locateResource(request.uri)
         d.addCallback(lambda r: r.authorize(request, (davxml.Read(),)))
-
         return d
 
     def assertErrorResponse(self, error, expectedcode):
@@ -263,7 +271,10 @@ class AccessTests(TestCase):
             subpath, denials = errors[0]
 
             self.failUnless(subpath is None)
-            self.failUnless(tuple(denials) == requested_access, "%r != %r" % (tuple(denials), requested_access))
+            self.failUnless(
+                tuple(denials) == requested_access,
+                "%r != %r" % (tuple(denials), requested_access)
+            )
 
         def expectOK(result):
             self.failUnlessEquals(result, None)
@@ -273,62 +284,46 @@ class AccessTests(TestCase):
             return d
 
         # No auth; should deny
-
         request = SimpleRequest(site, "GET", "/")
-
-        d = request.locateResource('/').addCallback(_checkPrivileges).addErrback(expectError)
+        d = request.locateResource("/").addCallback(_checkPrivileges).addErrback(expectError)
         ds.append(d)        
 
         # Has auth; should allow
-
         request = SimpleRequest(site, "GET", "/")
         request.user = davxml.Principal(davxml.HRef("/users/d00d"))
-        d = request.locateResource('/')
+        d = request.locateResource("/")
         d.addCallback(_checkPrivileges)
         d.addCallback(expectOK)
-
         ds.append(d)
 
         return DeferredList(ds)
 
     def test_authorize(self):
-        request = SimpleRequest(self.site, 'GET', '/protected')
-
-        #gooduser:goodpass
-        request.headers.setHeader('authorization', 
-                                  ('basic', 
-                                   'gooduser:goodpass'.encode('base64')))
-                      
+        request = SimpleRequest(self.site, "GET", "/protected")
+        request.headers.setHeader(
+            "authorization", 
+            ("basic", "gooduser:goodpass".encode("base64"))
+        )
         return self.checkSecurity(request)
 
     def test_badUsernameOrPassword(self):
-        request = SimpleRequest(self.site, 'GET', '/protected')
-
-        #gooduser:goodpasp
-        request.headers.setHeader('authorization', 
-                                  ('basic', 
-                                   'gooduser:badpass'.encode('base64')))
-
-        d = self.assertFailure(self.checkSecurity(request),
-                               HTTPError)        
-
+        request = SimpleRequest(self.site, "GET", "/protected")
+        request.headers.setHeader(
+            "authorization", 
+            ("basic", "gooduser:badpass".encode("base64"))
+        )
+        d = self.assertFailure(self.checkSecurity(request), HTTPError)        
         d.addCallback(self.assertErrorResponse, responsecode.UNAUTHORIZED)
-
         return d
 
     def test_lacksPrivileges(self):
-        request = SimpleRequest(self.site, 'GET', '/protected')
-
-        #baduser:badpass
-        request.headers.setHeader('authorization',
-                                  ('basic',
-                                   'baduser:badpass'.encode('base64')))
-
-        d = self.assertFailure(self.checkSecurity(request),
-                               HTTPError)
-
+        request = SimpleRequest(self.site, "GET", "/protected")
+        request.headers.setHeader(
+            "authorization",
+            ("basic", "baduser:badpass".encode("base64"))
+        )
+        d = self.assertFailure(self.checkSecurity(request), HTTPError)
         d.addCallback(self.assertErrorResponse, responsecode.FORBIDDEN)
-
         return d
 
 
@@ -346,28 +341,28 @@ class TestResource (DAVResource):
         davxml.ACE(
             davxml.Principal(davxml.All()),
             davxml.Grant(davxml.Privilege(davxml.All())),
-            davxml.Protected()))
+            davxml.Protected(),
+        )
+    )
 
     def __init__(self, uri=None, children=None):
         """
         @param uri: A string respresenting the URI of the given resource
         @param children: a dictionary of names to Resources
         """
-
         self.children = children
         self.uri = uri
 
     def deadProperties(self):
-        """Retrieve deadProperties from a special place in memory
         """
-        if not hasattr(self, '_dead_properties'):
+        Retrieve deadProperties from a special place in memory
+        """
+        if not hasattr(self, "_dead_properties"):
             dp = TestResource._cachedPropertyStores.get(self.uri)
             if dp is None:
                 TestResource._cachedPropertyStores[self.uri] = InMemoryPropertyStore(self)
                 dp = TestResource._cachedPropertyStores[self.uri]
-            
             self._dead_properties = dp
-
         return self._dead_properties
 
     def isCollection(self):
@@ -387,7 +382,7 @@ class TestResource (DAVResource):
 
     def locateChild(self, request, segments):
         child = segments[0]
-        if child == '':
+        if child == "":
             return self, segments[1:]
         elif child in self.children:
             return self.children[child], segments[1:]
@@ -402,15 +397,19 @@ class TestResource (DAVResource):
     
 
 class AuthAllResource (TestResource):
-    """Give Authenticated principals all privileges deny everything else
+    """
+    Give Authenticated principals all privileges deny everything else
     """
     acl = davxml.ACL(
         davxml.ACE(
             davxml.Principal(davxml.Authenticated()),
             davxml.Grant(davxml.Privilege(davxml.All())),
-            davxml.Protected()))
+            davxml.Protected(),
+        )
+    )
 
     
 class TestDAVPrincipalResource(DAVPrincipalResource, TestResource):
-    """Get deadProperties from TestResource
+    """
+    Get deadProperties from TestResource
     """

@@ -81,7 +81,7 @@ class TestFile (DAVFile):
     _cachedPropertyStores = {}
 
     def deadProperties(self):
-        if not hasattr(self, '_dead_properties'):
+        if not hasattr(self, "_dead_properties"):
             dp = TestFile._cachedPropertyStores.get(self.fp.path)
             if dp is None:
                 TestFile._cachedPropertyStores[self.fp.path] = InMemoryPropertyStore(self)
@@ -117,55 +117,68 @@ class TestCase (unittest.TestCase):
 
     grantInherit = staticmethod(grantInherit)
 
+    def _getDocumentRoot(self):
+        if not hasattr(self, "_docroot"):
+            log.msg("Setting up docroot for %s" % (self.__class__,))
+
+            docroot = self.mktemp()
+            os.mkdir(docroot)
+            rootresource = self.resource_class(docroot)
+            rootresource.setAccessControlList(self.grantInherit(davxml.All()))
+
+            dirnames = (
+                os.path.join(docroot, "dir1"),                          # 0
+                os.path.join(docroot, "dir2"),                          # 1
+                os.path.join(docroot, "dir2", "subdir1"),               # 2
+                os.path.join(docroot, "dir3"),                          # 3
+                os.path.join(docroot, "dir4"),                          # 4
+                os.path.join(docroot, "dir4", "subdir1"),               # 5
+                os.path.join(docroot, "dir4", "subdir1", "subsubdir1"), # 6
+                os.path.join(docroot, "dir4", "subdir2"),               # 7
+                os.path.join(docroot, "dir4", "subdir2", "dir1"),       # 8
+                os.path.join(docroot, "dir4", "subdir2", "dir2"),       # 9
+            )
+
+            for dir in dirnames:
+                os.mkdir(dir)
+
+            src = os.path.dirname(__file__)
+            filenames = [
+                os.path.join(src, f)
+                for f in os.listdir(src)
+                if os.path.isfile(os.path.join(src, f))
+            ]
+
+            for dirname in (docroot,) + dirnames[3:8+1]:
+                for filename in filenames[:5]:
+                    copy(filename, dirname)
+
+            self._docroot = docroot
+
+        return self._docroot
+
+    docroot = property(_getDocumentRoot)
+
+    def _getSite(self):
+        if not hasattr(self, "_site"):
+            rootresource = self.resource_class(self.docroot)
+            rootresource.setAccessControlList(self.grantInherit(davxml.All()))
+            self._site = Site(rootresource)
+        return self._site
+
+    def _setSite(self, site):
+        self._site = site
+
+    site = property(_getSite, _setSite)
+
     def setUp(self):
-        log.msg("Setting up %s" % (self.__class__,))
-
-        self.docroot = self.mktemp()
-        os.mkdir(self.docroot)
-        rootresource = self.resource_class(self.docroot)
-        rootresource.setAccessControlList(self.grantInherit(davxml.All()))
-
-        dirs = (
-            os.path.join(self.docroot, "dir1"),
-            os.path.join(self.docroot, "dir2"),
-            os.path.join(self.docroot, "dir2", "subdir1"),
-            os.path.join(self.docroot, "dir3"),
-            os.path.join(self.docroot, "dir4"),
-            os.path.join(self.docroot, "dir4", "subdir1"),
-            os.path.join(self.docroot, "dir4", "subdir1", "subsubdir1"),
-            os.path.join(self.docroot, "dir4", "subdir2"),
-            os.path.join(self.docroot, "dir4", "subdir2", "dir1"),
-            os.path.join(self.docroot, "dir4", "subdir2", "dir2"),
-        )
-    
-        for dir in dirs: os.mkdir(dir)
-
-        src = os.path.dirname(__file__)
-        files = [
-            os.path.join(src, f)
-            for f in os.listdir(src)
-            if os.path.isfile(os.path.join(src, f))
-        ]
-    
-        dc = randrange(len(dirs))
-        while dc:
-            dc -= 1
-            dir = choice(dirs)
-            fc = randrange(len(files))
-            while fc:
-                fc -= 1
-                copy(choice(files), dir)
-
-        for path in files[:8]:
-            copy(path, self.docroot)
-    
-        self.site = Site(rootresource)
+        unittest.TestCase.setUp(self)
+        TestFile._cachedPropertyStores = {}
 
     def tearDown(self):
-        log.msg("Tearing down %s" % (self.__class__,))
-        rmdir(self.docroot)
-
-        TestCase._cachedPropertyStores = {}
+        unittest.TestCase.tearDown(self)
+        if self.docroot is not None:
+            rmdir(self.docroot)
 
     def mkdtemp(self, prefix):
         """
