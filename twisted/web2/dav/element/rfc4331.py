@@ -1,5 +1,5 @@
 ##
-# Copyright (c) 2005 Apple Computer, Inc. All rights reserved.
+# Copyright (c) 2005-2007 Apple Inc. All rights reserved.
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -19,21 +19,37 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 #
-# DRI: Wilfredo Sanchez, wsanchez@apple.com
+# DRI: Cyrus Daboo, cdaboo@apple.com
 ##
 
 """
-WebDAV XML Glue.
+RFC 4331 (Quota and Size Properties for WebDAV Collections) XML Elements
 
-Modules in this package provide the implementation of twisted.web2.dav.davxml.
+This module provides XML element definitions for use with WebDAV.
+
+See RFC 4331: http://www.ietf.org/rfc/rfc4331.txt
 """
 
-__all__ = [
-    "base",
-    "parser",
-    "util",
-    "rfc2518",
-    "rfc3253",
-    "rfc3744",
-    "rfc4331",
-]
+from twisted.web2.dav.element.base import WebDAVTextElement
+
+##
+# Section 3 & 4 (Quota Properties)
+##
+
+class QuotaAvailableBytes (WebDAVTextElement):
+    """
+    Property which contains the the number of bytes available under the
+    current quota to store data in a collection (RFC 4331, section 3)
+    """
+    name = "quota-available-bytes"
+    hidden = True
+    protected = True
+
+class QuotaUsedBytes (WebDAVTextElement):
+    """
+    Property which contains the the number of bytes used under the
+    current quota to store data in a collection (RFC 4331, section 4)
+    """
+    name = "quota-used-bytes"
+    hidden = True
+    protected = True
