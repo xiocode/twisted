@@ -69,10 +69,9 @@ class ErrorResponse (Response):
         """
         if type(error) is tuple:
             xml_namespace, xml_name = error
-            class EmptyError (davxml.WebDAVEmptyElement):
-                namespace = xml_namespace
-                name      = xml_name
-            error = EmptyError()
+            error = davxml.WebDAVUnknownElement()
+            error.namespace = xml_namespace
+            error.name = xml_name
 
         output = davxml.Error(error).toxml()
 
