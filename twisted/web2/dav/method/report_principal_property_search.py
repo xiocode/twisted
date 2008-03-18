@@ -127,13 +127,8 @@ def report_DAV__principal_property_search(self, request, principal_property_sear
         matchcount = 0
 
         if applyTo:
-            # Get the principal collection set
-            pset = waitForDeferred(self.principalCollections(request))
-            yield pset
-            pset = pset.getResult()
-
-            for phref in pset:
-                uri = str(phref)
+            for principalCollection in self.principalCollections():
+                uri = principalCollection.principalCollectionURL()
                 resource = waitForDeferred(request.locateResource(uri))
                 yield resource
                 resource = resource.getResult()
