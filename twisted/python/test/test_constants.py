@@ -686,6 +686,14 @@ class FlagConstantSimpleAndTests(_FlagsTestsMixin, TestCase):
         self.assertEqual("<FXF=WRITE>", repr(flag))
 
 
+    def test_nonzero(self):
+        """
+        You have to C{&} a contant to itself to get a zero value.
+        """
+        self.assertTrue(self.FXF.READ)
+        self.assertFalse(self.FXF.READ & self.FXF.WRITE)
+
+
 
 class FlagConstantSimpleExclusiveOrTests(_FlagsTestsMixin, TestCase):
     """

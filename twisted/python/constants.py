@@ -313,6 +313,13 @@ class FlagConstant(_Constant):
         self.names = names
 
 
+    def __nonzero__(self):
+        """
+        A L{FlagConstant} instance is non-zero if it's value is non-zero.
+        """
+        return self.value != 0
+
+
     def __or__(self, other):
         """
         Define C{|} on two L{FlagConstant} instances to create a new
