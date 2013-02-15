@@ -351,6 +351,14 @@ class FlagConstant(_Constant):
         return result
 
 
+    def __iter__(self):
+        """
+        Define iteration on a L{FlagConstant} instance to vend all
+        flags set on this instance set.
+        """
+        return (self._container.lookupByName(name) for name in self.names)
+
+
 
 class Flags(Values):
     """
