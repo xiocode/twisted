@@ -652,6 +652,25 @@ class FlagConstantSimpleOrTests(_FlagsTestsMixin, TestCase):
         self.assertEqual(set(flags), set((self.FXF.WRITE, self.FXF.EXCLUSIVE)))
 
 
+    def test_membership(self):
+        """
+        A L{FlagConstant} instance which results from C{|} can be
+        tested for membership.
+        """
+        flags = self.FXF.WRITE | self.FXF.EXCLUSIVE
+        self.assertTrue(self.FXF.WRITE in flags)
+        self.assertFalse(self.FXF.READ in flags)
+
+
+    def test_truthiness(self):
+        """
+        Empty flags is false, non-empty flags is true.
+        """
+        self.assertTrue(self.FXF.WRITE)
+        self.assertTrue(self.FXF.WRITE | self.FXF.EXCLUSIVE)
+        self.assertFalse(self.FXF.WRITE & self.FXF.EXCLUSIVE)
+
+
 
 class FlagConstantSimpleAndTests(_FlagsTestsMixin, TestCase):
     """

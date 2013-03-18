@@ -359,6 +359,20 @@ class FlagConstant(_Constant):
         return (self._container.lookupByName(name) for name in self.names)
 
 
+    def __contains__(self, flag):
+        """
+        Optimization for testing membership without iteration.
+        """
+        return bool(flag & self)
+
+
+    def __nonzero__(self):
+        """
+        False if value is 0.
+        """
+        return bool(self.value)
+
+
 
 class Flags(Values):
     """
