@@ -648,8 +648,18 @@ class FlagConstantSimpleOrTests(_FlagsTestsMixin, TestCase):
         A L{FlagConstant} instance which results from C{|} can be
         iterated upon to yield the original constants.
         """
-        flags = self.FXF.WRITE | self.FXF.EXCLUSIVE
-        self.assertEqual(set(flags), set((self.FXF.WRITE, self.FXF.EXCLUSIVE)))
+        self.assertEqual(
+            set(self.FXF.WRITE & self.FXF.READ), # No flags
+            set(())
+        )
+        self.assertEqual(
+            set(self.FXF.WRITE),
+            set((self.FXF.WRITE,))
+        )
+        self.assertEqual(
+            set(self.FXF.WRITE | self.FXF.EXCLUSIVE),
+            set((self.FXF.WRITE, self.FXF.EXCLUSIVE))
+        )
 
 
     def test_membership(self):
