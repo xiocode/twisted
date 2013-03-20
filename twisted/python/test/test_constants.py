@@ -665,8 +665,8 @@ class FlagConstantSimpleOrTests(_FlagsTestsMixin, TestCase):
         tested for membership.
         """
         flags = self.FXF.WRITE | self.FXF.EXCLUSIVE
-        self.assertTrue(self.FXF.WRITE in flags)
-        self.assertFalse(self.FXF.READ in flags)
+        self.assertIn(self.FXF.WRITE, flags)
+        self.assertNotIn(self.FXF.READ, flags)
 
 
     def test_truthiness(self):
