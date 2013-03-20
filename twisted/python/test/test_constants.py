@@ -650,16 +650,13 @@ class FlagConstantSimpleOrTests(_FlagsTestsMixin, TestCase):
         """
         self.assertEqual(
             set(self.FXF.WRITE & self.FXF.READ), # No flags
-            set(())
-        )
+            set(()))
         self.assertEqual(
             set(self.FXF.WRITE),
-            set((self.FXF.WRITE,))
-        )
+            set((self.FXF.WRITE,)))
         self.assertEqual(
             set(self.FXF.WRITE | self.FXF.EXCLUSIVE),
-            set((self.FXF.WRITE, self.FXF.EXCLUSIVE))
-        )
+            set((self.FXF.WRITE, self.FXF.EXCLUSIVE)))
 
 
     def test_membership(self):
