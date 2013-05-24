@@ -978,5 +978,20 @@ class OrderedConstantsTests(TestCase):
             alpha   = NamedConstant()
             beta    = NamedConstant()
 
-        self.assertRaises(TypeError, lambda: Letters.alpha < MoreLetters.gamma)
-        self.assertRaises(TypeError, lambda: Letters.alpha > MoreLetters.gamma)
+        # Constants from different containers
+        self.assertRaises(TypeError, lambda: Letters.alpha <  MoreLetters.gamma)
+        self.assertRaises(TypeError, lambda: Letters.alpha <= MoreLetters.gamma)
+        self.assertRaises(TypeError, lambda: Letters.alpha >  MoreLetters.gamma)
+        self.assertRaises(TypeError, lambda: Letters.alpha >= MoreLetters.gamma)
+
+        # Constant with non-constant
+        self.assertRaises(TypeError, lambda: Letters.alpha <  1)
+        self.assertRaises(TypeError, lambda: Letters.alpha <= 1)
+        self.assertRaises(TypeError, lambda: Letters.alpha >  1)
+        self.assertRaises(TypeError, lambda: Letters.alpha >= 1)
+
+        # Non-constant with constant
+        self.assertRaises(TypeError, lambda: 1 <  Letters.alpha)
+        self.assertRaises(TypeError, lambda: 1 <= Letters.alpha)
+        self.assertRaises(TypeError, lambda: 1 >  Letters.alpha)
+        self.assertRaises(TypeError, lambda: 1 >= Letters.alpha)
