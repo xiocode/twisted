@@ -42,6 +42,30 @@ class _Constant(object):
         return "<%s=%s>" % (self._container.__name__, self.name)
 
 
+    def __lt__(self, other):
+        if not isinstance(other, self.__class__):
+            return NotImplemented
+        return self._index < other._index
+
+
+    def __le__(self, other):
+        if not isinstance(other, self.__class__):
+            return NotImplemented
+        return self is other or self._index < other._index
+
+
+    def __gt__(self, other):
+        if not isinstance(other, self.__class__):
+            return NotImplemented
+        return self._index > other._index
+
+
+    def __ge__(self, other):
+        if not isinstance(other, self.__class__):
+            return NotImplemented
+        return self is other or self._index > other._index
+
+
     def _realize(self, container, name, value):
         """
         Complete the initialization of this L{_Constant}.

@@ -866,3 +866,99 @@ class FlagConstantNegationTests(_FlagsTestsMixin, TestCase):
         """
         flag = ~self.FXF.WRITE
         self.assertEqual("<FXF={APPEND,EXCLUSIVE,READ,TEXT}>", repr(flag))
+
+
+
+class OrderedConstantsTests(TestCase):
+    """
+    Tests for the ordering of constants.  All constants are ordered by
+    the order in which they are defined in their container class.
+    The ordering of constants that are not in the same container is not
+    defined.
+    """
+    def test_orderedNameConstants(self):
+        """
+        L{twisted.python.constants.NamedConstant} preserves definition
+        order.
+        """
+        class Letters(Names):
+            alpha   = NamedConstant()
+            beta    = NamedConstant()
+            gamma   = NamedConstant()
+            delta   = NamedConstant()
+            epsilon = NamedConstant()
+            digamma = NamedConstant()
+            zeta    = NamedConstant()
+            eta     = NamedConstant()
+
+        self.assertTrue(
+            Letters.alpha < Letters.beta < Letters.gamma < Letters.delta <
+            Letters.epsilon < Letters.digamma < Letters.zeta < Letters.eta,
+            "< failed"
+        )
+
+        self.assertTrue(
+            Letters.eta > Letters.zeta > Letters.digamma > Letters.epsilon >
+            Letters.delta > Letters.gamma > Letters.beta > Letters.alpha,
+            "> failed"
+        )
+
+
+    def test_orderedValueConstants(self):
+        """
+        L{twisted.python.constants.ValueConstant} preserves definition
+        order.
+        """
+        class Letters(Values):
+            alpha   = ValueConstant(u'\u0391')
+            beta    = ValueConstant(u'\u0392')
+            gamma   = ValueConstant(u'\u0393')
+            delta   = ValueConstant(u'\u0394')
+            epsilon = ValueConstant(u'\u0395')
+            digamma = ValueConstant(u'\u03dc')
+            zeta    = ValueConstant(u'\u0396')
+            eta     = ValueConstant(u'\u0397')
+
+        self.assertTrue(
+            Letters.alpha < Letters.beta < Letters.gamma < Letters.delta <
+            Letters.epsilon < Letters.digamma < Letters.zeta < Letters.eta,
+            "< failed"
+        )
+
+        self.assertTrue(
+            Letters.eta > Letters.zeta > Letters.digamma > Letters.epsilon >
+            Letters.delta > Letters.gamma > Letters.beta > Letters.alpha,
+            "> failed"
+        )
+
+
+    def test_orderedFlagConstants(self):
+        """
+        L{twisted.python.constants.FlagConstant} preserves definition
+        order.
+        """
+        class PizzaToppings(Flags):
+            mozzarella = FlagConstant(1 << 1)
+            pesto      = FlagConstant(1 << 4)
+            pepperoni  = FlagConstant(1 << 2)
+            sausage    = FlagConstant(1 << 3)
+            ham        = FlagConstant(1 << 7)
+            peppers    = FlagConstant(1 << 5)
+            olives     = FlagConstant(1 << 7)
+            onion      = FlagConstant(1 << 6)
+
+        self.assertTrue(
+            PizzaToppings.mozzarella < PizzaToppings.pesto <
+            PizzaToppings.pepperoni < PizzaToppings.sausage <
+            PizzaToppings.ham < PizzaToppings.peppers <
+            PizzaToppings.olives < PizzaToppings.onion,
+            "< failed"
+        )
+
+        self.assertTrue(
+            PizzaToppings.onion > PizzaToppings.olives >
+            PizzaToppings.peppers > PizzaToppings.ham >
+            PizzaToppings.sausage > PizzaToppings.pepperoni >
+            PizzaToppings.pesto > PizzaToppings.mozzarella,
+            "> failed"
+        )
