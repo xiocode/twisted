@@ -962,3 +962,21 @@ class OrderedConstantsTests(TestCase):
             PizzaToppings.pesto > PizzaToppings.mozzarella,
             "> failed"
         )
+
+
+    def test_orderedMixedConstants(self):
+        """
+        Comparison between constants in different containers or
+        non-constants is totally not cool, and should raise
+        C{TypeError} to thereby indicate our displeasure.
+        """
+        class MoreLetters(Values):
+            gamma   = ValueConstant(u'\u0393')
+            delta   = ValueConstant(u'\u0394')
+
+        class Letters(Names):
+            alpha   = NamedConstant()
+            beta    = NamedConstant()
+
+        self.assertRaises(TypeError, lambda: Letters.alpha < MoreLetters.gamma)
+        self.assertRaises(TypeError, lambda: Letters.alpha > MoreLetters.gamma)
