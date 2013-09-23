@@ -53,8 +53,9 @@ class METHOD(Names):
 >>>
   </pre>
 
-  <p>If it's necessary to look up constants based on user input of some sort, a
-  safe way to do it is using <code>lookupByName</code>:</p>
+  <p>If it's necessary to look up constants from a string (e.g. based
+  on user input of some sort), a safe way to do it is
+  using <code>lookupByName</code>:</p>
 
   <pre class="shell">
 >>> METHOD.lookupByName('GET')
@@ -74,7 +75,7 @@ ValueError: __doc__
   be used the way the constants are used.</p>
 
   <p>The constants can also be enumerated using the <code>iterconstants</code>
-  method.</p>
+  method:</p>
 
   <pre class="shell">
 >>> list(METHOD.iterconstants())
@@ -82,7 +83,7 @@ ValueError: __doc__
 >>>
   </pre>
 
-  <p>And constants can also be compared, either for equality or identity:</p>
+  <p>Constants can be compared for equality or identity:</p>
 
   <pre class="shell">
 >>> METHOD.GET is METHOD.GET
@@ -116,9 +117,9 @@ False
 >>> 
   </pre>
 
-  <p>Custom functionality can also be associated with constants defined this
-  way.  A subclass of <code>Names</code> may define class methods to implement
-  such functionality.  Consider this redefinition of <code>METHOD</code>:</p>
+  <p>A subclass of <code>Names</code> may define class methods to
+  implement custom functionality.  Consider this definition
+  of <code>METHOD</code>:</p>
 
   <pre class="python">
 from twisted.python.constants import NamedConstant, Names
@@ -188,7 +189,7 @@ class STATUS(Values):
 >>>
   </pre>
 
-  <p>And as with <code>Names</code>, constants can be looked up by name:</p>
+  <p>As with <code>Names</code>, constants can be looked up by name:</p>
 
   <pre class="shell">
 >>> STATUS.lookupByName('NOT_FOUND')
@@ -222,7 +223,7 @@ ValueError: 500
 >>>
   </pre>
 
-  <p>And constants can be compared for equality, identity and ordering:</p>
+  <p>Constants can be compared for equality, identity and ordering:</p>
 
   <pre class="shell">
 >>> STATUS.OK == STATUS.OK
@@ -244,8 +245,8 @@ False
   ordered by instantiation order, not by value, though either order is
   the same in the above example.</p>
 
-  <p>And, as with <code>Names</code>, a subclass of <code>Values</code> can
-  define methods:</p>
+  <p>As with <code>Names</code>, a subclass of <code>Values</code> can
+  define custom methods:</p>
 
   <pre class="python">
 from twisted.python.constants import ValueConstant, Values
@@ -332,7 +333,7 @@ class Permission(Flags):
 >>>
   </pre>
 
-  <p>And these constants can be looked up by name or value:</p>
+  <p>These constants can be looked up by name or value:</p>
 
   <pre class="shell">
 >>> Permission.lookupByName('USER_READ') is Permission.USER_READ
