@@ -96,6 +96,26 @@ False
 >>>
   </pre>
 
+  <p>Ordered comparisons (and therefore sorting) also work.  The order
+  is defined to be the same as the instantiation order of the
+  constants:</p>
+
+  <pre class="python">
+>>> from twisted.python.constants import NamedConstant, Names
+>>> class Letters(Names):
+...   a = NamedConstant()
+...   b = NamedConstant()
+...   c = NamedConstant()
+... 
+>>> Letters.a &lt; Letters.b &lt; Letters.c
+True
+>>> Letters.a > Letters.b 
+False
+>>> sorted([Letters.b, Letters.a, Letters.c])
+[&lt;Letters=a>, &lt;Letters=b>, &lt;Letters=c>]
+>>> 
+  </pre>
+
   <p>Custom functionality can also be associated with constants defined this
   way.  A subclass of <code>Names</code> may define class methods to implement
   such functionality.  Consider this redefinition of <code>METHOD</code>:</p>
@@ -202,7 +222,7 @@ ValueError: 500
 >>>
   </pre>
 
-  <p>And constants can be compared for equality and identity:</p>
+  <p>And constants can be compared for equality, identity and ordering:</p>
 
   <pre class="shell">
 >>> STATUS.OK == STATUS.OK
@@ -213,8 +233,16 @@ True
 False
 >>> STATUS.OK == STATUS.NOT_FOUND
 False
+>>> STATUS.NOT_FOUND > STATUS.OK
+True
+>>> STATUS.FOUND &lt; STATUS.OK
+False
 >>>
   </pre>
+
+  <p>Note that like <code>Names</code>, <code>Values</code> are
+  ordered by instantiation order, not by value, though either order is
+  the same in the above example.</p>
 
   <p>And, as with <code>Names</code>, a subclass of <code>Values</code> can
   define methods:</p>
