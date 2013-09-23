@@ -42,29 +42,27 @@ class _Constant(object):
         return "<%s=%s>" % (self._container.__name__, self.name)
 
 
-    def _orderable(self, other, op):
-        if not isinstance(other, self.__class__):
-            raise TypeError("unorderable types: %s() %s %s()"
-                            % (self.__class__.__name__, op, other.__class__.__name__))
-
-
     def __lt__(self, other):
-        self._orderable(other, "<")
+        if not isinstance(other, self.__class__):
+            return NotImplemented
         return self._index < other._index
 
 
     def __le__(self, other):
-        self._orderable(other, "<=")
+        if not isinstance(other, self.__class__):
+            return NotImplemented
         return self is other or self._index < other._index
 
 
     def __gt__(self, other):
-        self._orderable(other, ">")
+        if not isinstance(other, self.__class__):
+            return NotImplemented
         return self._index > other._index
 
 
     def __ge__(self, other):
-        self._orderable(other, ">=")
+        if not isinstance(other, self.__class__):
+            return NotImplemented
         return self is other or self._index > other._index
 
 
