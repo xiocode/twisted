@@ -282,7 +282,12 @@ def ioType(fileIshObject, default=unicode):
 
     In other words, determine whether the given file is 'opened in text mode'.
 
-    @param fileIshObject: Any object, but ideally one
+    @param fileIshObject: Any object, but ideally one which resembles a file.
+    @type fileIshObject: L{object}
+
+    @param default: A default value to return when the type of C{fileIshObject}
+        cannot be determined.
+    @type default: L{type}
 
     @return: There are 3 possible return values:
 
