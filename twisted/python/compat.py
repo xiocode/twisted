@@ -32,6 +32,17 @@ else:
 
 
 def currentframe(n=0):
+    """
+    In Python 3, L{inspect.currentframe} does not take a stack-level argument.
+    Restore that functionality from Python 2 so we don't have to re-implement
+    the C{f_back}-walking loop in places where it's called.
+
+    @param n: The number of stack levels above the caller to walk.
+    @type n: L{int}
+
+    @return: a frame, n levels up the stack from the caller.
+    @rtype: L{types.FrameType}
+    """
     f = inspect.currentframe()
     for x in range(n + 1):
         f = f.f_back
