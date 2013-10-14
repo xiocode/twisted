@@ -10,7 +10,6 @@ Test cases for L{twisted.python.logger}.
 import sys
 from os import environ
 from io import StringIO
-from math import floor
 
 from time import mktime
 import logging as py_logging

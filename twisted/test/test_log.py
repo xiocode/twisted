@@ -15,7 +15,6 @@ from twisted.trial import unittest
 from twisted.trial.unittest import SkipTest
 
 from twisted.python import log, failure
-from twisted.python.test.test_logger import EncodedStringIO
 from twisted.python.test.test_logger import handlerAndStringIO
 from twisted.python.logger import LoggingFile, LogLevel as NewLogLevel
 
