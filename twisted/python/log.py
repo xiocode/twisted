@@ -298,6 +298,9 @@ if 'theLogPublisher' not in globals():
         Remove a log observer from the global publisher.
 
         @see: L{LogPublisher.removeObserver}
+
+        @param observer: a log observer previously added with L{addObserver}
+        @type observer: L{callable}
         """
 
 
@@ -307,6 +310,12 @@ if 'theLogPublisher' not in globals():
         Publish a message to the global log publisher.
 
         @see: L{LogPublisher.msg}
+
+        @param message: the log message
+        @type message: C{tuple} of L{str} (native string)
+
+        @param event: fields for the log event
+        @type event: L{dict} mapping L{str} (native string) to L{object}
         """
 
 
