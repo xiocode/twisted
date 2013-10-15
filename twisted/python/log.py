@@ -23,11 +23,11 @@ from twisted.python import failure
 from twisted.python.threadable import synchronize
 from twisted.python.logger import (
     LogLevel as NewLogLevel,
-    Logger as NewLogger,
     FileLogObserver as NewFileLogObserver,
     PythonLogObserver as NewPythonLogObserver,
     LegacyLogObserverWrapper, LoggingFile,
     LogPublisher as NewPublisher,
+    defaultLogPublisher as newDefaultLogPublisher,
 )
 
 
@@ -273,8 +273,8 @@ if 'theLogPublisher' not in globals():
         return decorate
 
     theLogPublisher = LogPublisher(
-        observerPublisher=NewLogger._defaultPublisher().filteredPublisher,
-        publishPublisher=NewLogger._defaultPublisher()
+        observerPublisher=newDefaultLogPublisher,
+        publishPublisher=newDefaultLogPublisher
     )
 
     @_actually(theLogPublisher.addObserver)

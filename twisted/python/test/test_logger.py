@@ -34,13 +34,15 @@ from twisted.python.logger import (
     LogLevel, InvalidLogLevelError,
     formatEvent, formatUnformattableEvent, formatWithCall,
     Logger, LegacyLogger,
-    ILogObserver, LogPublisher, DefaultLogPublisher,
+    ILogObserver, LogPublisher, defaultLogPublisher,
     FilteringLogObserver, PredicateResult,
     FileLogObserver, PythonLogObserver, RingBufferLogObserver,
     LegacyLogObserverWrapper, LoggingFile,
     LogLevelFilterPredicate,
     formatTrace,
 )
+
+
 
 class EncodedStringIO(StringIO):
     """
@@ -49,14 +51,16 @@ class EncodedStringIO(StringIO):
     the case of L{StringIO}, and 'encoding' is read-only onp
     L{StringIO}, so let's help it along figuring out what's up.
     """
-    encoding = 'utf-8'
+    encoding = "utf-8"
 
-defaultLogPublisher = Logger._defaultPublisher()
 
-defaultLogLevel         = LogLevelFilterPredicate().defaultLogLevel
-clearLogLevels          = defaultLogPublisher.levels.clearLogLevels
-logLevelForNamespace    = defaultLogPublisher.levels.logLevelForNamespace
-setLogLevelForNamespace = defaultLogPublisher.levels.setLogLevelForNamespace
+
+# defaultLogPublisher = Logger._defaultPublisher()
+
+# defaultLogLevel         = LogLevelFilterPredicate().defaultLogLevel
+# clearLogLevels          = defaultLogPublisher.levels.clearLogLevels
+# logLevelForNamespace    = defaultLogPublisher.levels.logLevelForNamespace
+# setLogLevelForNamespace = defaultLogPublisher.levels.setLogLevelForNamespace
 
 
 
@@ -65,7 +69,7 @@ class TestLogger(Logger):
         def observer(event):
             self.event = event
 
-        defaultLogPublisher.addObserver(observer, filtered=False)
+        defaultLogPublisher.addObserver(observer)
         try:
             Logger.emit(self, level, format, **kwargs)
         finally:
@@ -100,19 +104,7 @@ class LogComposedObject(object):
 
 
 
-class SetUpTearDown(object):
-    def setUp(self):
-        super(SetUpTearDown, self).setUp()
-        clearLogLevels()
-
-
-    def tearDown(self):
-        super(SetUpTearDown, self).tearDown()
-        clearLogLevels()
-
-
-
-class LoggingTests(SetUpTearDown, unittest.TestCase):
+class LoggingTests(unittest.TestCase):
     """
     General module tests.
     """
@@ -138,67 +130,67 @@ class LoggingTests(SetUpTearDown, unittest.TestCase):
             self.fail("Expected InvalidLogLevelError.")
 
 
-    def test_defaultLogLevel(self):
-        """
-        Default log level is used.
-        """
-        self.failUnless(logLevelForNamespace(None), defaultLogLevel)
-        self.failUnless(logLevelForNamespace(""), defaultLogLevel)
-        self.failUnless(logLevelForNamespace("rocker.cool.namespace"),
-                        defaultLogLevel)
+    # def test_defaultLogLevel(self):
+    #     """
+    #     Default log level is used.
+    #     """
+    #     self.failUnless(logLevelForNamespace(None), defaultLogLevel)
+    #     self.failUnless(logLevelForNamespace(""), defaultLogLevel)
+    #     self.failUnless(logLevelForNamespace("rocker.cool.namespace"),
+    #                     defaultLogLevel)
 
 
-    def test_setLogLevel(self):
-        """
-        Setting and retrieving log levels.
-        """
-        setLogLevelForNamespace(None, LogLevel.error)
-        setLogLevelForNamespace("twext.web2", LogLevel.debug)
-        setLogLevelForNamespace("twext.web2.dav", LogLevel.warn)
+    # def test_setLogLevel(self):
+    #     """
+    #     Setting and retrieving log levels.
+    #     """
+    #     setLogLevelForNamespace(None, LogLevel.error)
+    #     setLogLevelForNamespace("twext.web2", LogLevel.debug)
+    #     setLogLevelForNamespace("twext.web2.dav", LogLevel.warn)
 
-        self.assertEquals(logLevelForNamespace(None),
-                          LogLevel.error)
-        self.assertEquals(logLevelForNamespace("twisted"),
-                          LogLevel.error)
-        self.assertEquals(logLevelForNamespace("twext.web2"),
-                          LogLevel.debug)
-        self.assertEquals(logLevelForNamespace("twext.web2.dav"),
-                          LogLevel.warn)
-        self.assertEquals(logLevelForNamespace("twext.web2.dav.test"),
-                          LogLevel.warn)
-        self.assertEquals(logLevelForNamespace("twext.web2.dav.test1.test2"),
-                          LogLevel.warn)
-
-
-    def test_setInvalidLogLevel(self):
-        """
-        Can't pass invalid log levels to setLogLevelForNamespace().
-        """
-        self.assertRaises(InvalidLogLevelError, setLogLevelForNamespace,
-                          "twext.web2", object())
-
-        # Level must be a constant, not the name of a constant
-        self.assertRaises(InvalidLogLevelError, setLogLevelForNamespace,
-                          "twext.web2", "debug")
+    #     self.assertEquals(logLevelForNamespace(None),
+    #                       LogLevel.error)
+    #     self.assertEquals(logLevelForNamespace("twisted"),
+    #                       LogLevel.error)
+    #     self.assertEquals(logLevelForNamespace("twext.web2"),
+    #                       LogLevel.debug)
+    #     self.assertEquals(logLevelForNamespace("twext.web2.dav"),
+    #                       LogLevel.warn)
+    #     self.assertEquals(logLevelForNamespace("twext.web2.dav.test"),
+    #                       LogLevel.warn)
+    #     self.assertEquals(logLevelForNamespace("twext.web2.dav.test1.test2"),
+    #                       LogLevel.warn)
 
 
-    def test_clearLogLevels(self):
-        """
-        Clearing log levels.
-        """
-        setLogLevelForNamespace("twext.web2", LogLevel.debug)
-        setLogLevelForNamespace("twext.web2.dav", LogLevel.error)
+    # def test_setInvalidLogLevel(self):
+    #     """
+    #     Can't pass invalid log levels to setLogLevelForNamespace().
+    #     """
+    #     self.assertRaises(InvalidLogLevelError, setLogLevelForNamespace,
+    #                       "twext.web2", object())
 
-        clearLogLevels()
+    #     # Level must be a constant, not the name of a constant
+    #     self.assertRaises(InvalidLogLevelError, setLogLevelForNamespace,
+    #                       "twext.web2", "debug")
 
-        self.assertEquals(logLevelForNamespace("twisted"), defaultLogLevel)
-        self.assertEquals(logLevelForNamespace("twext.web2"), defaultLogLevel)
-        self.assertEquals(logLevelForNamespace("twext.web2.dav"),
-                          defaultLogLevel)
-        self.assertEquals(logLevelForNamespace("twext.web2.dav.test"),
-                          defaultLogLevel)
-        self.assertEquals(logLevelForNamespace("twext.web2.dav.test1.test2"),
-                          defaultLogLevel)
+
+    # def test_clearLogLevels(self):
+    #     """
+    #     Clearing log levels.
+    #     """
+    #     setLogLevelForNamespace("twext.web2", LogLevel.debug)
+    #     setLogLevelForNamespace("twext.web2.dav", LogLevel.error)
+
+    #     clearLogLevels()
+
+    #     self.assertEquals(logLevelForNamespace("twisted"), defaultLogLevel)
+    #     self.assertEquals(logLevelForNamespace("twext.web2"), defaultLogLevel)
+    #     self.assertEquals(logLevelForNamespace("twext.web2.dav"),
+    #                       defaultLogLevel)
+    #     self.assertEquals(logLevelForNamespace("twext.web2.dav.test"),
+    #                       defaultLogLevel)
+    #     self.assertEquals(logLevelForNamespace("twext.web2.dav.test1.test2"),
+    #                       defaultLogLevel)
 
 
     def test_namespace_default(self):
@@ -354,7 +346,7 @@ class LoggingTests(SetUpTearDown, unittest.TestCase):
 
 
 
-class LoggerTests(SetUpTearDown, unittest.TestCase):
+class LoggerTests(unittest.TestCase):
     """
     Tests for L{Logger}.
     """
@@ -500,7 +492,7 @@ class LoggerTests(SetUpTearDown, unittest.TestCase):
 
 
 
-class LogPublisherTests(SetUpTearDown, unittest.TestCase):
+class LogPublisherTests(unittest.TestCase):
     """
     Tests for L{LogPublisher}.
     """
@@ -748,216 +740,46 @@ class LogPublisherTests(SetUpTearDown, unittest.TestCase):
 
 
 
-class DefaultLogPublisherTests(SetUpTearDown, unittest.TestCase):
-    """
-    Tests for L{DefaultLogPublisher}.
-    """
+    # def test_trace(self):
+    #     """
+    #     Tracing keeps track of forwarding done by the publisher.
+    #     """
+    #     publisher = DefaultLogPublisher()
 
-    def test_addObserver(self):
-        """
-        L{DefaultLogPublisher.addObserver} adds an observer.
-        """
-        o1 = lambda e: None
-        o2 = lambda e: None
-        o3 = lambda e: None
+    #     event = dict(log_trace=[])
 
-        publisher = DefaultLogPublisher()
-        publisher.addObserver(o1)
-        publisher.addObserver(o2, filtered=True)
-        publisher.addObserver(o3, filtered=False)
+    #     o1 = lambda e: None
 
-        self.assertEquals(
-            set((o1, o2)),
-            set(publisher.filteredPublisher._observers),
-            "Filtered observers do not match expected set"
-        )
-        self.assertEquals(
-            set((o3, publisher.filters)),
-            set(publisher.rootPublisher._observers),
-            "Root observers do not match expected set"
-        )
+    #     def o2(e):
+    #         self.assertIdentical(e, event)
+    #         self.assertEquals(
+    #             e["log_trace"],
+    #             [
+    #                 (publisher, o1),
+    #                 (publisher, o2),
+    #                 # Event hasn't been sent to o3 yet
+    #             ]
+    #         )
 
+    #     def o3(e):
+    #         self.assertIdentical(e, event)
+    #         self.assertEquals(
+    #             e["log_trace"],
+    #             [
+    #                 (publisher, o1),
+    #                 (publisher, o2),
+    #                 (publisher, o3),
+    #             ]
+    #         )
 
-    def test_addObserverAgain(self):
-        """
-        L{DefaultLogPublisher.addObserver} with the same observer doesn't add
-        it again.
-        """
-        o1 = lambda e: None
-        o2 = lambda e: None
-        o3 = lambda e: None
-
-        publisher = DefaultLogPublisher()
-        publisher.addObserver(o1)
-        publisher.addObserver(o2, filtered=True)
-        publisher.addObserver(o3, filtered=False)
-
-        # Swap filtered-ness of o2 and o3
-        publisher.addObserver(o1)
-        publisher.addObserver(o2, filtered=False)
-        publisher.addObserver(o3, filtered=True)
-
-        self.assertEquals(
-            set((o1, o3)),
-            set(publisher.filteredPublisher._observers),
-            "Filtered observers do not match expected set"
-        )
-        self.assertEquals(
-            set((o2, publisher.filters)),
-            set(publisher.rootPublisher._observers),
-            "Root observers do not match expected set"
-        )
-
-
-    def test_removeObserver(self):
-        """
-        L{DefaultLogPublisher.removeObserver} removes an observer.
-        """
-        o1 = lambda e: None
-        o2 = lambda e: None
-        o3 = lambda e: None
-
-        publisher = DefaultLogPublisher()
-        publisher.addObserver(o1)
-        publisher.addObserver(o2, filtered=True)
-        publisher.addObserver(o3, filtered=False)
-        publisher.removeObserver(o2)
-        publisher.removeObserver(o3)
-
-        self.assertEquals(
-            set((o1,)),
-            set(publisher.filteredPublisher._observers),
-            "Filtered observers do not match expected set"
-        )
-        self.assertEquals(
-            set((publisher.filters,)),
-            set(publisher.rootPublisher._observers),
-            "Root observers do not match expected set"
-        )
-
-
-    def test_filteredObserver(self):
-        """
-        L{DefaultLogPublisher.addObserver} with C{filtered=True} adds an
-        observer to the C{filteredPublisher} and events are properly filtered
-        when published.
-        """
-        namespace = __name__
-
-        event_debug = dict(
-            log_namespace=namespace,
-            log_level=LogLevel.debug,
-            log_format="",
-        )
-        event_error = dict(
-            log_namespace=namespace,
-            log_level=LogLevel.error,
-            log_format="",
-        )
-        events = []
-
-        observer = lambda e: events.append(e)
-
-        publisher = DefaultLogPublisher()
-
-        publisher.addObserver(observer, filtered=True)
-        publisher(event_debug)
-        publisher(event_error)
-        self.assertNotIn(event_debug, events)
-        self.assertIn(event_error, events)
-
-
-    def test_filteredObserverNoFilteringKeys(self):
-        """
-        Event with no C{log_level} is filtered out.
-        """
-        event_debug = dict(log_level=LogLevel.debug)
-        event_error = dict(log_level=LogLevel.error)
-        event_none  = dict()
-        events = []
-
-        observer = lambda e: events.append(e)
-
-        publisher = DefaultLogPublisher()
-        publisher.addObserver(observer, filtered=True)
-        publisher(event_debug)
-        publisher(event_error)
-        publisher(event_none)
-        self.assertNotIn(event_debug, events)
-        self.assertNotIn(event_error, events)
-        self.assertNotIn(event_none, events)
-
-
-    def test_unfilteredObserver(self):
-        """
-        Events are not filtered on their way to an observer added with
-        C{filtered=False}.
-        """
-        namespace = __name__
-
-        event_debug = dict(
-            log_namespace=namespace,
-            log_level=LogLevel.debug,
-            log_format="",
-        )
-        event_error = dict(
-            log_namespace=namespace,
-            log_level=LogLevel.error,
-            log_format="",
-        )
-        events = []
-
-        observer = lambda e: events.append(e)
-
-        publisher = DefaultLogPublisher()
-
-        publisher.addObserver(observer, filtered=False)
-        publisher(event_debug)
-        publisher(event_error)
-        self.assertIn(event_debug, events)
-        self.assertIn(event_error, events)
-
-
-    def test_trace(self):
-        """
-        Tracing keeps track of forwarding done by the publisher.
-        """
-        publisher = DefaultLogPublisher()
-
-        event = dict(log_trace=[])
-
-        o1 = lambda e: None
-
-        def o2(e):
-            self.assertIdentical(e, event)
-            self.assertEquals(
-                e["log_trace"],
-                [
-                    (publisher, o1),
-                    (publisher, o2),
-                    # Event hasn't been sent to o3 yet
-                ]
-            )
-
-        def o3(e):
-            self.assertIdentical(e, event)
-            self.assertEquals(
-                e["log_trace"],
-                [
-                    (publisher, o1),
-                    (publisher, o2),
-                    (publisher, o3),
-                ]
-            )
-
-        publisher.addObserver(o1)
-        publisher.addObserver(o2)
-        publisher.addObserver(o3)
-        publisher(event)
+    #     publisher.addObserver(o1)
+    #     publisher.addObserver(o2)
+    #     publisher.addObserver(o3)
+    #     publisher(event)
 
 
 
-class FilteringLogObserverTests(SetUpTearDown, unittest.TestCase):
+class FilteringLogObserverTests(unittest.TestCase):
     """
     Tests for L{FilteringLogObserver}.
     """
@@ -1117,7 +939,7 @@ class FilteringLogObserverTests(SetUpTearDown, unittest.TestCase):
 
 
 
-class FileLogObserverTests(SetUpTearDown, unittest.TestCase):
+class FileLogObserverTests(unittest.TestCase):
     """
     Tests for L{FileLogObserver}.
     """
@@ -1223,6 +1045,7 @@ class FileLogObserverTests(SetUpTearDown, unittest.TestCase):
             testObserver(localSTD, expectedSTD)
 
         tzIn = environ.get("TZ", None)
+
         @self.addCleanup
         def resetTZ():
             setTZ(tzIn)
@@ -1398,7 +1221,7 @@ class StdlibLoggingContainer(object):
 
 
 
-class PythonLogObserverTests(SetUpTearDown, unittest.TestCase):
+class PythonLogObserverTests(unittest.TestCase):
     """
     Tests for L{PythonLogObserver}.
     """
@@ -1543,7 +1366,7 @@ class PythonLogObserverTests(SetUpTearDown, unittest.TestCase):
 
 
 
-class RingBufferLogObserverTests(SetUpTearDown, unittest.TestCase):
+class RingBufferLogObserverTests(unittest.TestCase):
     """
     Tests for L{RingBufferLogObserver}.
     """
@@ -1604,7 +1427,7 @@ class RingBufferLogObserverTests(SetUpTearDown, unittest.TestCase):
 
 
 
-class LegacyLogObserverWrapperTests(SetUpTearDown, unittest.TestCase):
+class LegacyLogObserverWrapperTests(unittest.TestCase):
     """
     Tests for L{LegacyLogObserverWrapper}.
     """
@@ -1714,7 +1537,7 @@ class LegacyLogObserverWrapperTests(SetUpTearDown, unittest.TestCase):
 
 
 
-class LoggingFileTests(SetUpTearDown, unittest.TestCase):
+class LoggingFileTests(unittest.TestCase):
     """
     Tests for L{LoggingFile}.
     """
@@ -1914,16 +1737,6 @@ class LoggingFileTests(SetUpTearDown, unittest.TestCase):
         self.assertEquals(f.events[0]["log_format"], u"{message}")
 
 
-    def test_write_source(self):
-        """
-        Log source is the L{LoggingFile}.
-        """
-        f = self.observedFile()
-        f.write("Hello\n")
-        self.assertEquals(len(f.events), 1)
-        self.assertEquals(f.events[0]["log_source"], f)
-
-
     def test_writelines_buffering(self):
         """
         C{writelines} does not add newlines.
@@ -1963,22 +1776,22 @@ class LoggingFileTests(SetUpTearDown, unittest.TestCase):
 
 
     def observedFile(self, **kwargs):
-        f = LoggingFile(**kwargs)
-        f.events = []
-        f.messages = []
-
         def observer(event):
             f.events.append(event)
             if "message" in event:
                 f.messages.append(event["message"])
 
-        f.log._defaultPublisher().addObserver(observer)
+        log = Logger(observer=observer)
+
+        f = LoggingFile(logger=log, **kwargs)
+        f.events = []
+        f.messages = []
 
         return f
 
 
 
-class LegacyLoggerTests(SetUpTearDown, unittest.TestCase):
+class LegacyLoggerTests(unittest.TestCase):
     """
     Tests for L{LegacyLogger}.
     """

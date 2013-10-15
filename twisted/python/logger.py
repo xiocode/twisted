@@ -50,6 +50,7 @@ __all__ = [
     "PythonLogObserver",
     "RingBufferLogObserver",
     "LegacyLogObserverWrapper",
+    "defaultLogPublisher",
 ]
 
 from twisted.python.compat import ioType, _PY3, currentframe, unicode
@@ -268,55 +269,14 @@ def formatUnformattableEvent(event, error):
 
 class Logger(object):
     """
-    A L{Logger} emits log messages to a publisher.  You should instantiate it
+    A L{Logger} emits log messages to an observer.  You should instantiate it
     as a class or module attribute, as documented in L{this module's
     documentation <twisted.python.logger>}.
 
-    @ivar publisher: The L{publisher <LogPublisher>} which this L{Logger} will
-        publish events to.  If C{None}, use L{Logger}'s default publisher.
-    @type publisher: L{LogPublisher}
+    @ivar observer: The observer which this L{Logger} will send events to.
+        If C{None}, use the L{defaultLogPublisher}.
+    @type observer: L{ILogObserver}
     """
-
-    @classmethod
-    def _defaultPublisher(cls):
-        """
-        Get the default log publisher, constructing and caching it if
-        necessary.
-
-        @return: the default log publisher for L{Logger} instances.
-        @rtype: L{ILogObserver}
-        """
-        if hasattr(cls, "_theDefaultPublisher"):
-            return cls._theDefaultPublisher
-
-        # If no default log publisher has been set, return a temporary
-        # RingBufferLogObserver which will hold onto events until a
-        # default publisher is set.
-        if not hasattr(cls, "_theTemporaryPublisher"):
-            cls._theTemporaryPublisher = RingBufferLogObserver(64*1024)
-        return cls._theTemporaryPublisher
-
-
-    @classmethod
-    def setDefaultPublisher(cls, publisher):
-        """
-        Sets the default publisher for L{Logger} instances.
-
-        @param publisher: A new publisher.
-        @type publisher: L{ILogObserver}
-        """
-        publisher = ILogObserver(publisher)
-
-        if not hasattr(cls, "_theDefaultPublisher"):
-            # No default publisher has been set before; drain the temporary
-            # buffering publisher into the new one.
-            if hasattr(cls, "_theTemporaryPublisher"):
-                for event in cls._theTemporaryPublisher:
-                    publisher(event)
-                del cls._theTemporaryPublisher
-
-        cls._theDefaultPublisher = publisher
-
 
     @staticmethod
     def _namespaceFromCallingContext():
@@ -329,7 +289,7 @@ class Logger(object):
         return currentframe().f_back.f_back.f_globals["__name__"]
 
 
-    def __init__(self, namespace=None, source=None, publisher=None):
+    def __init__(self, namespace=None, source=None, observer=None):
         """
         @param namespace: The namespace for this logger.  Uses a dotted
             notation, as used by python modules.  If not C{None}, then the name
@@ -344,7 +304,7 @@ class Logger(object):
 
         self.namespace = namespace
         self.source = source
-        self.publisher = publisher
+        self.observer = observer
 
 
     def __get__(self, oself, type=None):
@@ -412,12 +372,12 @@ class Logger(object):
         )
 
         if "log_trace" in event:
-            event["log_trace"].append((self, self.publisher))
+            event["log_trace"].append((self, self.observer))
 
-        if self.publisher is None:
-            self._defaultPublisher()(event)
+        if self.observer is None:
+            defaultLogPublisher(event)
         else:
-            self.publisher(event)
+            self.observer(event)
 
 
     def failure(self, format, failure=None, level=LogLevel.critical, **kwargs):
@@ -655,7 +615,7 @@ class LogPublisher(object):
     def __init__(self, *observers):
         self._observers = []
         self._observers.extend(observers)
-        self.log = Logger(publisher=self)
+        self.log = Logger(observer=self)
 
 
     def addObserver(self, observer):
@@ -721,7 +681,7 @@ class LogPublisher(object):
         """
         errorPublisher = self.__class__(*[obs for obs in self._observers
                                           if obs is not observer])
-        return Logger(publisher=errorPublisher)
+        return Logger(observer=errorPublisher)
 
 
 
@@ -1334,97 +1294,133 @@ class LoggingFile(object):
 
 
 
-@implementer(ILogObserver)
-class DefaultLogPublisher(object):
+# @implementer(ILogObserver)
+# class DefaultLogPublisher(object):
+#     """
+#     This observer sets up a set of chained observers as follows:
+
+#         1. B{rootPublisher} - a L{LogPublisher}
+
+#         2. B{filters}: a L{FilteringLogObserver} that filters out messages
+#            using a L{LogLevelFilterPredicate}
+
+#         3. B{filteredPublisher} - a L{LogPublisher}
+
+#     The purpose of this class is to provide a default log observer with
+#     sufficient hooks to enable applications to add observers that can either
+#     receive all log messages, or only log messages that are configured to pass
+#     though the L{LogLevelFilterPredicate}::
+
+#         from twisted.python.logger import Logger, ILogObserver
+
+#         log = Logger()
+
+#         @implementer(ILogObserver)
+#         class AMPObserver(object):
+#             def __call__(self, event):
+#                 # eg.: Hold events in a ring buffer and expose them via AMP.
+#                 ...
+
+#         @implementer(ILogObserver)
+#         class FileObserver(object):
+#             def __call__(self, event):
+#                 # eg.: Take events and write them into a file.
+#                 ...
+
+#         # Send all events to the AMPObserver
+#         log.publisher.addObserver(AMPObserver(), filtered=False)
+
+#         # Send filtered events to the FileObserver
+#         log.publisher.addObserver(AMPObserver())
+
+#     With no observers added, the default behavior is that logged events are
+#     dropped.
+#     """
+
+#     def __init__(self):
+#         self.filteredPublisher()
+#         self.levels            = LogLevelFilterPredicate()
+#         self.filters           = FilteringLogObserver(self.filteredPublisher,
+#                                                       (self.levels,))
+#         self.rootPublisher     = LogPublisher(self.filters)
+
+#         self.filteredPublisher.name = "default filtered publisher"
+#         self.filters.name = "default filtering observer"
+#         self.rootPublisher.name = "default root publisher"
+
+
+#     def addObserver(self, observer, filtered=True):
+#         """
+#         Registers an observer with this publisher.
+
+#         @param observer: An L{ILogObserver} to add.
+
+#         @param filtered: If true, registers C{observer} after filters are
+#             applied; otherwise C{observer} will get all events.
+#         """
+#         if filtered:
+#             self.filteredPublisher.addObserver(observer)
+#             self.rootPublisher.removeObserver(observer)
+#         else:
+#             self.rootPublisher.addObserver(observer)
+#             self.filteredPublisher.removeObserver(observer)
+
+
+#     def removeObserver(self, observer):
+#         """
+#         Unregisters an observer with this publisher.
+
+#         @param observer: An L{ILogObserver} to remove.
+#         """
+#         self.rootPublisher.removeObserver(observer)
+#         self.filteredPublisher.removeObserver(observer)
+
+
+#     def __call__(self, event):
+#         if "log_trace" in event:
+#             event["log_trace"].append((self, self.rootPublisher))
+
+#         self.rootPublisher(event)
+
+
+
+# Default log publisher
+
+class _DefaultLogPublisher(LogPublisher):
     """
-    This observer sets up a set of chained observers as follows:
+    Class for the (singleton) default log publisher.
 
-        1. B{rootPublisher} - a L{LogPublisher}
-
-        2. B{filters}: a L{FilteringLogObserver} that filters out messages
-           using a L{LogLevelFilterPredicate}
-
-        3. B{filteredPublisher} - a L{LogPublisher}
-
-    The purpose of this class is to provide a default log observer with
-    sufficient hooks to enable applications to add observers that can either
-    receive all log messages, or only log messages that are configured to pass
-    though the L{LogLevelFilterPredicate}::
-
-        from twisted.python.logger import Logger, ILogObserver
-
-        log = Logger()
-
-        @implementer(ILogObserver)
-        class AMPObserver(object):
-            def __call__(self, event):
-                # eg.: Hold events in a ring buffer and expose them via AMP.
-                ...
-
-        @implementer(ILogObserver)
-        class FileObserver(object):
-            def __call__(self, event):
-                # eg.: Take events and write them into a file.
-                ...
-
-        # Send all events to the AMPObserver
-        log.publisher.addObserver(AMPObserver(), filtered=False)
-
-        # Send filtered events to the FileObserver
-        log.publisher.addObserver(AMPObserver())
-
-    With no observers added, the default behavior is that logged events are
-    dropped.
+    Received events are buffered until C{startLoggingWithObservers()} is
+    called.
     """
 
-    def __init__(self):
-        self.filteredPublisher = LogPublisher()
-        self.levels            = LogLevelFilterPredicate()
-        self.filters           = FilteringLogObserver(self.filteredPublisher,
-                                                      (self.levels,))
-        self.rootPublisher     = LogPublisher(self.filters)
-
-        self.filteredPublisher.name = "default filtered publisher"
-        self.filters.name = "default filtering observer"
-        self.rootPublisher.name = "default root publisher"
+    _temporaryObserver = RingBufferLogObserver(64*1024)
 
 
-    def addObserver(self, observer, filtered=True):
+    def startLoggingWithObservers(self, observers):
         """
-        Registers an observer with this publisher.
+        Register the given observers and send any events that may have been
+        previously buffered.
 
-        @param observer: An L{ILogObserver} to add.
-
-        @param filtered: If true, registers C{observer} after filters are
-            applied; otherwise C{observer} will get all events.
+        @param observers: The observers to register.
+        @type observers: iterable of L{ILogObserver}s
         """
-        if filtered:
-            self.filteredPublisher.addObserver(observer)
-            self.rootPublisher.removeObserver(observer)
-        else:
-            self.rootPublisher.addObserver(observer)
-            self.filteredPublisher.removeObserver(observer)
+
+        if self._temporaryObserver is None:
+            raise AssertionError(
+                "startLoggingWithObservers() may only be called once."
+            )
+
+        for observer in observers:
+            self.addObserver(observer)
+
+        for event in self._theBufferingObserver:
+            self(event)
+
+        self._temporaryObserver = None
 
 
-    def removeObserver(self, observer):
-        """
-        Unregisters an observer with this publisher.
-
-        @param observer: An L{ILogObserver} to remove.
-        """
-        self.rootPublisher.removeObserver(observer)
-        self.filteredPublisher.removeObserver(observer)
-
-
-    def __call__(self, event):
-        if "log_trace" in event:
-            event["log_trace"].append((self, self.rootPublisher))
-
-        self.rootPublisher(event)
-
-
-
-Logger.setDefaultPublisher(DefaultLogPublisher())
+defaultLogPublisher = _DefaultLogPublisher()
 
 
 
