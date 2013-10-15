@@ -740,45 +740,6 @@ class LogPublisherTests(unittest.TestCase):
 
 
 
-    # def test_trace(self):
-    #     """
-    #     Tracing keeps track of forwarding done by the publisher.
-    #     """
-    #     publisher = DefaultLogPublisher()
-
-    #     event = dict(log_trace=[])
-
-    #     o1 = lambda e: None
-
-    #     def o2(e):
-    #         self.assertIdentical(e, event)
-    #         self.assertEquals(
-    #             e["log_trace"],
-    #             [
-    #                 (publisher, o1),
-    #                 (publisher, o2),
-    #                 # Event hasn't been sent to o3 yet
-    #             ]
-    #         )
-
-    #     def o3(e):
-    #         self.assertIdentical(e, event)
-    #         self.assertEquals(
-    #             e["log_trace"],
-    #             [
-    #                 (publisher, o1),
-    #                 (publisher, o2),
-    #                 (publisher, o3),
-    #             ]
-    #         )
-
-    #     publisher.addObserver(o1)
-    #     publisher.addObserver(o2)
-    #     publisher.addObserver(o3)
-    #     publisher(event)
-
-
-
 class FilteringLogObserverTests(unittest.TestCase):
     """
     Tests for L{FilteringLogObserver}.
