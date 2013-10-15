@@ -222,7 +222,7 @@ def formatEvent(event):
             raise TypeError("Log format must be unicode or bytes, not {0!r}"
                             .format(format))
 
-        return formatWithCall(format, event)
+        return _formatWithCall(format, event)
 
     except Exception as e:
         return formatUnformattableEvent(event, e)
@@ -902,7 +902,7 @@ class FileLogObserver(object):
             self._timeFormat is not None and
             when is not None
         ):
-            tz = MagicTimeZone(when)
+            tz = _MagicTimeZone(when)
             datetime = DateTime.fromtimestamp(when, tz)
             return datetime.strftime(self._timeFormat)
         else:
@@ -1007,7 +1007,7 @@ class PythonLogObserver(object):
         """
         level = event.get("log_level", LogLevel.info)
         stdlibLevel = pythonLogLevelMapping.get(level, stdlibLogging.INFO)
-        self.logger.log(stdlibLevel, StringifiableFromEvent(event))
+        self.logger.log(stdlibLevel, _StringifiableFromEvent(event))
 
 
 
@@ -1115,7 +1115,7 @@ class LegacyLogObserverWrapper(object):
             # Create an object that implements __str__() in order to defer the
             # work of formatting until it's needed by a legacy log observer.
             event["format"] = "%(log_legacy)s"
-            event["log_legacy"] = StringifiableFromEvent(event.copy())
+            event["log_legacy"] = _StringifiableFromEvent(event.copy())
 
         # log.failure() -> isError blah blah
         if "log_failure" in event:
@@ -1341,7 +1341,7 @@ defaultLogPublisher = _DefaultLogPublisher()
 
 # Utilities
 
-class StringifiableFromEvent(object):
+class _StringifiableFromEvent(object):
     """
     An object that implements C{__str__()} in order to defer the work of
     formatting until it's converted into a C{str}.
@@ -1369,7 +1369,7 @@ class _CallMapping(object):
     Read-only mapping that turns a C{()}-suffix in key names into an invocation
     of the key rather than a lookup of the key.
 
-    Implementation support for L{formatWithCall}.
+    Implementation support for L{_formatWithCall}.
     """
     def __init__(self, submapping):
         """
@@ -1393,7 +1393,7 @@ class _CallMapping(object):
 
 
 
-def formatWithCall(formatString, mapping):
+def _formatWithCall(formatString, mapping):
     """
     Format a string like L{unicode.format}, but:
 
@@ -1406,9 +1406,9 @@ def formatWithCall(formatString, mapping):
 
     For example::
 
-        >>> formatWithCall("{string}, {function()}.",
-        ...                dict(string="just a string",
-        ...                     function=lambda: "a function"))
+        >>> _formatWithCall("{string}, {function()}.",
+        ...                 dict(string="just a string",
+        ...                      function=lambda: "a function"))
         'just a string, a function.'
 
     @param formatString: A PEP-3101 format string.
@@ -1427,7 +1427,7 @@ _theFormatter = Formatter()
 
 
 
-class MagicTimeZone(TZInfo):
+class _MagicTimeZone(TZInfo):
     """
     Magic TimeZone.
     """
@@ -1444,13 +1444,13 @@ class MagicTimeZone(TZInfo):
 
 
     def dst(self, dt):
-        return timeDeltaZero
+        return _timeDeltaZero
 
-timeDeltaZero = TimeDelta(0)
+_timeDeltaZero = TimeDelta(0)
 
 
 
-def formatTrace(trace):
+def _formatTrace(trace):
     """
     Format a trace (that is, the contents of the C{log_trace} key of a log
     event) as a visual indication of the message's propagation through various

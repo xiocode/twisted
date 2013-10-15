@@ -33,7 +33,7 @@ from twisted.python.compat import unicode, _PY3
 
 from twisted.python.logger import (
     LogLevel, InvalidLogLevelError,
-    formatEvent, formatUnformattableEvent, formatWithCall,
+    formatEvent, formatUnformattableEvent, _formatWithCall,
     Logger, LegacyLogger,
     ILogObserver, LogPublisher, defaultLogPublisher,
     FilteringLogObserver, PredicateResult,
@@ -41,7 +41,7 @@ from twisted.python.logger import (
     LegacyLogObserverWrapper, LoggingFile,
     LogLevelFilterPredicate,
     _DefaultLogPublisher,
-    MagicTimeZone, formatTrace,
+    _MagicTimeZone, _formatTrace,
 )
 
 
@@ -133,19 +133,19 @@ class LoggingTests(unittest.TestCase):
 
     def test_formatWithCall(self):
         """
-        L{formatWithCall} is an extended version of L{unicode.format} that will
+        L{_formatWithCall} is an extended version of L{unicode.format} that will
         interpret a set of parentheses "C{()}" at the end of a format key to
         mean that the format key ought to be I{called} rather than stringified.
         """
         self.assertEquals(
-            formatWithCall(
+            _formatWithCall(
                 u"Hello, {world}. {callme()}.",
                 dict(world="earth", callme=lambda: "maybe")
             ),
             "Hello, earth. maybe."
         )
         self.assertEquals(
-            formatWithCall(
+            _formatWithCall(
                 u"Hello, {repr()!r}.",
                 dict(repr=lambda: "repr")
             ),
@@ -790,7 +790,7 @@ class LogPublisherTests(unittest.TestCase):
 
         def testObserver(e):
             self.assertIdentical(e, event)
-            trace = formatTrace(e["log_trace"])
+            trace = _formatTrace(e["log_trace"])
             self.assertEquals(
                 trace,
                 (
@@ -2050,7 +2050,7 @@ class DefaultLogPublisherTests(unittest.TestCase):
 
 class MagicTimeZoneTests(unittest.TestCase):
     """
-    Tests for L{MagicTimeZone}.
+    Tests for L{_MagicTimeZone}.
     """
 
     def test_timezones(self):
@@ -2086,11 +2086,17 @@ class MagicTimeZoneTests(unittest.TestCase):
                 )
             localSTD = mktime((2007, 1, 31, 0, 0, 0, 2,  31, 0))
 
-            tzDST = MagicTimeZone(localDST)
-            tzSTD = MagicTimeZone(localSTD)
+            tzDST = _MagicTimeZone(localDST)
+            tzSTD = _MagicTimeZone(localSTD)
 
-            self.assertEquals(tzDST.tzname(localDST), "Magic")
-            self.assertEquals(tzSTD.tzname(localSTD), "Magic")
+            self.assertEquals(
+                tzDST.tzname(localDST),
+                "Magic" #UTC{0}".format(expectedOffsetDST)
+            )
+            self.assertEquals(
+                tzSTD.tzname(localSTD),
+                "Magic" #"UTC{0}".format(expectedOffsetSTD)
+            )
 
             self.assertEquals(tzDST.dst(localDST), TimeDelta(0))
             self.assertEquals(tzSTD.dst(localSTD), TimeDelta(0))
