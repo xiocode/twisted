@@ -12,6 +12,7 @@ from os import environ
 from io import StringIO, BytesIO, TextIOWrapper
 
 from time import mktime
+from datetime import timedelta as TimeDelta
 import logging as py_logging
 from inspect import currentframe, getsourcefile
 
@@ -40,7 +41,7 @@ from twisted.python.logger import (
     LegacyLogObserverWrapper, LoggingFile,
     LogLevelFilterPredicate,
     _DefaultLogPublisher,
-    formatTrace,
+    MagicTimeZone, formatTrace,
 )
 
 
@@ -1185,7 +1186,7 @@ class FileLogObserverTests(unittest.TestCase):
     def test_defaultTimeStamp(self):
         """
         Default time stamp format is RFC 3339 and offset respects the timezone
-        as set by the standard 'TZ' variable and L{tzset} API.
+        as set by the standard C{TZ} environment variable and L{tzset} API.
         """
         if tzset is None:
             raise SkipTest(
@@ -2052,9 +2053,71 @@ class MagicTimeZoneTests(unittest.TestCase):
     Tests for L{MagicTimeZone}.
     """
 
-    def test_foo(self):
-        raise NotImplementedError()
+    def test_timezones(self):
+        """
+        Test that timezone attributes respect the timezone as set by the
+        standard C{TZ} environment variable and L{tzset} API.
+        """
+        if tzset is None:
+            raise SkipTest(
+                "Platform cannot change timezone; unable to verify offsets."
+            )
 
+        def setTZ(name):
+            if name is None:
+                del environ["TZ"]
+            else:
+                environ["TZ"] = name
+            tzset()
+
+        def testForTimeZone(name, expectedOffsetDST, expectedOffsetSTD):
+            setTZ(name)
+
+            # On some rare platforms (FreeBSD 8?  I was not able to reproduce
+            # on FreeBSD 9) 'mktime' seems to always fail once tzset() has been
+            # called more than once in a process lifetime.  I think this is
+            # just a platform bug, so let's work around it.  -glyph
+            try:
+                localDST = mktime((2006, 6, 30, 0, 0, 0, 4, 181, 1))
+            except OverflowError:
+                raise SkipTest(
+                    "Platform cannot construct time zone for {0!r}"
+                    .format(name)
+                )
+            localSTD = mktime((2007, 1, 31, 0, 0, 0, 2,  31, 0))
+
+            tzDST = MagicTimeZone(localDST)
+            tzSTD = MagicTimeZone(localSTD)
+
+            self.assertEquals(tzDST.tzname(localDST), "Magic")
+            self.assertEquals(tzSTD.tzname(localSTD), "Magic")
+
+            self.assertEquals(tzDST.dst(localDST), TimeDelta(0))
+            self.assertEquals(tzSTD.dst(localSTD), TimeDelta(0))
+
+            self.assertEquals(
+                tzDST.utcoffset(localDST),
+                TimeDelta(minutes=int(expectedOffsetDST))
+            )
+            self.assertEquals(
+                tzSTD.utcoffset(localSTD),
+                TimeDelta(minutes=int(expectedOffsetSTD))
+            )
+
+        tzIn = environ.get("TZ", None)
+
+        @self.addCleanup
+        def resetTZ():
+            setTZ(tzIn)
+
+        # UTC
+        testForTimeZone("UTC+00", "+0000", "+0000")
+        # West of UTC
+        testForTimeZone("EST+05EDT,M4.1.0,M10.5.0", "-0400", "-0500")
+        # East of UTC
+        testForTimeZone("CEST-01CEDT,M4.1.0,M10.5.0", "+0200", "+0100")
+        # No DST
+        testForTimeZone("CST+06", "-0600", "-0600")
 
 
 class Unformattable(object):
