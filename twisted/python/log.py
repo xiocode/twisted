@@ -286,6 +286,9 @@ if 'theLogPublisher' not in globals():
         Add a log observer to the global publisher.
 
         @see: L{LogPublisher.addObserver}
+
+        @param observer: a log observer
+        @type observer: L{callable}
         """
 
 
