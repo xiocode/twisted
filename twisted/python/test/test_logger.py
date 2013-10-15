@@ -39,6 +39,7 @@ from twisted.python.logger import (
     FileLogObserver, PythonLogObserver, RingBufferLogObserver,
     LegacyLogObserverWrapper, LoggingFile,
     LogLevelFilterPredicate,
+    _DefaultLogPublisher,
     formatTrace,
 )
 
@@ -426,6 +427,160 @@ class LoggerTests(unittest.TestCase):
 
         log.publisher = publisher
         log.info("Hello.", log_trace=[])
+
+
+
+class LegacyLoggerTests(unittest.TestCase):
+    """
+    Tests for L{LegacyLogger}.
+    """
+
+    def test_namespace_default(self):
+        """
+        Default namespace is module name.
+        """
+        log = TestLegacyLogger(logger=None)
+        self.assertEquals(log.newStyleLogger.namespace, __name__)
+
+
+    def test_passThroughAttributes(self):
+        """
+        C{__getattribute__} on L{LegacyLogger} is passing through to Twisted's
+        logging module.
+        """
+        log = TestLegacyLogger()
+
+        # Not passed through
+        self.assertIn("API-compatible", log.msg.__doc__)
+        self.assertIn("API-compatible", log.err.__doc__)
+
+        # Passed through
+        self.assertIdentical(log.addObserver, twistedLogging.addObserver)
+
+
+    def test_legacy_msg(self):
+        """
+        Test LegacyLogger's log.msg()
+        """
+        log = TestLegacyLogger()
+
+        message = "Hi, there."
+        kwargs = {"foo": "bar", "obj": object()}
+
+        log.msg(message, **kwargs)
+
+        self.assertIdentical(log.newStyleLogger.emitted["level"],
+                             LogLevel.info)
+        self.assertEquals(log.newStyleLogger.emitted["format"], message)
+
+        for key, value in kwargs.items():
+            self.assertIdentical(log.newStyleLogger.emitted["kwargs"][key],
+                                 value)
+
+        log.msg(foo="")
+
+        self.assertIdentical(log.newStyleLogger.emitted["level"],
+                             LogLevel.info)
+        self.assertIdentical(log.newStyleLogger.emitted["format"], None)
+
+
+    def test_legacy_err_implicit(self):
+        """
+        Test LegacyLogger's log.err() capturing the in-flight exception.
+        """
+        log = TestLegacyLogger()
+
+        exception = RuntimeError("Oh me, oh my.")
+        kwargs = {"foo": "bar", "obj": object()}
+
+        try:
+            raise exception
+        except RuntimeError:
+            log.err(**kwargs)
+
+        self.legacy_err(log, kwargs, None, exception)
+
+
+    def test_legacy_err_exception(self):
+        """
+        Test LegacyLogger's log.err() with a given exception.
+        """
+        log = TestLegacyLogger()
+
+        exception = RuntimeError("Oh me, oh my.")
+        kwargs = {"foo": "bar", "obj": object()}
+        why = "Because I said so."
+
+        try:
+            raise exception
+        except RuntimeError as e:
+            log.err(e, why, **kwargs)
+
+        self.legacy_err(log, kwargs, why, exception)
+
+
+    def test_legacy_err_failure(self):
+        """
+        Test LegacyLogger's log.err() with a given L{Failure}.
+        """
+        log = TestLegacyLogger()
+
+        exception = RuntimeError("Oh me, oh my.")
+        kwargs = {"foo": "bar", "obj": object()}
+        why = "Because I said so."
+
+        try:
+            raise exception
+        except RuntimeError:
+            log.err(Failure(), why, **kwargs)
+
+        self.legacy_err(log, kwargs, why, exception)
+
+
+    def test_legacy_err_bogus(self):
+        """
+        Test LegacyLogger's log.err() with a bogus argument.
+        """
+        log = TestLegacyLogger()
+
+        exception = RuntimeError("Oh me, oh my.")
+        kwargs = {"foo": "bar", "obj": object()}
+        why = "Because I said so."
+        bogus = object()
+
+        try:
+            raise exception
+        except RuntimeError:
+            log.err(bogus, why, **kwargs)
+
+        errors = self.flushLoggedErrors(exception.__class__)
+        self.assertEquals(len(errors), 0)
+
+        self.assertIdentical(log.newStyleLogger.emitted["level"],
+                             LogLevel.error)
+        self.assertEquals(log.newStyleLogger.emitted["format"], repr(bogus))
+        self.assertIdentical(log.newStyleLogger.emitted["kwargs"]["why"], why)
+
+        for key, value in kwargs.items():
+            self.assertIdentical(log.newStyleLogger.emitted["kwargs"][key],
+                                 value)
+
+
+    def legacy_err(self, log, kwargs, why, exception):
+        errors = self.flushLoggedErrors(exception.__class__)
+        self.assertEquals(len(errors), 1)
+
+        self.assertIdentical(log.newStyleLogger.emitted["level"],
+                             LogLevel.error)
+        self.assertEquals(log.newStyleLogger.emitted["format"], None)
+        emittedKwargs = log.newStyleLogger.emitted["kwargs"]
+        self.assertIdentical(emittedKwargs["failure"].__class__, Failure)
+        self.assertIdentical(emittedKwargs["failure"].value, exception)
+        self.assertIdentical(emittedKwargs["why"], why)
+
+        for key, value in kwargs.items():
+            self.assertIdentical(log.newStyleLogger.emitted["kwargs"][key],
+                                 value)
 
 
 
@@ -945,6 +1100,13 @@ class LogLevelFilterPredicateTests(unittest.TestCase):
         )
 
 
+    def test_filtering(self):
+        """
+        Events are filtered based on log level/namespace.
+        """
+        raise NotImplementedError()
+
+
 
 class FileLogObserverTests(unittest.TestCase):
     """
@@ -1044,8 +1206,10 @@ class FileLogObserverTests(unittest.TestCase):
             try:
                 localDST = mktime((2006, 6, 30, 0, 0, 0, 4, 181, 1))
             except OverflowError:
-                raise SkipTest("Platform cannot construct time zone for " +
-                               repr(name))
+                raise SkipTest(
+                    "Platform cannot construct time zone for {0!r}"
+                    .format(name)
+                )
             localSTD = mktime((2007, 1, 31, 0, 0, 0, 2,  31, 0))
 
             testObserver(localDST, expectedDST)
@@ -1798,157 +1962,52 @@ class LoggingFileTests(unittest.TestCase):
 
 
 
-class LegacyLoggerTests(unittest.TestCase):
+class DefaultLogPublisherTests(unittest.TestCase):
     """
-    Tests for L{LegacyLogger}.
+    Tests for L{_DefaultLogPublisher}.
     """
 
-    def test_namespace_default(self):
+    def test_interface(self):
         """
-        Default namespace is module name.
+        L{_DefaultLogPublisher} is an L{ILogObserver}.
         """
-        log = TestLegacyLogger(logger=None)
-        self.assertEquals(log.newStyleLogger.namespace, __name__)
-
-
-    def test_passThroughAttributes(self):
-        """
-        C{__getattribute__} on L{LegacyLogger} is passing through to Twisted's
-        logging module.
-        """
-        log = TestLegacyLogger()
-
-        # Not passed through
-        self.assertIn("API-compatible", log.msg.__doc__)
-        self.assertIn("API-compatible", log.err.__doc__)
-
-        # Passed through
-        self.assertIdentical(log.addObserver, twistedLogging.addObserver)
-
-
-    def test_legacy_msg(self):
-        """
-        Test LegacyLogger's log.msg()
-        """
-        log = TestLegacyLogger()
-
-        message = "Hi, there."
-        kwargs = {"foo": "bar", "obj": object()}
-
-        log.msg(message, **kwargs)
-
-        self.assertIdentical(log.newStyleLogger.emitted["level"],
-                             LogLevel.info)
-        self.assertEquals(log.newStyleLogger.emitted["format"], message)
-
-        for key, value in kwargs.items():
-            self.assertIdentical(log.newStyleLogger.emitted["kwargs"][key],
-                                 value)
-
-        log.msg(foo="")
-
-        self.assertIdentical(log.newStyleLogger.emitted["level"],
-                             LogLevel.info)
-        self.assertIdentical(log.newStyleLogger.emitted["format"], None)
-
-
-    def test_legacy_err_implicit(self):
-        """
-        Test LegacyLogger's log.err() capturing the in-flight exception.
-        """
-        log = TestLegacyLogger()
-
-        exception = RuntimeError("Oh me, oh my.")
-        kwargs = {"foo": "bar", "obj": object()}
-
+        publisher = _DefaultLogPublisher()
         try:
-            raise exception
-        except RuntimeError:
-            log.err(**kwargs)
-
-        self.legacy_err(log, kwargs, None, exception)
+            verifyObject(ILogObserver, publisher)
+        except BrokenMethodImplementation as e:
+            self.fail(e)
 
 
-    def test_legacy_err_exception(self):
+    def test_startLoggingWithObservers_addObservers(self):
         """
-        Test LegacyLogger's log.err() with a given exception.
+        Test that C{startLoggingWithObservers()} add observers.
         """
-        log = TestLegacyLogger()
-
-        exception = RuntimeError("Oh me, oh my.")
-        kwargs = {"foo": "bar", "obj": object()}
-        why = "Because I said so."
-
-        try:
-            raise exception
-        except RuntimeError as e:
-            log.err(e, why, **kwargs)
-
-        self.legacy_err(log, kwargs, why, exception)
+        raise NotImplementedError()
 
 
-    def test_legacy_err_failure(self):
+    def test_startLoggingWithObservers_bufferedEvents(self):
         """
-        Test LegacyLogger's log.err() with a given L{Failure}.
+        Test that events are buffered until C{startLoggingWithObservers()} is
+        called.
         """
-        log = TestLegacyLogger()
-
-        exception = RuntimeError("Oh me, oh my.")
-        kwargs = {"foo": "bar", "obj": object()}
-        why = "Because I said so."
-
-        try:
-            raise exception
-        except RuntimeError:
-            log.err(Failure(), why, **kwargs)
-
-        self.legacy_err(log, kwargs, why, exception)
+        raise NotImplementedError()
 
 
-    def test_legacy_err_bogus(self):
+    def test_startLoggingWithObservers_twice(self):
         """
-        Test LegacyLogger's log.err() with a bogus argument.
+        Test that C{startLoggingWithObservers()} complains when called twice.
         """
-        log = TestLegacyLogger()
-
-        exception = RuntimeError("Oh me, oh my.")
-        kwargs = {"foo": "bar", "obj": object()}
-        why = "Because I said so."
-        bogus = object()
-
-        try:
-            raise exception
-        except RuntimeError:
-            log.err(bogus, why, **kwargs)
-
-        errors = self.flushLoggedErrors(exception.__class__)
-        self.assertEquals(len(errors), 0)
-
-        self.assertIdentical(log.newStyleLogger.emitted["level"],
-                             LogLevel.error)
-        self.assertEquals(log.newStyleLogger.emitted["format"], repr(bogus))
-        self.assertIdentical(log.newStyleLogger.emitted["kwargs"]["why"], why)
-
-        for key, value in kwargs.items():
-            self.assertIdentical(log.newStyleLogger.emitted["kwargs"][key],
-                                 value)
+        raise NotImplementedError()
 
 
-    def legacy_err(self, log, kwargs, why, exception):
-        errors = self.flushLoggedErrors(exception.__class__)
-        self.assertEquals(len(errors), 1)
 
-        self.assertIdentical(log.newStyleLogger.emitted["level"],
-                             LogLevel.error)
-        self.assertEquals(log.newStyleLogger.emitted["format"], None)
-        emittedKwargs = log.newStyleLogger.emitted["kwargs"]
-        self.assertIdentical(emittedKwargs["failure"].__class__, Failure)
-        self.assertIdentical(emittedKwargs["failure"].value, exception)
-        self.assertIdentical(emittedKwargs["why"], why)
+class MagicTimeZoneTests(unittest.TestCase):
+    """
+    Tests for L{MagicTimeZone}.
+    """
 
-        for key, value in kwargs.items():
-            self.assertIdentical(log.newStyleLogger.emitted["kwargs"][key],
-                                 value)
+    def test_foo(self):
+        raise NotImplementedError()
 
 
 
