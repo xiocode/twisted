@@ -2095,13 +2095,28 @@ class MagicTimeZoneTests(unittest.TestCase):
             self.assertEquals(tzDST.dst(localDST), TimeDelta(0))
             self.assertEquals(tzSTD.dst(localSTD), TimeDelta(0))
 
+            def timeDeltaFromOffset(offset):
+                assert len(offset) == 5
+
+                sign = offset[0]
+                hours = int(offset[1:3])
+                minutes = int(offset[3:5])
+
+                if sign == "-":
+                    hours = -hours
+                    minutes = -minutes
+                else:
+                    assert sign == "+"
+
+                return TimeDelta(hours=hours, minutes=minutes)
+
             self.assertEquals(
                 tzDST.utcoffset(localDST),
-                TimeDelta(minutes=int(expectedOffsetDST))
+                timeDeltaFromOffset(expectedOffsetDST)
             )
             self.assertEquals(
                 tzSTD.utcoffset(localSTD),
-                TimeDelta(minutes=int(expectedOffsetSTD))
+                timeDeltaFromOffset(expectedOffsetSTD)
             )
 
         tzIn = environ.get("TZ", None)
