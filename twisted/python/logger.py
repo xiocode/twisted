@@ -1440,7 +1440,8 @@ class _MagicTimeZone(TZInfo):
 
 
     def tzname(self, dt):
-        return "Magic"
+        dt = DateTime.fromtimestamp(0, self)
+        return dt.strftime("UTC%z")
 
 
     def dst(self, dt):

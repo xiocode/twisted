@@ -2091,11 +2091,11 @@ class MagicTimeZoneTests(unittest.TestCase):
 
             self.assertEquals(
                 tzDST.tzname(localDST),
-                "Magic" #UTC{0}".format(expectedOffsetDST)
+                "UTC{0}".format(expectedOffsetDST)
             )
             self.assertEquals(
                 tzSTD.tzname(localSTD),
-                "Magic" #"UTC{0}".format(expectedOffsetSTD)
+                "UTC{0}".format(expectedOffsetSTD)
             )
 
             self.assertEquals(tzDST.dst(localDST), TimeDelta(0))
