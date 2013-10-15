@@ -871,10 +871,7 @@ class FileLogObserver(object):
         else:
             self._encoding = None
         self._outputStream = textOutput
-        if callable(timeFormat):
-            self.formatTime = timeFormat
-        else:
-            self._timeFormat = timeFormat
+        self._timeFormat = timeFormat
 
 
     def _writeText(self, text):
