@@ -9,7 +9,7 @@ Test cases for L{twisted.python.logger}.
 
 import sys
 from os import environ
-from io import StringIO
+from io import StringIO, BytesIO, TextIOWrapper
 
 from time import mktime
 import logging as py_logging
@@ -1326,17 +1326,75 @@ class FileLogObserverTests(SetUpTearDown, unittest.TestCase):
 
 
 
-def handlerAndStringIO():
+def handlerAndBytesIO():
     """
-    Construct a 2-tuple of C{(StreamHandler, StringIO)} for testing interaction
+    Construct a 2-tuple of C{(StreamHandler, BytesIO)} for testing interaction
     with the 'logging' module.
     """
-    output = EncodedStringIO()
-    template = unicode(py_logging.BASIC_FORMAT)
+    output = BytesIO()
+    stream = output
+    template = py_logging.BASIC_FORMAT
+    if _PY3:
+        stream = TextIOWrapper(output, encoding="utf-8")
     formatter = py_logging.Formatter(template)
-    handler = py_logging.StreamHandler(output)
+    handler = py_logging.StreamHandler(stream)
     handler.setFormatter(formatter)
     return handler, output
+
+
+
+class BufferedHandler(py_logging.Handler):
+    """
+    A L{py_logging.Handler} that remembers all logged records in a list.
+    """
+
+    def __init__(self):
+        """
+        Initialize this L{BufferedHandler}.
+        """
+        py_logging.Handler.__init__(self)
+        self.records = []
+
+
+    def emit(self, record):
+        """
+        Remember the record.
+        """
+        self.records.append(record)
+
+
+
+class StdlibLoggingContainer(object):
+    """
+    Continer for a test  configuration of stdlib logging objects.
+    """
+
+    def __init__(self):
+        self.rootLogger = py_logging.getLogger("")
+
+        self.originalLevel = self.rootLogger.getEffectiveLevel()
+        self.rootLogger.setLevel(py_logging.DEBUG)
+
+        self.bufferedHandler = BufferedHandler()
+        self.rootLogger.addHandler(self.bufferedHandler)
+
+        self.streamHandler, self.output = handlerAndBytesIO()
+        self.rootLogger.addHandler(self.streamHandler)
+
+
+    def close(self):
+        self.rootLogger.setLevel(self.originalLevel)
+        self.rootLogger.removeHandler(self.bufferedHandler)
+        self.rootLogger.removeHandler(self.streamHandler)
+        self.streamHandler.close()
+        self.output.close()
+
+
+    def outputAsText(self):
+        """
+        Get the output to the underlying stream as text.
+        """
+        return self.output.getvalue().decode("utf-8")
 
 
 
@@ -1360,39 +1418,9 @@ class PythonLogObserverTests(SetUpTearDown, unittest.TestCase):
         """
         Create a logging object we can use to test with.
         """
-        class BufferedHandler(py_logging.Handler):
-            def __init__(self):
-                py_logging.Handler.__init__(self)
-                self.records = []
-
-            def emit(self, record):
-                self.records.append(record)
-
-        class Container(object):
-            def __init__(pl):
-                pl.rootLogger = py_logging.getLogger("")
-
-                pl.originalLevel = pl.rootLogger.getEffectiveLevel()
-                pl.rootLogger.setLevel(py_logging.DEBUG)
-
-                pl.bufferedHandler = BufferedHandler()
-                pl.rootLogger.addHandler(pl.bufferedHandler)
-
-                handler, output = handlerAndStringIO()
-                pl.output = output
-                pl.streamHandler = handler
-                pl.rootLogger.addHandler(pl.streamHandler)
-
-            def close(pl):
-                pl.rootLogger.setLevel(pl.originalLevel)
-                pl.rootLogger.removeHandler(pl.bufferedHandler)
-                pl.rootLogger.removeHandler(pl.streamHandler)
-                pl.streamHandler.close()
-                pl.output.close()
-
-        logger = Container()
+        logger = StdlibLoggingContainer()
         self.addCleanup(logger.close)
-        return Container()
+        return logger
 
 
     def logEvent(self, *events):
@@ -1412,7 +1440,7 @@ class PythonLogObserverTests(SetUpTearDown, unittest.TestCase):
         )
         for event in events:
             observer(event)
-        return pl.bufferedHandler.records, pl.output.getvalue()
+        return pl.bufferedHandler.records, pl.outputAsText()
 
 
     def test_name(self):
