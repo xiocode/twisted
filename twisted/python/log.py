@@ -484,6 +484,12 @@ class FileLogObserver(_GlobalStartStopMixIn):
 
 
     def emit(self, eventDict):
+        """
+        Format the given log event as text and write it to the output file.
+
+        @param eventDict: a log event
+        @type eventDict: L{dict} mapping L{str} (native string) to L{object}
+        """
         publishToNewObserver(self._newObserver, eventDict)
 
 
@@ -629,19 +635,27 @@ class NullFile:
     softspace = 0
 
     def read(self):
-        "Do nothing."
+        """
+        Do nothing.
+        """
 
 
     def write(self, bytes):
-        "Do nothing."
+        """
+        Do nothing.
+        """
 
 
     def flush(self):
-        "Do nothing."
+        """
+        Do nothing.
+        """
 
 
     def close(self):
-        "Do nothing."
+        """
+        Do nothing.
+        """
 
 
 
