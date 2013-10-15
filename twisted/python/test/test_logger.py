@@ -56,15 +56,6 @@ class EncodedStringIO(StringIO):
 
 
 
-# defaultLogPublisher = Logger._defaultPublisher()
-
-# defaultLogLevel         = LogLevelFilterPredicate().defaultLogLevel
-# clearLogLevels          = defaultLogPublisher.levels.clearLogLevels
-# logLevelForNamespace    = defaultLogPublisher.levels.logLevelForNamespace
-# setLogLevelForNamespace = defaultLogPublisher.levels.setLogLevelForNamespace
-
-
-
 class TestLogger(Logger):
     def emit(self, level, format=None, **kwargs):
         def observer(event):
@@ -1104,7 +1095,27 @@ class LogLevelFilterPredicateTests(unittest.TestCase):
         """
         Events are filtered based on log level/namespace.
         """
-        raise NotImplementedError()
+        predicate = LogLevelFilterPredicate()
+
+        predicate.setLogLevelForNamespace(None, LogLevel.error)
+        predicate.setLogLevelForNamespace("twext.web2", LogLevel.debug)
+        predicate.setLogLevelForNamespace("twext.web2.dav", LogLevel.warn)
+
+        def checkPredicate(namespace, level, expectedResult):
+            event = dict(log_namespace=namespace, log_level=level)
+            self.assertEquals(expectedResult, predicate(event))
+
+        checkPredicate("", LogLevel.debug, PredicateResult.no)
+        checkPredicate("", LogLevel.error, PredicateResult.maybe)
+
+        checkPredicate("twext.web2", LogLevel.debug, PredicateResult.maybe)
+        checkPredicate("twext.web2", LogLevel.error, PredicateResult.maybe)
+
+        checkPredicate("twext.web2.dav", LogLevel.debug, PredicateResult.no)
+        checkPredicate("twext.web2.dav", LogLevel.error, PredicateResult.maybe)
+
+        checkPredicate(None, LogLevel.critical, PredicateResult.no)
+        checkPredicate("twext.web2", None, PredicateResult.no)
 
 
 
