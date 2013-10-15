@@ -613,8 +613,7 @@ class LogPublisher(object):
     """
 
     def __init__(self, *observers):
-        self._observers = []
-        self._observers.extend(observers)
+        self._observers = list(observers)
         self.log = Logger(observer=self)
 
 
@@ -665,8 +664,11 @@ class LogPublisher(object):
 
         for brokenObserver, failure in brokenObservers:
             errorLogger = self._errorLoggerForObserver(brokenObserver)
-            errorLogger.failure(OBSERVER_DISABLED, failure=failure,
-                                observer=brokenObserver)
+            errorLogger.failure(
+                OBSERVER_DISABLED,
+                failure=failure,
+                observer=brokenObserver,
+            )
 
 
     def _errorLoggerForObserver(self, observer):
@@ -679,8 +681,10 @@ class LogPublisher(object):
 
         @return: L{None}
         """
-        errorPublisher = self.__class__(*[obs for obs in self._observers
-                                          if obs is not observer])
+        errorPublisher = LogPublisher(*[
+            obs for obs in self._observers
+            if obs is not observer
+        ])
         return Logger(observer=errorPublisher)
 
 
@@ -1301,7 +1305,9 @@ class _DefaultLogPublisher(LogPublisher):
     called.
     """
 
-    _temporaryObserver = RingBufferLogObserver(64*1024)
+    def __init__(self):
+        self._temporaryObserver = RingBufferLogObserver(64*1024)
+        LogPublisher.__init__(self, self._temporaryObserver)
 
 
     def startLoggingWithObservers(self, observers):
@@ -1321,7 +1327,9 @@ class _DefaultLogPublisher(LogPublisher):
         for observer in observers:
             self.addObserver(observer)
 
-        for event in self._theBufferingObserver:
+        self.removeObserver(self._temporaryObserver)
+
+        for event in self._temporaryObserver:
             self(event)
 
         self._temporaryObserver = None

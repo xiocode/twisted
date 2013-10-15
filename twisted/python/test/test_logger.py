@@ -1980,9 +1980,23 @@ class DefaultLogPublisherTests(unittest.TestCase):
 
     def test_startLoggingWithObservers_addObservers(self):
         """
-        Test that C{startLoggingWithObservers()} add observers.
+        Test that C{startLoggingWithObservers()} adds observers.
         """
-        raise NotImplementedError()
+        publisher = _DefaultLogPublisher()
+
+        event = dict(foo=1, bar=2)
+
+        events1 = []
+        events2 = []
+
+        o1 = lambda e: events1.append(e)
+        o2 = lambda e: events2.append(e)
+
+        publisher.startLoggingWithObservers((o1, o2))
+        publisher(event)
+
+        self.assertEquals([event], events1)
+        self.assertEquals([event], events2)
 
 
     def test_startLoggingWithObservers_bufferedEvents(self):
@@ -1990,14 +2004,35 @@ class DefaultLogPublisherTests(unittest.TestCase):
         Test that events are buffered until C{startLoggingWithObservers()} is
         called.
         """
-        raise NotImplementedError()
+        publisher = _DefaultLogPublisher()
+
+        event = dict(foo=1, bar=2)
+
+        events1 = []
+        events2 = []
+
+        o1 = lambda e: events1.append(e)
+        o2 = lambda e: events2.append(e)
+
+        publisher(event)  # Before startLoggingWithObservers; this is buffered
+        publisher.startLoggingWithObservers((o1, o2))
+
+        self.assertEquals([event], events1)
+        self.assertEquals([event], events2)
 
 
     def test_startLoggingWithObservers_twice(self):
         """
         Test that C{startLoggingWithObservers()} complains when called twice.
         """
-        raise NotImplementedError()
+        publisher = _DefaultLogPublisher()
+
+        publisher.startLoggingWithObservers(())
+
+        self.assertRaises(
+            AssertionError,
+            publisher.startLoggingWithObservers, ()
+        )
 
 
 
