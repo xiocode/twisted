@@ -130,69 +130,6 @@ class LoggingTests(unittest.TestCase):
             self.fail("Expected InvalidLogLevelError.")
 
 
-    # def test_defaultLogLevel(self):
-    #     """
-    #     Default log level is used.
-    #     """
-    #     self.failUnless(logLevelForNamespace(None), defaultLogLevel)
-    #     self.failUnless(logLevelForNamespace(""), defaultLogLevel)
-    #     self.failUnless(logLevelForNamespace("rocker.cool.namespace"),
-    #                     defaultLogLevel)
-
-
-    # def test_setLogLevel(self):
-    #     """
-    #     Setting and retrieving log levels.
-    #     """
-    #     setLogLevelForNamespace(None, LogLevel.error)
-    #     setLogLevelForNamespace("twext.web2", LogLevel.debug)
-    #     setLogLevelForNamespace("twext.web2.dav", LogLevel.warn)
-
-    #     self.assertEquals(logLevelForNamespace(None),
-    #                       LogLevel.error)
-    #     self.assertEquals(logLevelForNamespace("twisted"),
-    #                       LogLevel.error)
-    #     self.assertEquals(logLevelForNamespace("twext.web2"),
-    #                       LogLevel.debug)
-    #     self.assertEquals(logLevelForNamespace("twext.web2.dav"),
-    #                       LogLevel.warn)
-    #     self.assertEquals(logLevelForNamespace("twext.web2.dav.test"),
-    #                       LogLevel.warn)
-    #     self.assertEquals(logLevelForNamespace("twext.web2.dav.test1.test2"),
-    #                       LogLevel.warn)
-
-
-    # def test_setInvalidLogLevel(self):
-    #     """
-    #     Can't pass invalid log levels to setLogLevelForNamespace().
-    #     """
-    #     self.assertRaises(InvalidLogLevelError, setLogLevelForNamespace,
-    #                       "twext.web2", object())
-
-    #     # Level must be a constant, not the name of a constant
-    #     self.assertRaises(InvalidLogLevelError, setLogLevelForNamespace,
-    #                       "twext.web2", "debug")
-
-
-    # def test_clearLogLevels(self):
-    #     """
-    #     Clearing log levels.
-    #     """
-    #     setLogLevelForNamespace("twext.web2", LogLevel.debug)
-    #     setLogLevelForNamespace("twext.web2.dav", LogLevel.error)
-
-    #     clearLogLevels()
-
-    #     self.assertEquals(logLevelForNamespace("twisted"), defaultLogLevel)
-    #     self.assertEquals(logLevelForNamespace("twext.web2"), defaultLogLevel)
-    #     self.assertEquals(logLevelForNamespace("twext.web2.dav"),
-    #                       defaultLogLevel)
-    #     self.assertEquals(logLevelForNamespace("twext.web2.dav.test"),
-    #                       defaultLogLevel)
-    #     self.assertEquals(logLevelForNamespace("twext.web2.dav.test1.test2"),
-    #                       defaultLogLevel)
-
-
     def test_namespace_default(self):
         """
         Default namespace is module name.
@@ -897,6 +834,115 @@ class FilteringLogObserverTests(unittest.TestCase):
 
         publisher = LogPublisher(yesFilter, noFilter, testObserver)
         publisher(event)
+
+
+
+class LogLevelFilterPredicateTests(unittest.TestCase):
+    def test_defaultLogLevel(self):
+        """
+        Default log level is used.
+        """
+        predicate = LogLevelFilterPredicate()
+
+        self.assertEquals(
+            predicate.logLevelForNamespace(None),
+            LogLevelFilterPredicate.defaultLogLevel
+        )
+        self.assertEquals(
+            predicate.logLevelForNamespace(""),
+            LogLevelFilterPredicate.defaultLogLevel
+        )
+        self.assertEquals(
+            predicate.logLevelForNamespace("rocker.cool.namespace"),
+            LogLevelFilterPredicate.defaultLogLevel
+        )
+
+
+    def test_setLogLevel(self):
+        """
+        Setting and retrieving log levels.
+        """
+        predicate = LogLevelFilterPredicate()
+
+        predicate.setLogLevelForNamespace(None, LogLevel.error)
+        predicate.setLogLevelForNamespace("twext.web2", LogLevel.debug)
+        predicate.setLogLevelForNamespace("twext.web2.dav", LogLevel.warn)
+
+        self.assertEquals(
+            predicate.logLevelForNamespace(None),
+            LogLevel.error
+        )
+        self.assertEquals(
+            predicate.logLevelForNamespace("twisted"),
+            LogLevel.error
+        )
+        self.assertEquals(
+            predicate.logLevelForNamespace("twext.web2"),
+            LogLevel.debug
+        )
+        self.assertEquals(
+            predicate.logLevelForNamespace("twext.web2.dav"),
+            LogLevel.warn
+        )
+        self.assertEquals(
+            predicate.logLevelForNamespace("twext.web2.dav.test"),
+            LogLevel.warn
+        )
+        self.assertEquals(
+            predicate.logLevelForNamespace("twext.web2.dav.test1.test2"),
+            LogLevel.warn
+        )
+
+
+    def test_setInvalidLogLevel(self):
+        """
+        Can't pass invalid log levels to C{setLogLevelForNamespace()}.
+        """
+        predicate = LogLevelFilterPredicate()
+
+        self.assertRaises(
+            InvalidLogLevelError,
+            predicate.setLogLevelForNamespace, "twext.web2", object()
+        )
+
+        # Level must be a constant, not the name of a constant
+        self.assertRaises(
+            InvalidLogLevelError,
+            predicate.setLogLevelForNamespace, "twext.web2", "debug"
+        )
+
+
+    def test_clearLogLevels(self):
+        """
+        Clearing log levels.
+        """
+        predicate = LogLevelFilterPredicate()
+
+        predicate.setLogLevelForNamespace("twext.web2", LogLevel.debug)
+        predicate.setLogLevelForNamespace("twext.web2.dav", LogLevel.error)
+
+        predicate.clearLogLevels()
+
+        self.assertEquals(
+            predicate.logLevelForNamespace("twisted"),
+            LogLevelFilterPredicate.defaultLogLevel
+        )
+        self.assertEquals(
+            predicate.logLevelForNamespace("twext.web2"),
+            LogLevelFilterPredicate.defaultLogLevel
+        )
+        self.assertEquals(
+            predicate.logLevelForNamespace("twext.web2.dav"),
+            LogLevelFilterPredicate.defaultLogLevel
+        )
+        self.assertEquals(
+            predicate.logLevelForNamespace("twext.web2.dav.test"),
+            LogLevelFilterPredicate.defaultLogLevel
+        )
+        self.assertEquals(
+            predicate.logLevelForNamespace("twext.web2.dav.test1.test2"),
+            LogLevelFilterPredicate.defaultLogLevel
+        )
 
 
 
