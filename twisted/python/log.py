@@ -174,6 +174,9 @@ class LogPublisher:
     def observers(self):
         """
         Property returning all observers registered on this L{LogPublisher}.
+
+        @return: observers previously added with L{LogPublisher.addObserver}
+        @rtype: L{list} of L{callable}
         """
         return [x.legacyObserver for x in self._legacyObservers]
 
