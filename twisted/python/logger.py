@@ -902,7 +902,7 @@ class FileLogObserver(object):
             self._timeFormat is not None and
             when is not None
         ):
-            tz = _MagicTimeZone(when)
+            tz = _FixedOffsetTimeZone.fromTimeStamp(when)
             datetime = DateTime.fromtimestamp(when, tz)
             return datetime.strftime(self._timeFormat)
         else:
@@ -1427,12 +1427,22 @@ _theFormatter = Formatter()
 
 
 
-class _MagicTimeZone(TZInfo):
+class _FixedOffsetTimeZone(TZInfo):
     """
-    Magic TimeZone.
+    Time zone with a fixed offset.
     """
-    def __init__(self, t):
-        self._offset = DateTime.fromtimestamp(t) - DateTime.utcfromtimestamp(t)
+
+    @classmethod
+    def fromTimeStamp(cls, timeStamp):
+        offset = (
+            DateTime.fromtimestamp(timeStamp) -
+            DateTime.utcfromtimestamp(timeStamp)
+        )
+        return cls(offset)
+
+
+    def __init__(self, offset):
+        self._offset = offset
 
 
     def utcoffset(self, dt):

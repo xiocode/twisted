@@ -41,7 +41,7 @@ from twisted.python.logger import (
     LegacyLogObserverWrapper, LoggingFile,
     LogLevelFilterPredicate,
     _DefaultLogPublisher,
-    _MagicTimeZone, _formatTrace,
+    _FixedOffsetTimeZone, _formatTrace,
 )
 
 
@@ -2050,10 +2050,10 @@ class DefaultLogPublisherTests(unittest.TestCase):
 
 class MagicTimeZoneTests(unittest.TestCase):
     """
-    Tests for L{_MagicTimeZone}.
+    Tests for L{_FixedOffsetTimeZone}.
     """
 
-    def test_timezones(self):
+    def test_tzinfo(self):
         """
         Test that timezone attributes respect the timezone as set by the
         standard C{TZ} environment variable and L{tzset} API.
@@ -2086,8 +2086,8 @@ class MagicTimeZoneTests(unittest.TestCase):
                 )
             localSTD = mktime((2007, 1, 31, 0, 0, 0, 2,  31, 0))
 
-            tzDST = _MagicTimeZone(localDST)
-            tzSTD = _MagicTimeZone(localSTD)
+            tzDST = _FixedOffsetTimeZone.fromTimeStamp(localDST)
+            tzSTD = _FixedOffsetTimeZone.fromTimeStamp(localSTD)
 
             self.assertEquals(
                 tzDST.tzname(localDST),
