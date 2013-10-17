@@ -25,6 +25,7 @@ from twisted.trial.unittest import SkipTest
 from twisted.python.logger._observer import ILogObserver
 from twisted.python.logger._file import FileLogObserver
 from twisted.python.logger._file import FixedOffsetTimeZone
+from twisted.python.logger.test.test_format import Unformattable
 
 
 
@@ -237,6 +238,26 @@ class FileLogObserverTests(unittest.TestCase):
                 u'XYZZY\n\tA hollow voice says:\n\t"Plugh"'
             ),
         )
+
+
+    def test_unformattableSystem(self):
+        event = dict(
+            log_time=None,
+            log_format=u"XYZZY",
+            log_system=Unformattable(),
+        )
+        fileHandle = StringIO()
+        try:
+            observer = FileLogObserver(fileHandle)
+            observer(event)
+            output = fileHandle.getvalue()
+            expectedOutput = u"- [UNFORMATTABLE] XYZZY\n"
+            self.assertEquals(
+                output, expectedOutput,
+                "{0!r} != {1!r}".format(expectedOutput, output)
+            )
+        finally:
+            fileHandle.close()
 
 
 
