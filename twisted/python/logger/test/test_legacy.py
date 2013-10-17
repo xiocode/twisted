@@ -188,7 +188,7 @@ class LegacyLogObserverWrapperTests(unittest.TestCase):
 
     def test_interface(self):
         """
-        L{FileLogObserver} is an L{ILogObserver}.
+        L{LegacyLogObserverWrapper} is an L{ILogObserver}.
         """
         legacyObserver = lambda e: None
         observer = LegacyLogObserverWrapper(legacyObserver)
@@ -196,6 +196,25 @@ class LegacyLogObserverWrapperTests(unittest.TestCase):
             verifyObject(ILogObserver, observer)
         except BrokenMethodImplementation as e:
             self.fail(e)
+
+
+    def test_repr(self):
+        """
+        L{LegacyLogObserverWrapper} returns the expected string.
+        """
+        class LegacyObserver(object):
+            def __repr__(self):
+                return "<Legacy Observer>"
+
+            def __call__(self):
+                return
+
+        observer = LegacyLogObserverWrapper(LegacyObserver())
+
+        self.assertEquals(
+            repr(observer),
+            "LegacyLogObserverWrapper(<Legacy Observer>)"
+        )
 
 
     def observe(self, event):
