@@ -174,6 +174,7 @@ testModules = [
     "twisted.python.logger.test.test_logger",
     "twisted.python.logger.test.test_observer",
     "twisted.python.logger.test.test_stdlib",
+    "twisted.python.logger.test.test_util",
     "twisted.python.test.test_components",
     "twisted.python.test.test_constants",
     "twisted.python.test.test_deprecate",
