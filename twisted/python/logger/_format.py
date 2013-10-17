@@ -12,6 +12,7 @@ __all__ = [
 
 from string import Formatter
 
+from twisted.python.compat import unicode
 from twisted.python.failure import Failure
 from twisted.python.reflect import safe_repr
 
