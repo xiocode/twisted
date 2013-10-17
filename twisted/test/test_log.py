@@ -15,7 +15,7 @@ from twisted.trial import unittest
 from twisted.trial.unittest import SkipTest
 
 from twisted.python import log, failure
-from twisted.python.test.test_logger import handlerAndBytesIO
+from twisted.python.logger.test.test_stdlib import handlerAndBytesIO
 from twisted.python.logger import LoggingFile, LogLevel as NewLogLevel
 
 
@@ -90,6 +90,7 @@ class LogTest(unittest.SynchronousTestCase):
         """
         L1 = []
         L2 = []
+
         def broken(event):
             1 // 0
 
@@ -195,6 +196,7 @@ class LogTest(unittest.SynchronousTestCase):
         observers.
         """
         errors = []
+
         def logError(eventDict):
             if eventDict.get("isError"):
                 errors.append(eventDict["failure"].value)
@@ -224,6 +226,8 @@ class FakeFile(list):
 
 import io
 io.IOBase.register(FakeFile)
+
+
 
 class EvilStr:
 
@@ -596,11 +600,13 @@ class PythonLoggingObserverTestCase(unittest.SynchronousTestCase):
         rootLogger = logging.getLogger("")
         originalLevel = rootLogger.getEffectiveLevel()
         rootLogger.setLevel(logging.DEBUG)
+
         @self.addCleanup
         def restoreLevel():
             rootLogger.setLevel(originalLevel)
         self.hdlr, self.out = handlerAndBytesIO()
         rootLogger.addHandler(self.hdlr)
+
         @self.addCleanup
         def removeLogger():
             rootLogger.removeHandler(self.hdlr)
