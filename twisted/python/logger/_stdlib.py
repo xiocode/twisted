@@ -45,9 +45,9 @@ class STDLibLogObserver(object):
         twisted.web, assumes that logging does not block.
 
     @cvar defaultStackDepth: This is the default number of frames that it takes
-        to get from L{PythonLogObserver} through the logging module, plus one;
+        to get from L{STDLibLogObserver} through the logging module, plus one;
         in other words, the number of frames if you were to call a
-        L{PythonLogObserver} directly.  This is useful to use as an offset for
+        L{STDLibLogObserver} directly.  This is useful to use as an offset for
         the C{stackDepth} parameter to C{__init__}, to add frames for other
         publishers.
     """
@@ -70,7 +70,7 @@ class STDLibLogObserver(object):
 
     def _findCaller(self, stack_info=False):
         """
-        Based on the stack depth passed to this L{PythonLogObserver}, identify
+        Based on the stack depth passed to this L{STDLibLogObserver}, identify
         the calling function.
 
         @param stack_info: Whether or not to construct stack information.
