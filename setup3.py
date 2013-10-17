@@ -153,7 +153,7 @@ testModules = [
     "twisted.python.test.test_components",
     "twisted.python.test.test_constants",
     "twisted.python.test.test_deprecate",
-    "twisted.python.test.test_logger",
+    "twisted.python.logger.test",
     "twisted.python.test.test_reflectpy3",
     "twisted.python.test.test_runtime",
     "twisted.python.test.test_util",
