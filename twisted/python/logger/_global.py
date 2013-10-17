@@ -1,0 +1,56 @@
+# -*- test-case-name: twisted.python.test.test_logger -*-
+# Copyright (c) Twisted Matrix Laboratories.
+# See LICENSE for details.
+
+"""
+Global log publisher.
+"""
+
+__all__ = [
+    "globalLogPublisher",
+]
+
+from twisted.python.logger._observer import LogPublisher
+from twisted.python.logger._buffer import RingBufferLogObserver
+
+
+
+class GlobalLogPublisher(LogPublisher):
+    """
+    Class for the (singleton) default log publisher.
+
+    Received events are buffered until C{startLoggingWithObservers()} is
+    called.
+    """
+
+    def __init__(self):
+        self._temporaryObserver = RingBufferLogObserver(64*1024)
+        LogPublisher.__init__(self, self._temporaryObserver)
+
+
+    def startLoggingWithObservers(self, observers):
+        """
+        Register the given observers and send any events that may have been
+        previously buffered.
+
+        @param observers: The observers to register.
+        @type observers: iterable of L{ILogObserver}s
+        """
+
+        if self._temporaryObserver is None:
+            raise AssertionError(
+                "startLoggingWithObservers() may only be called once."
+            )
+
+        for observer in observers:
+            self.addObserver(observer)
+
+        self.removeObserver(self._temporaryObserver)
+
+        for event in self._temporaryObserver:
+            self(event)
+
+        self._temporaryObserver = None
+
+
+globalLogPublisher = GlobalLogPublisher()

@@ -24,10 +24,10 @@ from twisted.python.threadable import synchronize
 from twisted.python.logger import (
     LogLevel as NewLogLevel,
     FileLogObserver as NewFileLogObserver,
-    PythonLogObserver as NewPythonLogObserver,
+    STDLibLogObserver as NewSTDLibLogObserver,
     LegacyLogObserverWrapper, LoggingFile,
     LogPublisher as NewPublisher,
-    defaultLogPublisher as newDefaultLogPublisher,
+    globalLogPublisher as newGlobalLogPublisher,
 )
 
 
@@ -276,8 +276,8 @@ if 'theLogPublisher' not in globals():
         return decorate
 
     theLogPublisher = LogPublisher(
-        observerPublisher=newDefaultLogPublisher,
-        publishPublisher=newDefaultLogPublisher
+        observerPublisher=newGlobalLogPublisher,
+        publishPublisher=newGlobalLogPublisher
     )
 
     @_actually(theLogPublisher.addObserver)
@@ -509,7 +509,7 @@ class PythonLoggingObserver(_GlobalStartStopMixIn, object):
         @param loggerName: identifier used for getting logger.
         @type loggerName: C{str}
         """
-        self._newObserver = NewPythonLogObserver(loggerName)
+        self._newObserver = NewSTDLibLogObserver(loggerName)
 
 
     def emit(self, eventDict):

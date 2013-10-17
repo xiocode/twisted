@@ -33,16 +33,23 @@ from twisted.python.compat import unicode, _PY3
 
 from twisted.python.logger import (
     LogLevel, InvalidLogLevelError,
-    formatEvent, formatUnformattableEvent, _formatWithCall,
+    formatEvent,
     Logger, LegacyLogger,
-    ILogObserver, LogPublisher, defaultLogPublisher,
+    ILogObserver, LogPublisher, globalLogPublisher,
     FilteringLogObserver, PredicateResult,
-    FileLogObserver, PythonLogObserver, RingBufferLogObserver,
+    FileLogObserver, STDLibLogObserver, RingBufferLogObserver,
     LegacyLogObserverWrapper, LoggingFile,
     LogLevelFilterPredicate,
-    _DefaultLogPublisher,
-    _FixedOffsetTimeZone, _formatTrace,
 )
+
+from twisted.python.logger._format import formatUnformattableEvent
+from twisted.python.logger._format import formatWithCall
+
+from twisted.python.logger._global import GlobalLogPublisher
+
+from twisted.python.logger._file import FixedOffsetTimeZone
+
+from twisted.python.logger._util import formatTrace
 
 
 
@@ -62,11 +69,11 @@ class TestLogger(Logger):
         def observer(event):
             self.event = event
 
-        defaultLogPublisher.addObserver(observer)
+        globalLogPublisher.addObserver(observer)
         try:
             Logger.emit(self, level, format, **kwargs)
         finally:
-            defaultLogPublisher.removeObserver(observer)
+            globalLogPublisher.removeObserver(observer)
 
         self.emitted = {
             "level":  level,
@@ -133,19 +140,20 @@ class LoggingTests(unittest.TestCase):
 
     def test_formatWithCall(self):
         """
-        L{_formatWithCall} is an extended version of L{unicode.format} that will
-        interpret a set of parentheses "C{()}" at the end of a format key to
-        mean that the format key ought to be I{called} rather than stringified.
+        L{formatWithCall} is an extended version of L{unicode.format} that
+        will interpret a set of parentheses "C{()}" at the end of a format key
+        to mean that the format key ought to be I{called} rather than
+        stringified.
         """
         self.assertEquals(
-            _formatWithCall(
+            formatWithCall(
                 u"Hello, {world}. {callme()}.",
                 dict(world="earth", callme=lambda: "maybe")
             ),
             "Hello, earth. maybe."
         )
         self.assertEquals(
-            _formatWithCall(
+            formatWithCall(
                 u"Hello, {repr()!r}.",
                 dict(repr=lambda: "repr")
             ),
@@ -790,7 +798,7 @@ class LogPublisherTests(unittest.TestCase):
 
         def testObserver(e):
             self.assertIdentical(e, event)
-            trace = _formatTrace(e["log_trace"])
+            trace = formatTrace(e["log_trace"])
             self.assertEquals(
                 trace,
                 (
@@ -1404,16 +1412,16 @@ class StdlibLoggingContainer(object):
 
 
 
-class PythonLogObserverTests(unittest.TestCase):
+class STDLibLogObserverTests(unittest.TestCase):
     """
-    Tests for L{PythonLogObserver}.
+    Tests for L{STDLibLogObserver}.
     """
 
     def test_interface(self):
         """
-        L{PythonLogObserver} is an L{ILogObserver}.
+        L{STDLibLogObserver} is an L{ILogObserver}.
         """
-        observer = PythonLogObserver()
+        observer = STDLibLogObserver()
         try:
             verifyObject(ILogObserver, observer)
         except BrokenMethodImplementation as e:
@@ -1439,10 +1447,10 @@ class PythonLogObserverTests(unittest.TestCase):
         @rtype: 2-tuple of (L{list} of L{logging.LogRecord}, L{bytes}.)
         """
         pl = self.py_logger()
-        observer = PythonLogObserver(
+        observer = STDLibLogObserver(
             # Add 1 to default stack depth to skip *this* frame, since
             # tests will want to know about their own frames.
-            stackDepth=PythonLogObserver.defaultStackDepth + 1
+            stackDepth=STDLibLogObserver.defaultStackDepth + 1
         )
         for event in events:
             observer(event)
@@ -1806,7 +1814,7 @@ class LoggingFileTests(unittest.TestCase):
         f = LoggingFile()
         self.assertEquals(
             f.name,
-            "<LoggingFile twisted.python.logger.LoggingFile#info>"
+            "<LoggingFile twisted.python.logger._io.LoggingFile#info>"
         )
 
 
@@ -1815,7 +1823,7 @@ class LoggingFileTests(unittest.TestCase):
         Default logger is created if not set.
         """
         f = LoggingFile()
-        self.assertEquals(f.log.namespace, "twisted.python.logger.LoggingFile")
+        self.assertEquals(f.log.namespace, "twisted.python.logger._io.LoggingFile")
 
         log = Logger()
         f = LoggingFile(logger=log)
@@ -1974,16 +1982,16 @@ class LoggingFileTests(unittest.TestCase):
 
 
 
-class DefaultLogPublisherTests(unittest.TestCase):
+class GlobalLogPublisherTests(unittest.TestCase):
     """
-    Tests for L{_DefaultLogPublisher}.
+    Tests for L{GlobalLogPublisher}.
     """
 
     def test_interface(self):
         """
-        L{_DefaultLogPublisher} is an L{ILogObserver}.
+        L{GlobalLogPublisher} is an L{ILogObserver}.
         """
-        publisher = _DefaultLogPublisher()
+        publisher = GlobalLogPublisher()
         try:
             verifyObject(ILogObserver, publisher)
         except BrokenMethodImplementation as e:
@@ -1994,7 +2002,7 @@ class DefaultLogPublisherTests(unittest.TestCase):
         """
         Test that C{startLoggingWithObservers()} adds observers.
         """
-        publisher = _DefaultLogPublisher()
+        publisher = GlobalLogPublisher()
 
         event = dict(foo=1, bar=2)
 
@@ -2016,7 +2024,7 @@ class DefaultLogPublisherTests(unittest.TestCase):
         Test that events are buffered until C{startLoggingWithObservers()} is
         called.
         """
-        publisher = _DefaultLogPublisher()
+        publisher = GlobalLogPublisher()
 
         event = dict(foo=1, bar=2)
 
@@ -2037,7 +2045,7 @@ class DefaultLogPublisherTests(unittest.TestCase):
         """
         Test that C{startLoggingWithObservers()} complains when called twice.
         """
-        publisher = _DefaultLogPublisher()
+        publisher = GlobalLogPublisher()
 
         publisher.startLoggingWithObservers(())
 
@@ -2048,9 +2056,9 @@ class DefaultLogPublisherTests(unittest.TestCase):
 
 
 
-class MagicTimeZoneTests(unittest.TestCase):
+class FixedOffsetTimeZoneTests(unittest.TestCase):
     """
-    Tests for L{_FixedOffsetTimeZone}.
+    Tests for L{FixedOffsetTimeZone}.
     """
 
     def test_tzinfo(self):
@@ -2086,8 +2094,8 @@ class MagicTimeZoneTests(unittest.TestCase):
                 )
             localSTD = mktime((2007, 1, 31, 0, 0, 0, 2,  31, 0))
 
-            tzDST = _FixedOffsetTimeZone.fromTimeStamp(localDST)
-            tzSTD = _FixedOffsetTimeZone.fromTimeStamp(localSTD)
+            tzDST = FixedOffsetTimeZone.fromTimeStamp(localDST)
+            tzSTD = FixedOffsetTimeZone.fromTimeStamp(localSTD)
 
             self.assertEquals(
                 tzDST.tzname(localDST),
