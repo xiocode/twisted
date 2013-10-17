@@ -87,6 +87,12 @@ class LogPublisher(object):
         """
         if "log_trace" in event:
             def trace(observer):
+                """
+                Add tracing information for an observer.
+
+                @param observer: an observer being forwarded to
+                @type observer: L{ILogObserver}
+                """
                 event["log_trace"].append((self, observer))
         else:
             trace = None

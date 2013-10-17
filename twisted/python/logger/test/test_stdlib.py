@@ -40,6 +40,9 @@ class STDLibLogObserverTests(unittest.TestCase):
     def py_logger(self):
         """
         Create a logging object we can use to test with.
+
+        @return: a stdlib-style logger
+        @rtype: L{StdlibLoggingContainer}
         """
         logger = StdlibLoggingContainer()
         self.addCleanup(logger.close)
@@ -51,6 +54,9 @@ class STDLibLogObserverTests(unittest.TestCase):
         Send one or more events to Python's logging module, and
         capture the emitted L{logging.LogRecord}s and output stream as
         a string.
+
+        @param events: events
+        @type events: L{tuple} of L{dict}
 
         @return: a tuple: (records, output)
         @rtype: 2-tuple of (L{list} of L{logging.LogRecord}, L{bytes}.)
@@ -81,7 +87,7 @@ class STDLibLogObserverTests(unittest.TestCase):
         Log levels.
         """
         levelMapping = {
-            None: py_logging.INFO,  # default
+            None: py_logging.INFO,  # Default
             LogLevel.debug:    py_logging.DEBUG,
             LogLevel.info:     py_logging.INFO,
             LogLevel.warn:     py_logging.WARNING,
@@ -91,7 +97,7 @@ class STDLibLogObserverTests(unittest.TestCase):
 
         # Build a set of events for each log level
         events = []
-        for level, py_level in levelMapping.items():
+        for level, pyLevel in levelMapping.items():
             event = {}
 
             # Set the log level on the event, except for default
@@ -100,7 +106,7 @@ class STDLibLogObserverTests(unittest.TestCase):
 
             # Remeber the Python log level we expect to see for this
             # event (as an int)
-            event["py_levelno"] = int(py_level)
+            event["py_levelno"] = int(pyLevel)
 
             events.append(event)
 
@@ -126,7 +132,7 @@ class STDLibLogObserverTests(unittest.TestCase):
         self.assertEquals(records[0].lineno, logLine)
         self.assertEquals(records[0].exc_info, None)
 
-        # func is missing from record, which is weird because it's
+        # Attribute "func" is missing from record, which is weird because it's
         # documented.
         #self.assertEquals(records[0].func, "test_callerInfo")
 
@@ -185,6 +191,9 @@ class StdlibLoggingContainer(object):
 
 
     def close(self):
+        """
+        Close the logger.
+        """
         self.rootLogger.setLevel(self.originalLevel)
         self.rootLogger.removeHandler(self.bufferedHandler)
         self.rootLogger.removeHandler(self.streamHandler)
@@ -195,6 +204,9 @@ class StdlibLoggingContainer(object):
     def outputAsText(self):
         """
         Get the output to the underlying stream as text.
+
+        @return: the output text
+        @rtype: L{unicode}
         """
         return self.output.getvalue().decode("utf-8")
 
@@ -204,6 +216,9 @@ def handlerAndBytesIO():
     """
     Construct a 2-tuple of C{(StreamHandler, BytesIO)} for testing interaction
     with the 'logging' module.
+
+    @return: handler and io object
+    @rtype: tuple of L{StreamHandler} and L{BytesIO}
     """
     output = BytesIO()
     stream = output

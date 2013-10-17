@@ -35,43 +35,43 @@ second example, it would be C{some.module.Foo}.
 """
 
 __all__ = [
-    # twisted.python.logger._levels
+    # From twisted.python.logger._levels
     "InvalidLogLevelError",
     "LogLevel",
 
-    # twisted.python.logger._format
+    # From twisted.python.logger._format
     "formatEvent",
 
-    # twisted.python.logger._logger
+    # From twisted.python.logger._logger
     "Logger",
 
-    # twisted.python.logger._observer
+    # From twisted.python.logger._observer
     "ILogObserver",
     "LogPublisher",
 
-    # twisted.python.logger._buffer
+    # From twisted.python.logger._buffer
     "RingBufferLogObserver",
 
-    # twisted.python.logger._file
+    # From twisted.python.logger._file
     "FileLogObserver",
 
-    # twisted.python.logger._filter
+    # From twisted.python.logger._filter
     "PredicateResult",
     "ILogFilterPredicate",
     "FilteringLogObserver",
     "LogLevelFilterPredicate",
 
-    # twisted.python.logger._stdlib
+    # From twisted.python.logger._stdlib
     "STDLibLogObserver",
 
-    # twisted.python.logger._io
+    # From twisted.python.logger._io
     "LoggingFile",
 
-    # twisted.python.logger._legacy
+    # From twisted.python.logger._legacy
     "LegacyLogger",
     "LegacyLogObserverWrapper",
 
-    # twisted.python.logger._global
+    # From twisted.python.logger._global
     "globalLogPublisher",
 ]
 

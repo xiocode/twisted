@@ -70,7 +70,7 @@ class Logger(object):
         """
         When used as a descriptor, i.e.::
 
-            # athing.py
+            # File: athing.py
             class Something(object):
                 log = Logger()
                 def hello(self):
@@ -120,8 +120,6 @@ class Logger(object):
                 invalidLevel=level,
                 logger=self,
             )
-            # level = LogLevel.error
-            # FIXME: continue to emit?
             return
 
         event = kwargs

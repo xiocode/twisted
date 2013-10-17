@@ -1,11 +1,11 @@
 # Copyright (c) Twisted Matrix Laboratories.
 # See LICENSE for details.
 
-from __future__ import print_function
-
 """
 Test cases for L{twisted.python.logger._io}.
 """
+
+from __future__ import print_function
 
 import sys
 
@@ -262,6 +262,17 @@ class LoggingFileTests(unittest.TestCase):
 
 
     def observedFile(self, **kwargs):
+        """
+        Construct a L{LoggingFile} with a built-in observer.
+
+        @param kwargs: keyword arguments for the L{LoggingFile}.
+        @type kwargs: L{dict}
+
+        @return: a L{LoggingFile} with an observer that appends received
+            events into the file's C{events} attribute (a L{list}) and
+            event messages into the file's C{messages} attribute (a L{list}).
+        @rtype: L{LoggingFile}
+        """
         def observer(event):
             f.events.append(event)
             if "message" in event:

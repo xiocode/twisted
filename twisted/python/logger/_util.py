@@ -18,6 +18,9 @@ def formatTrace(trace):
     event) as a visual indication of the message's propagation through various
     observers.
 
+    @param trace: the contents of the C{log_trace} key from an event.
+    @type trace: object
+
     @return: A multi-line string with indentation and arrows indicating the
         flow of the message through various observers.
     @rtype: L{unicode}

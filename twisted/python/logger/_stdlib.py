@@ -68,14 +68,14 @@ class STDLibLogObserver(object):
         self.stackDepth = stackDepth
 
 
-    def _findCaller(self, stack_info=False):
+    def _findCaller(self, stackInfo=False):
         """
         Based on the stack depth passed to this L{STDLibLogObserver}, identify
         the calling function.
 
-        @param stack_info: Whether or not to construct stack information.
+        @param stackInfo: Whether or not to construct stack information.
             (Currently ignored.)
-        @type stack_info: L{bool}
+        @type stackInfo: L{bool}
 
         @return: Depending on Python version, either a 3-tuple of (filename,
             lineno, name) or a 4-tuple of that plus stack information.

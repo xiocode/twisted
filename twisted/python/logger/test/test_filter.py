@@ -36,6 +36,24 @@ class FilteringLogObserverTests(unittest.TestCase):
 
 
     def filterWith(self, *filters):
+        """
+        Apply a set of pre-defined filters on a known set of events and return
+        the filtered list of event numbers.
+
+        The pre-defined events are four events with a C{count} attribute set
+        to C{0}, C{1}, C{2}, and C{3}.
+
+        @param filters: names of the filters to apply.
+            Options are:
+            C{"twoMinus"} (count <=2),
+            C{"twoPlus"} (count >= 2),
+            C{"notTwo"} (count != 2),
+            C{"no"} (False).
+        @type filters: iterable of str
+
+        @return: event numbers
+        @rtype: L{list} of L{int}
+        """
         events = [
             dict(count=0),
             dict(count=1),
@@ -46,28 +64,71 @@ class FilteringLogObserverTests(unittest.TestCase):
         class Filters(object):
             @staticmethod
             def twoMinus(event):
+                """
+                count <= 2
+
+                @param event: an event
+                @type event: dict
+
+                @return: L{PredicateResult.yes} if C{event["count"] <= 2},
+                    otherwise L{PredicateResult.maybe}.
+                """
                 if event["count"] <= 2:
                     return PredicateResult.yes
                 return PredicateResult.maybe
 
             @staticmethod
             def twoPlus(event):
+                """
+                count >= 2
+
+                @param event: an event
+                @type event: dict
+
+                @return: L{PredicateResult.yes} if C{event["count"] >= 2},
+                    otherwise L{PredicateResult.maybe}.
+                """
                 if event["count"] >= 2:
                     return PredicateResult.yes
                 return PredicateResult.maybe
 
             @staticmethod
             def notTwo(event):
+                """
+                count != 2
+
+                @param event: an event
+                @type event: dict
+
+                @return: L{PredicateResult.yes} if C{event["count"] != 2},
+                    otherwise L{PredicateResult.maybe}.
+                """
                 if event["count"] == 2:
                     return PredicateResult.no
                 return PredicateResult.maybe
 
             @staticmethod
             def no(event):
+                """
+                No way, man.
+
+                @param event: an event
+                @type event: dict
+
+                @return: L{PredicateResult.no}
+                """
                 return PredicateResult.no
 
             @staticmethod
             def bogus(event):
+                """
+                Bogus result.
+
+                @param event: an event
+                @type event: dict
+
+                @return: something other than a valid predicate result.
+                """
                 return None
 
         predicates = (getattr(Filters, f) for f in filters)
@@ -159,7 +220,7 @@ class FilteringLogObserverTests(unittest.TestCase):
                     (publisher, yesFilter),
                     (yesFilter, oYes),
                     (publisher, noFilter),
-                    # noFilter doesn't call oNo
+                    # ... noFilter doesn't call oNo
                     (publisher, oTest),
                 ]
             )
@@ -180,6 +241,10 @@ class FilteringLogObserverTests(unittest.TestCase):
 
 
 class LogLevelFilterPredicateTests(unittest.TestCase):
+    """
+    Tests for L{LogLevelFilterPredicate}.
+    """
+
     def test_defaultLogLevel(self):
         """
         Default log level is used.

@@ -22,6 +22,10 @@ from twisted.python.logger.test.test_logger import TestLogger
 
 
 class TestLegacyLogger(LegacyLogger):
+    """
+    L{LegacyLogger} which uses a L{TestLogger} as its logger.
+    """
+
     def __init__(self, logger=TestLogger()):
         LegacyLogger.__init__(self, logger=logger)
 
@@ -164,20 +168,40 @@ class LegacyLoggerTests(unittest.TestCase):
 
 
     def legacy_err(self, log, kwargs, why, exception):
+        """
+        Validate the results of calling the legacy C{err} method.
+
+        @param log: the logger that C{err} was called on.
+        @type log: L{TestLegacyLogger}
+
+        @param kwargs: keyword arguments given to C{err}.
+        @type kwargs: L{dict}
+
+        @param why: C{why} argument given to C{err}.
+        @type why: str
+
+        @param exception: the exception caught when C{err} was called.
+        @type exception: L{Exception}
+        """
         errors = self.flushLoggedErrors(exception.__class__)
         self.assertEquals(len(errors), 1)
 
-        self.assertIdentical(log.newStyleLogger.emitted["level"],
-                             LogLevel.error)
+        self.assertIdentical(
+            log.newStyleLogger.emitted["level"],
+            LogLevel.error
+        )
         self.assertEquals(log.newStyleLogger.emitted["format"], None)
+
         emittedKwargs = log.newStyleLogger.emitted["kwargs"]
         self.assertIdentical(emittedKwargs["failure"].__class__, Failure)
         self.assertIdentical(emittedKwargs["failure"].value, exception)
         self.assertIdentical(emittedKwargs["why"], why)
 
         for key, value in kwargs.items():
-            self.assertIdentical(log.newStyleLogger.emitted["kwargs"][key],
-                                 value)
+            self.assertIdentical(
+                log.newStyleLogger.emitted["kwargs"][key],
+                value
+            )
 
 
 
@@ -220,6 +244,10 @@ class LegacyLogObserverWrapperTests(unittest.TestCase):
     def observe(self, event):
         """
         Send an event to a wrapped legacy observer.
+
+        @param event: an event
+        @type event: L{dict}
+
         @return: the event as observed by the legacy wrapper
         """
         events = []
@@ -236,6 +264,9 @@ class LegacyLogObserverWrapperTests(unittest.TestCase):
         """
         Send an event to a wrapped legacy observer and verify that its data is
         preserved.
+
+        @param event: an event
+        @type event: L{dict}
 
         @return: the event as observed by the legacy wrapper
         """

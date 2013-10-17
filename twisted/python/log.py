@@ -280,6 +280,7 @@ if 'theLogPublisher' not in globals():
         publishPublisher=newGlobalLogPublisher
     )
 
+
     @_actually(theLogPublisher.addObserver)
     def addObserver(observer):
         """
@@ -391,7 +392,7 @@ def textFromEventDict(eventDict):
         elif 'format' in eventDict:
             text = _safeFormat(eventDict['format'], eventDict)
         else:
-            # we don't know how to log this
+            # We don't know how to log this
             return None
     else:
         text = ' '.join(map(reflect.safe_str, edm))
@@ -430,7 +431,7 @@ class FileLogObserver(_GlobalStartStopMixIn):
     timeFormat = None
 
     def __init__(self, f):
-        # compatibility
+        # Compatibility
         self.write = f.write
         self.flush = f.flush
         self._newObserver = NewFileLogObserver(f)

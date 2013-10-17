@@ -120,6 +120,15 @@ class FixedOffsetTimeZone(TZInfo):
 
     @classmethod
     def fromTimeStamp(cls, timeStamp):
+        """
+        Create a time zone with a fixed offset corresponding to a time stamp.
+
+        @param timeStamp: a time stamp
+        @type timeStamp: L{int}
+
+        @return: a time zone
+        @rtype: L{FixedOffsetTimeZone}
+        """
         offset = (
             DateTime.fromtimestamp(timeStamp) -
             DateTime.utcfromtimestamp(timeStamp)

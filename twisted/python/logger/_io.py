@@ -27,11 +27,13 @@ class LoggingFile(object):
 
     @cvar defaultLogger: The default L{Logger} instance to use when none is
         supplied to L{LoggingFile.__init__}.
+
     @type defaultLogger: L{Logger}
 
     @ivar softspace: File-like L{'softspace' attribute <file.softspace>}; zero
         or one.
-    @type softspace: C{int}
+
+    @type softspace: L{int}
     """
 
     defaultLogger = Logger()
@@ -68,6 +70,9 @@ class LoggingFile(object):
     def closed(self):
         """
         Read-only property.  Is the file closed?
+
+        @return: true if closed, otherwise false.
+        @rtype: L{bool}
         """
         return self._closed
 
@@ -75,7 +80,10 @@ class LoggingFile(object):
     @property
     def encoding(self):
         """
-        Read-only property.  Does the file have an encoding?
+        Read-only property.   File encoding.
+
+        @return: an encoding.
+        @rtype: L{str}
         """
         return self._encoding
 
@@ -83,7 +91,10 @@ class LoggingFile(object):
     @property
     def mode(self):
         """
-        Read-only property.  Does the file have an encoding?
+        Read-only property.  File mode.
+
+        @return: "w"
+        @rtype: L{str}
         """
         return "w"
 
@@ -91,7 +102,10 @@ class LoggingFile(object):
     @property
     def newlines(self):
         """
-        Read-only property.  Does the file have an encoding?
+        Read-only property.  Types of newlines encountered.
+
+        @return: C{None}
+        @rtype: L{NoneType}
         """
         return None
 
@@ -101,6 +115,9 @@ class LoggingFile(object):
         """
         The name of this file; a repr-style string giving information about its
         namespace.
+
+        @return: a file name
+        @rtype: L{str}
         """
         return (
             "<{0} {1}#{2}>".format(
@@ -122,11 +139,15 @@ class LoggingFile(object):
         """
         No-op; this file does not buffer.
         """
+        pass
 
 
     def fileno(self):
         """
         Returns an invalid file descriptor, since this is not backed by an FD.
+
+        @return: C{-1}
+        @rtype: L{int}
         """
         return -1
 
@@ -135,7 +156,8 @@ class LoggingFile(object):
         """
         A L{LoggingFile} is not a TTY.
 
-        @return: False
+        @return: C{False}
+        @rtype: L{bool}
         """
         return False
 
@@ -143,6 +165,9 @@ class LoggingFile(object):
     def write(self, string):
         """
         Log the given message.
+
+        @param string: data to write
+        @type string: L{bytes} in this file's preferred encoding or L{unicode}
         """
         if self._closed:
             raise ValueError("I/O operation on closed file")
@@ -161,6 +186,10 @@ class LoggingFile(object):
     def writelines(self, lines):
         """
         Log each of the given lines as a separate message.
+
+        @param lines: iterable of data to write
+        @type lines: iterable of L{bytes} in this file's preferred encoding
+           or L{unicode}
         """
         for line in lines:
             self.write(line)
@@ -169,6 +198,9 @@ class LoggingFile(object):
     def _unsupported(self, *args):
         """
         Template for unsupported operations.
+
+        @param args: arguments
+        @type args: tuple of L{object}
         """
         raise IOError("unsupported operation")
 

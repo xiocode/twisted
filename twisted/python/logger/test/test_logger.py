@@ -16,6 +16,11 @@ from twisted.python.logger._global import globalLogPublisher
 
 
 class TestLogger(Logger):
+    """
+    L{Logger} with an overriden C{emit} method that keeps track of received
+    events.
+    """
+
     def emit(self, level, format=None, **kwargs):
         def observer(event):
             self.event = event
@@ -118,8 +123,8 @@ class LoggerTests(unittest.TestCase):
             format = "This is a {level_name} message"
             message = format.format(level_name=level.name)
 
-            log_method = getattr(log, level.name)
-            log_method(format, junk=message, level_name=level.name)
+            logMethod = getattr(log, level.name)
+            logMethod(format, junk=message, level_name=level.name)
 
             # Ensure that test_emit got called with expected arguments
             self.assertEquals(log.emitted["level"], level)

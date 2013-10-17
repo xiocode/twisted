@@ -13,6 +13,10 @@ from twisted.python.logger._util import formatTrace
 
 
 class UtilTests(unittest.TestCase):
+    """
+    Utility tests.
+    """
+
     def test_trace(self):
         """
         Tracing keeps track of forwarding done by the publisher.

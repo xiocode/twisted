@@ -12,7 +12,7 @@ from datetime import timedelta as TimeDelta
 
 try:
     from time import tzset
-    # we should upgrade to a version of pyflakes that does not require this.
+    # We should upgrade to a version of pyflakes that does not require this.
     tzset
 except ImportError:
     tzset = None
@@ -39,14 +39,38 @@ class FileLogObserverTests(unittest.TestCase):
     def buildOutput(self, timeStamp, system, text, encoding):
         """
         Build an expected output string from components.
+
+        @param timeStamp: time stamp text
+        @type timeStamp: unicode
+
+        @param system: a system name
+        @type system: unicode
+
+        @param text: a text message
+        @type text: unicode
+
+        @param encoding: an encoding
+        @type encoding: str
+
+        @return: a L{FileLogObserver}-formatted output string.
+        @rtype: bytes
         """
-        return (u" ".join((timeStamp, system, text)) + u"\n")
+        return (u" ".join((timeStamp, system, text)) + u"\n").encode(encoding)
 
 
     def buildDefaultOutput(self, text, encoding="utf-8"):
         """
         Build an expected output string with the default time stamp
         and system.
+
+        @param text: a text message
+        @type text: unicode
+
+        @param encoding: an encoding
+        @type encoding: str
+
+        @return: a L{FileLogObserver}-formatted output string.
+        @rtype: bytes
         """
         return self.buildOutput(
             self.DEFAULT_TIMESTAMP,
@@ -77,6 +101,18 @@ class FileLogObserverTests(unittest.TestCase):
     ):
         """
         Default time stamp format is RFC 3339
+
+        @param logTime: a time stamp
+        @type logTime: int
+
+        @param logFormat: a format string
+        @type logFormat: unicode
+
+        @param observerKwargs: keyword arguments for constructing the observer
+        @type observerKwargs: dict
+
+        @param expectedOutput: the expected output from the observer
+        @type expectedOutput: bytes
         """
         event = dict(log_time=logTime, log_format=logFormat)
         fileHandle = StringIO()
@@ -109,12 +145,14 @@ class FileLogObserverTests(unittest.TestCase):
                 environ["TZ"] = name
             tzset()
 
-        def testObserver(t_int, t_text):
+        def testObserver(timeInt, timeText):
             self._testObserver(
-                t_int, u"XYZZY",
+                timeInt, u"XYZZY",
                 dict(),
-                self.buildOutput(t_text, self.DEFAULT_SYSTEM, u"XYZZY",
-                                 "utf-8"),
+                self.buildOutput(
+                    timeText, self.DEFAULT_SYSTEM,
+                    u"XYZZY", "utf-8",
+                ),
             )
 
         def testForTimeZone(name, expectedDST, expectedSTD):
@@ -241,6 +279,9 @@ class FileLogObserverTests(unittest.TestCase):
 
 
     def test_unformattableSystem(self):
+        """
+        System string is not formattable.
+        """
         event = dict(
             log_time=None,
             log_format=u"XYZZY",

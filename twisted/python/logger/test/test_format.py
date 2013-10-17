@@ -15,6 +15,10 @@ from twisted.python.logger._format import formatWithCall
 
 
 class FormattingTests(unittest.TestCase):
+    """
+    Tests for event formatting functions.
+    """
+
     def test_formatEvent(self):
         """
         L{formatEvent} will format an event according to several rules:
@@ -32,8 +36,8 @@ class FormattingTests(unittest.TestCase):
         L{formatEvent} will always return L{unicode}, and if given bytes, will
         always treat its format string as UTF-8 encoded.
         """
-        def format(log_format, **event):
-            event["log_format"] = log_format
+        def format(logFormat, **event):
+            event["log_format"] = logFormat
             result = formatEvent(event)
             self.assertIdentical(type(result), unicode)
             return result

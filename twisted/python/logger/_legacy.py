@@ -85,7 +85,8 @@ class LegacyLogger(object):
             message = " ".join(map(safe_str, message))
         else:
             message = None
-        return self.newStyleLogger.emit(LogLevel.info, message, **kwargs)
+
+        self.newStyleLogger.emit(LogLevel.info, message, **kwargs)
 
 
     def err(self, _stuff=None, _why=None, **kwargs):
@@ -169,7 +170,7 @@ class LegacyLogObserverWrapper(object):
             event["format"] = "%(log_legacy)s"
             event["log_legacy"] = StringifiableFromEvent(event.copy())
 
-        # log.failure() -> isError blah blah
+        # From log.failure() -> isError blah blah
         if "log_failure" in event:
             event["failure"] = event["log_failure"]
             event["isError"] = 1
