@@ -281,6 +281,33 @@ log.info("Hello")
         It can be particularly dangerous to edit or remove the content of an existing event key.
     </p>
 
+    <h3>Starting the global log publisher</h3>
+
+    <p>
+        When the global log publisher is created, it uses a <code class="API" base="twisted.python.logger">RingBufferLogObserver</code> (see below) to store events that are logged by the application in memory until logging is started.
+        Logging is started by registering the first set of observers with the global log publisher by calling <code class="API" base="twisted.python.logger.globalLogPublisher">startLoggingWithObservers</code>:
+    </p>
+
+    <pre class="python">
+from twisted.python.logger import globalLogPublisher
+from myobservers import PrintingObserver
+
+log = Logger()
+
+log.info("Hello")
+
+observers = [PrintingObserver()]
+
+globalLogPublisher.startLoggingWithObservers(observers)
+
+log.info("Hello, again")
+    </pre>
+
+    <p>
+        What this does is add the given observers (in this example, the <code class="python">PrintingObserver</code>) with the global log observer, then forwards all of the events that were stored in memory prior to calling <code class="API" base="twisted.python.logger.globalLogPublisher">startLoggingWithObservers</code> to these observers, and gets rid of the <code class="API" base="twisted.python.logger">RingBufferLogObserver</code>, as it is no longer needed.
+        It is an error to call <code class="API" base="twisted.python.logger.globalLogPublisher">startLoggingWithObservers</code> more than once.
+    </p>
+
 
     <h2>Provided log observers</h2>
 
