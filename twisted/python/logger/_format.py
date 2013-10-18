@@ -92,7 +92,7 @@ def flatKey(fieldName, formatSpec, conversion):
     """
     Compute a string key for a given field/format/conversion.
     """
-    return u"log_format_" + fieldName + u"!" + (conversion or u"")
+    return "log_format_" + fieldName + "!" + (conversion or "")
 
 
 
