@@ -78,8 +78,7 @@ def flatFormat(event):
         literal_text, field_name, format_spec, conversion
     ) in theFormatter.parse(event["log_format"]):
 
-        if literal_text is not None:
-            s += literal_text
+        s += literal_text
 
         key = flatKey(field_name, format_spec, conversion)
         value = fields[key]
