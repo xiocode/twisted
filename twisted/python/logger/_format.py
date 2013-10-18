@@ -28,8 +28,10 @@ def formatEvent(event):
     that a useful message is emitted regardless.
 
     @param event: a logging event
+    @type event: L{dict}
 
-    @return: a L{unicode}
+    @return: a formatted string
+    @rtype: L{unicode}
     """
     try:
         if event.get("log_flattened", False):
@@ -61,6 +63,12 @@ def formatEvent(event):
 def flatFormat(event):
     """
     Format an event which has been flattened with flattenEvent.
+
+    @param event: a logging event
+    @type event: L{dict}
+
+    @return: a formatted string
+    @rtype: L{unicode}
     """
     s = u''
     for (literal_text, field_name, format_spec, conversion) in (
@@ -84,6 +92,9 @@ def flatKey(fieldName, formatSpec, conversion):
 def flattenEvent(event):
     """
     Flatten the given event.
+
+    @param event: a logging event
+    @type event: L{dict}
     """
     for (literal_text, field_name, format_spec, conversion) in (
             _theFormatter.parse(event['log_format'])):
@@ -111,12 +122,13 @@ def formatUnformattableEvent(event, error):
     formatting error.
 
     @param event: a logging event
-    @type dict: L{dict}
+    @type event: L{dict}
 
     @param error: the formatting error
     @type error: L{Exception}
 
-    @return: a L{unicode}
+    @return: a formatted string
+    @rtype: L{unicode}
     """
     try:
         return (
