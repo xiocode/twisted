@@ -170,23 +170,30 @@ class FormattingTests(unittest.TestCase):
 
     def test_formatFlatEvent(self):
         """
-        L{flattenEvent} will 'flatten' an event so that, if scrubbed of all but
+        L{flattenEvent} will "flatten" an event so that, if scrubbed of all but
         serializable objects, it will preserve all necessary data to be
         formatted once serialized.  When presented with an event thusly
         flattened, L{formatEvent} will produce the same output.
         """
         counter = count()
+
         class Ephemeral(object):
-            attribute = 'value'
-        evt = dict(
+            attribute = "value"
+
+        event1 = dict(
             callme=lambda: next(counter), object=Ephemeral(),
             log_format="callable: {callme()} attribute: {object.attribute}"
         )
-        evt2 = flattenEvent(evt)
-        del evt2['callme']
-        del evt2['object']
-        evt3 = json.loads(json.dumps(evt2))
-        self.assertEquals(formatEvent(evt3), u"callable: 0 attribute: value")
+
+        # FIXME: New symbol isn't needed: event2 is event1
+        # Should flattenEvent make a copy?
+        event2 = flattenEvent(event1)
+        del event2["callme"]
+        del event2["object"]
+
+        event3 = json.loads(json.dumps(event2))
+
+        self.assertEquals(formatEvent(event3), u"callable: 0 attribute: value")
 
 
 
