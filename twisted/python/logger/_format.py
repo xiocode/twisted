@@ -98,7 +98,9 @@ def flatKey(fieldName, formatSpec, conversion):
 
 def flattenEvent(event):
     """
-    Flatten the given event.
+    Flatten the given event by pre-rendering the format fields and storing them
+    into keys in the event.  This also adds a C{"log_flattened"} key set to
+    C{True}, which indicates that the event has been flattened.
 
     @param event: a logging event
     @type event: L{dict}
