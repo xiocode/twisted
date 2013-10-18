@@ -188,14 +188,14 @@ class FormattingTests(unittest.TestCase):
         )
 
         flattenEvent(event1)
-        #del event1["callme"]
-        #del event1["object"]
 
-        event2 = json.loads(json.dumps(event1))
+        event2 = dict(event1)
+        del event2["callme"]
+        del event2["object"]
 
-        self.assertEquals(formatEvent(event2), u"callable: 0 attribute: value")
+        event3 = json.loads(json.dumps(event2))
 
-    test_formatFlatEvent.todo = "del on event keys is bad form; make a copy?"
+        self.assertEquals(formatEvent(event3), u"callable: 0 attribute: value")
 
 
     def test_flatKey(self):
