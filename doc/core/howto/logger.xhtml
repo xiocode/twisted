@@ -316,19 +316,81 @@ log.info("Hello")
     </dl>
 
 
-    <h2>Compatibility with python.logger</h2>
+    <h2>Compatibility with standard library logging</h2>
 
-    <!-- PythonLogObserver" -->
+    <p>
+        <code class="API" base="twisted.python.logger">STDLibLogObserver</code> is provided for compatibility with the standard library's <code class="API" base="">logging</code> module.
+        Log levels are mapped between the two systems, and the various attributes of standard library log records are filled in properly.
+    </p>
 
-    <p>...</p>
+    <p>
+        Note that standard library logging is a blocking API, and logging can be configured to block for long periods (eg. it may write to the network).
+        No protection is provided to prevent blocking, so such configurations may cause Twisted applications to perform poorly.
+    </p>
 
 
     <h2>Compatibility with twisted.python.log</h2>
 
-    <!-- LegacyLogger" -->
-    <!-- LegacyLogObserverWrapper" -->
+    <p>
+        This module provides some facilities to enable the existing <code class="API" base="">twisted.python.log</code> module to compatibly forward it's messages to this module.
+        As such, existing clients of <code class="API" base="">twisted.python.log</code> will begin using this module indirectly, with no changes to the older module's API.
+    </p>
 
-    <p>...</p>
+
+    <h3>Incrementally porting emitting applications</h3>
+
+    <p>
+        Applications that wish to switch from the old module to the new module without having to change much code may do so my using the <code class="API" base="twisted.python.logger">LegacyLogger</code> class, which exposes an API that is largely compatible with many uses of the <code class="API" base="">twisted.python.log</code> module.  For example, this code:
+    </p>
+
+    <pre class="python">
+from twisted.python import log
+
+log.msg("blah")
+
+log.msg(warning=message, category=reflect.qual(category),
+        filename=filename, lineno=lineno,
+        format="%(filename)s:%(lineno)s: %(category)s: %(warning)s")
+
+try:
+    1/0
+except Exception as e:
+    log.err(e, "Math is hard")
+    </pre>
+
+
+    <p>
+        &ellip; could be modified thusly to stop depending on the older module by simply changing the import line and instantiating a <code class="API" base="twisted.python.logger">LegacyLogger</code>.
+        The rest of the code stays the same:
+    </p>
+
+    <pre class="python">
+from twisted.python.logger import LegacyLogger
+log = LegacyLogger()
+
+log.msg("blah")
+
+log.msg(warning=message, category=reflect.qual(category),
+        filename=filename, lineno=lineno,
+        format="%(filename)s:%(lineno)s: %(category)s: %(warning)s")
+
+try:
+    1/0
+except Exception as e:
+    log.err(e, "Math is hard")
+    </pre>
+
+    <p>
+        Because the older module is forwarding to the new module, this is probably only useful if Twisted were to deprecate the older module one needs to port large application to the new module incrementally.
+    </p>
+
+
+    <h3>Incrementally porting emitting applications</h3>
+
+    <p>
+        Observers also have an incremental path for porting to the new module.  <code class="API" base="twisted.python.logger">LegacyLogObserverWrapper</code> is an <code class="API" base="twisted.python.logger">ILogObserver</code> that wraps a log observer written for the older module.
+        This allows an old-style observer to be registered with a new-style logger or log publisher compatibly.
+    </p>
 
   </body>
 </html>
