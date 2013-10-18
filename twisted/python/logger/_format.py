@@ -76,7 +76,7 @@ def flatFormat(event):
 
     for (
         literal_text, field_name, format_spec, conversion
-    ) in _theFormatter.parse(event["log_format"]):
+    ) in theFormatter.parse(event["log_format"]):
 
         if literal_text is not None:
             s += literal_text
@@ -110,7 +110,7 @@ def flattenEvent(event):
 
     for (
         literal_text, field_name, format_spec, conversion
-    ) in _theFormatter.parse(event["log_format"]):
+    ) in theFormatter.parse(event["log_format"]):
 
         if field_name.endswith(u"()"):
             fieldName = field_name[:-2]
@@ -119,7 +119,7 @@ def flattenEvent(event):
             fieldName = field_name
             callit = False
 
-        field = _theFormatter.get_field(fieldName, (), event)
+        field = theFormatter.get_field(fieldName, (), event)
         fieldValue = field[0]
         if callit:
             fieldValue = fieldValue()
@@ -226,7 +226,7 @@ def formatWithCall(formatString, mapping):
     @rtype: L{unicode}
     """
     return unicode(
-        _theFormatter.vformat(formatString, (), CallMapping(mapping))
+        theFormatter.vformat(formatString, (), CallMapping(mapping))
     )
 
-_theFormatter = Formatter()
+theFormatter = Formatter()
