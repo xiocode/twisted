@@ -16,6 +16,7 @@ from twisted.trial.unittest import SkipTest
 
 from twisted.python import log, failure
 from twisted.python.logger.test.test_stdlib import handlerAndBytesIO
+from twisted.python.log import LogPublisher
 from twisted.python.logger import LoggingFile, LogLevel as NewLogLevel
 
 
@@ -515,7 +516,9 @@ class FileObserverTestCase(LogPublisherTestCaseMixin,
         Cleanup after a startLogging() call that mutates the hell out of some
         global state.
         """
+        origOrigShowwarnings = warnings.showwarning
         origShowwarnings = log._oldshowwarning
+        self.addCleanup(setattr, warnings, 'showwarning', origOrigShowwarnings)
         self.addCleanup(setattr, log, "_oldshowwarning", origShowwarnings)
         self.addCleanup(setattr, sys, 'stdout', sys.stdout)
         self.addCleanup(setattr, sys, 'stderr', sys.stderr)
@@ -581,11 +584,26 @@ class FileObserverTestCase(LogPublisherTestCaseMixin,
         warnings go to Twisted log observers.
         """
         self._startLoggingCleanup()
-        # Ugggh, pretend we're starting from newly imported module:
+        tempLogPublisher = LogPublisher()
+        # Trial reports warnings in two ways.  First, it intercepts the global
+        # 'showwarning' function *itself*, after starting logging (by way of
+        # the '_collectWarnings' function which collects all warnings as a
+        # around the test's 'run' method).  Second, it has a log observer which
+        # immediately reports warnings when they're propagated into the log
+        # system (which, in normal operation, happens only at the end of the
+        # test case).  In order to avoid printing a spurious warning in this
+        # test, we first replace the global log publisher's 'showwarning' in
+        # the module with our own.
+        self.patch(log, "theLogPublisher", tempLogPublisher)
+        self.patch(log, "showwarning", tempLogPublisher.showwarning)
+        self.patch(log, "addObserver", tempLogPublisher.addObserver)
+        # And, one last thing, pretend we're starting from a fresh import, or
+        # warnings.warn won't be patched at all.
         log._oldshowwarning = None
+        # Global mutable state is bad, kids.  Stay in school.
         fakeFile = StringIO()
-        observer = log.startLogging(fakeFile)
-        self.addCleanup(observer.stop)
+        observer = log.startLogging(fakeFile, setStdout=False)
+        self.addCleanup(lambda: tempLogPublisher.removeObserver(observer))
         warnings.warn("hello!")
         output = fakeFile.getvalue()
         self.assertIn("UserWarning: hello!", output)
