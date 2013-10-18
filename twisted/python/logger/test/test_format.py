@@ -185,15 +185,13 @@ class FormattingTests(unittest.TestCase):
             log_format="callable: {callme()} attribute: {object.attribute}"
         )
 
-        # FIXME: New symbol isn't needed: event2 is event1
-        # Should flattenEvent make a copy?
-        event2 = flattenEvent(event1)
-        del event2["callme"]
-        del event2["object"]
+        flattenEvent(event1)
+        del event1["callme"]
+        del event1["object"]
 
-        event3 = json.loads(json.dumps(event2))
+        event2 = json.loads(json.dumps(event1))
 
-        self.assertEquals(formatEvent(event3), u"callable: 0 attribute: value")
+        self.assertEquals(formatEvent(event2), u"callable: 0 attribute: value")
 
 
 

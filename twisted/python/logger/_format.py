@@ -70,13 +70,20 @@ def flatFormat(event):
     @return: a formatted string
     @rtype: L{unicode}
     """
-    s = u''
-    for (literal_text, field_name, format_spec, conversion) in (
-            _theFormatter.parse(event['log_format'])):
+    s = u""
+
+    for (
+        literal_text, field_name, format_spec, conversion
+    ) in _theFormatter.parse(event["log_format"]):
+
         if literal_text is not None:
             s += literal_text
-        value = event[flatKey(field_name, format_spec, conversion)]
+
+        key = flatKey(field_name, format_spec, conversion)
+        value = event[key]
+
         s += unicode(value)
+
     return s
 
 
@@ -85,7 +92,7 @@ def flatKey(fieldName, formatSpec, conversion):
     """
     Compute a string key for a given field/format/conversion.
     """
-    return u"log_format_" + fieldName + u"!" + (conversion or u'')
+    return u"log_format_" + fieldName + u"!" + (conversion or u"")
 
 
 
@@ -96,23 +103,26 @@ def flattenEvent(event):
     @param event: a logging event
     @type event: L{dict}
     """
-    for (literal_text, field_name, format_spec, conversion) in (
-            _theFormatter.parse(event['log_format'])):
+    for (
+        literal_text, field_name, format_spec, conversion
+    ) in _theFormatter.parse(event["log_format"]):
+
         if field_name.endswith(u"()"):
             fieldName = field_name[:-2]
             callit = True
         else:
             fieldName = field_name
             callit = False
+
         field = _theFormatter.get_field(fieldName, (), event)
         fieldValue = field[0]
         if callit:
             fieldValue = fieldValue()
-        event[flatKey(field_name, format_spec, conversion)] = (
-            fieldValue
-        )
-    event['log_flattened'] = True
-    return event
+
+        key = flatKey(field_name, format_spec, conversion)
+        event[key] = fieldValue
+
+    event["log_flattened"] = True
 
 
 
@@ -143,8 +153,8 @@ def formatUnformattableEvent(event, error):
         # logger.
         failure = Failure()
 
-        text = ", ".join(" = ".join((safe_repr(key), safe_repr(value)))
-                         for key, value in event.items())
+        text = u", ".join(u" = ".join((safe_repr(key), safe_repr(value)))
+                          for key, value in event.items())
 
         return (
             u"MESSAGE LOST: unformattable object logged: {error}\n"
