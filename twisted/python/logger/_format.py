@@ -32,6 +32,8 @@ def formatEvent(event):
     @return: a L{unicode}
     """
     try:
+        if event.get("log_flattened", False):
+            return flatFormat(event)
         format = event.get("log_format", None)
 
         if format is None:
@@ -53,6 +55,53 @@ def formatEvent(event):
 
     except Exception as e:
         return formatUnformattableEvent(event, e)
+
+
+
+def flatFormat(event):
+    """
+    Format an event which has been flattened with flattenEvent.
+    """
+    s = u''
+    for (literal_text, field_name, format_spec, conversion) in (
+            _theFormatter.parse(event['log_format'])):
+        if literal_text is not None:
+            s += literal_text
+        value = event[flatKey(field_name, format_spec, conversion)]
+        s += unicode(value)
+    return s
+
+
+
+def flatKey(fieldName, formatSpec, conversion):
+    """
+    Compute a string key for a given field/format/conversion.
+    """
+    return u"log_format_" + fieldName + u"!" + (conversion or u'')
+
+
+
+def flattenEvent(event):
+    """
+    Flatten the given event.
+    """
+    for (literal_text, field_name, format_spec, conversion) in (
+            _theFormatter.parse(event['log_format'])):
+        if field_name.endswith(u"()"):
+            fieldName = field_name[:-2]
+            callit = True
+        else:
+            fieldName = field_name
+            callit = False
+        field = _theFormatter.get_field(fieldName, (), event)
+        fieldValue = field[0]
+        if callit:
+            fieldValue = fieldValue()
+        event[flatKey(field_name, format_spec, conversion)] = (
+            fieldValue
+        )
+    event['log_flattened'] = True
+    return event
 
 
 

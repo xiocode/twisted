@@ -5,11 +5,15 @@
 Test cases for L{twisted.python.logger._format}.
 """
 
+from itertools import count
+import json
+
 from twisted.trial import unittest
 
 from twisted.python.compat import _PY3, unicode
 from twisted.python.logger._format import formatEvent
 from twisted.python.logger._format import formatUnformattableEvent
+from twisted.python.logger._format import flattenEvent
 from twisted.python.logger._format import formatWithCall
 
 
@@ -162,6 +166,27 @@ class FormattingTests(unittest.TestCase):
             ),
             "Hello, 'repr'."
         )
+
+
+    def test_formatFlatEvent(self):
+        """
+        L{flattenEvent} will 'flatten' an event so that, if scrubbed of all but
+        serializable objects, it will preserve all necessary data to be
+        formatted once serialized.  When presented with an event thusly
+        flattened, L{formatEvent} will produce the same output.
+        """
+        counter = count()
+        class Ephemeral(object):
+            attribute = 'value'
+        evt = dict(
+            callme=lambda: next(counter), object=Ephemeral(),
+            log_format="callable: {callme()} attribute: {object.attribute}"
+        )
+        evt2 = flattenEvent(evt)
+        del evt2['callme']
+        del evt2['object']
+        evt3 = json.loads(json.dumps(evt2))
+        self.assertEquals(formatEvent(evt3), u"callable: 0 attribute: value")
 
 
 
