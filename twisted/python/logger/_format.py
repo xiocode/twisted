@@ -93,6 +93,7 @@ def flatKey(fieldName, formatSpec, conversion):
     """
     Compute a string key for a given field/format/conversion.
     """
+    #    "{fieldName}!{conversion}:{formatSpec}"
     return (
         "{fieldName}!{conversion}:{formatSpec}"
         .format(
@@ -106,8 +107,9 @@ def flatKey(fieldName, formatSpec, conversion):
 
 def flattenEvent(event):
     """
-    Flatten the given event by pre-rendering the format fields and storing them
-    into in a L{dict} in the C{"log_flattened"} key in the event.
+    Flatten the given event by pre-associating format fields with specific
+    objects and callable results in a L{dict} put into the C{"log_flattened"}
+    key in the event.
 
     @param event: a logging event
     @type event: L{dict}
@@ -117,6 +119,11 @@ def flattenEvent(event):
     for (
         literal_text, field_name, format_spec, conversion
     ) in theFormatter.parse(event["log_format"]):
+
+        key = flatKey(field_name, format_spec, conversion)
+        if key in fields:
+            # We've already seen and handled this key
+            continue
 
         if field_name.endswith(u"()"):
             fieldName = field_name[:-2]
@@ -130,7 +137,6 @@ def flattenEvent(event):
         if callit:
             fieldValue = fieldValue()
 
-        key = flatKey(field_name, format_spec, conversion)
         fields[key] = fieldValue
 
     event["log_flattened"] = fields

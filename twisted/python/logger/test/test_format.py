@@ -14,7 +14,9 @@ from twisted.python.compat import _PY3, unicode
 from twisted.python.logger._format import formatEvent
 from twisted.python.logger._format import formatUnformattableEvent
 from twisted.python.logger._format import flattenEvent
+from twisted.python.logger._format import flatKey
 from twisted.python.logger._format import formatWithCall
+from twisted.python.logger._format import theFormatter
 
 
 
@@ -181,8 +183,8 @@ class FormattingTests(unittest.TestCase):
             attribute = "value"
 
         event1 = dict(
+            log_format="callable: {callme()} attribute: {object.attribute}",
             callme=lambda: next(counter), object=Ephemeral(),
-            log_format="callable: {callme()} attribute: {object.attribute}"
         )
 
         flattenEvent(event1)
@@ -192,6 +194,60 @@ class FormattingTests(unittest.TestCase):
         event2 = json.loads(json.dumps(event1))
 
         self.assertEquals(formatEvent(event2), u"callable: 0 attribute: value")
+
+    test_formatFlatEvent.todo = "del on event keys is bad form; make a copy?"
+
+
+    def test_flatKey(self):
+        """
+        Test that flatKey returns the expected keys for format fields.
+        """
+        def keyFromFormat(format):
+            for (
+                literal_text,
+                field_name,
+                format_spec,
+                conversion,
+            ) in theFormatter.parse(format):
+                return flatKey(field_name, format_spec, conversion)
+
+        # No name
+        self.assertEquals(keyFromFormat("{}"), "!:")
+
+        # Just a name
+        self.assertEquals(keyFromFormat("{foo}"), "foo!:")
+
+        # Add conversion
+        self.assertEquals(keyFromFormat("{foo!s}"), "foo!s:")
+        self.assertEquals(keyFromFormat("{foo!r}"), "foo!r:")
+
+        # Add format spec
+        self.assertEquals(keyFromFormat("{foo:%s}"), "foo!:%s")
+        self.assertEquals(keyFromFormat("{foo:!}"), "foo!:!")
+        self.assertEquals(keyFromFormat("{foo::}"), "foo!::")
+
+        # Both
+        self.assertEquals(keyFromFormat("{foo!s:%s}"), "foo!s:%s")
+        self.assertEquals(keyFromFormat("{foo!s:!}"), "foo!s:!")
+        self.assertEquals(keyFromFormat("{foo!s::}"), "foo!s::")
+
+
+    def test_formatFlatEvent_fieldNamesSame(self):
+        """
+        The same format field used twice is rendered twice.
+        """
+        counter = count()
+
+        class CountStr(object):
+            def __str__(self):
+                return str(counter.next())
+
+        event = dict(
+            log_format="{x} {x}",
+            x=CountStr(),
+        )
+        flattenEvent(event)
+        self.assertEquals(formatEvent(event), u"0 1")
 
 
 
