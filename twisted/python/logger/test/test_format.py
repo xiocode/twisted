@@ -186,8 +186,8 @@ class FormattingTests(unittest.TestCase):
         )
 
         flattenEvent(event1)
-        del event1["callme"]
-        del event1["object"]
+        #del event1["callme"]
+        #del event1["object"]
 
         event2 = json.loads(json.dumps(event1))
 
