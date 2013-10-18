@@ -13,10 +13,10 @@
     <h2>The Basics</h2>
 
     <p>
-        Logging consists of two main components: applications that emit events, and observers that receive and handle those events.
-        Events are simply dictionaries containing the relevant data to describe something interesting that has occurred.
-        For example: a web server might emit an event after handling each request that includes the URI of requested resource, the  response's status code, a count of bytes transferred, etc.
-        All of that information might be contained in a pair of objects representing the request and response:
+        Logging consists of two main endpoints: applications that emit events, and observers that receive and handle those events.
+        An event is simply an object containing the relevant data that describes something interesting that has occurred in the application.
+        For example: a web server might emit an event after handling each request that includes the URI of requested resource, the response's status code, a count of bytes transferred, and so on.
+        All of that information might be contained in a pair of objects representing the request and response, so logging this event could be as simple as:
     </p>
 
     <pre class="python">
@@ -24,8 +24,9 @@ log.info(request=request, response=response)
     </pre>
 
     <p>
-        Note that many logging systems are about emitting <i>strings</i>.
-        In such systems, you might expect the API to look like this instead:
+        The above API would seem confusing to users of many logging systems, which are built around the idea of emitting strings to a file.
+        There is, after all, no string in the above call.
+        In such systems, one might expect the API to look like this instead:
     </p>
 
     <pre class="python">
@@ -36,16 +37,29 @@ log.info(
     </pre>
 
     <p>
-        One disadvantage to this is that a strings meant to be human-readable are not necessarily great for software to handle.
-        An observer receiving the above event as a string would have to resort to parsing the string to extract the URI, which is often unreliable.
-        Additionally, any information not encoded into the string is simply unavailable.
-        If the <code class="python">request</code> and <code class="python">response</code> objects are available to the observer, it would be possible to write an observer that accessed any attributes of those objects.
+        Here, a string is rendered by formatting data from our request and response objects.
+        The string can be easily appended to a log file, to be later read by an administrator, or perhaps teased out via some scripts or log gathering tools.
+    </p>
+
+    <p>
+        One disadvantage to this is that a strings meant to be human-readable are not necessarily easy (or even possibly) for software to handle reliably.
+        While text files are a common medium for storing logs, one might want to write code that notices certain types of events and does something other than store the event.
+    </p>
+
+    <p>
+        In the web server example, if many requests from a given IP address are resulting in failed authentication, someone might be trying to break in to the server.
+        Perhaps blocking requests from that IP address would be useful.
+        An observer receiving the above event as a string would have to resort to parsing the string to extract the relevant information, which may perform poorly and, depending on how well events are formatted, it may also be difficult to avoid bugs.
+        Additionally, any information not encoded into the string is simply unavailable; if the IP address isn't in the string, it cannot be obtained from the event.
+    </p>
+
+    <p>
+        However, if the <code class="python">request</code> and <code class="python">response</code> objects are available to the observer, as in the first example, it would be possible to write an observer that accessed any attributes of those objects.
         It would also be a lot easier to write an observer that emitted structured information by serializing these objects into a format such as JSON, rows in a database, etc.
     </p>
 
     <p>
-        Events-as-string do the advantage that it's obvious what an observer that writes strings (eg. an observer that streams text to a file) would emit here.
-        Since most people are used to server logs that are human-readonable, this is a reasonable thing to expect.
+        Events-as-string do have the advantage that it's obvious what an observer that writes strings, for example to a file, would emit.
         We can solve this more flexibly by providing an optional format string in events that can be used for this purpose:
     </p>
 
@@ -57,6 +71,7 @@ log.info(
     </pre>
 
     <p>
+        Note that this looks very much like the event-as-strings version of the API, except that the string is not rendered by the caller; we leave that to the observer, <em>if and when it is needed</em>.  The observer also have direct access to the request and response objects, as well as their attributes.
         Now a text-based observer can format the text in a prescribed way, and an observer that wants to handle these events specially can do so.
     </p>
 
@@ -87,8 +102,10 @@ class Foo(object):
     log = Logger()
 
     def oops(self, data):
-        self.log.error("Oops! Invalid data from server: {data!r}",
-                       data=data)
+        self.log.error(
+            "Oops! Invalid data from server: {data!r}",
+            data=data
+        )
     </pre>
 
     <h3>Namespaces</h3>
@@ -154,10 +171,14 @@ class Foo(object):
         Sticking to the above guidelines will hopefully help here.
     </p>
 
-    <h3>Emit method signatures</h3>
+    <h3>Emitter method signatures</h3>
 
     <p>
-        The emit methods (<code class="API" base="twisted.python.logger.Logger">log_info</code>, etc.) take an optional format string as a first argument, followed by keyword arguments that will be included in the emitted event.
+        The emitter methods (<code class="API" base="twisted.python.logger.Logger">log_info</code>, etc.) all take an optional format string as a first argument, followed by keyword arguments that will be included in the emitted event.
+    </p>
+
+    <p>
+        Note that all three examples in the opening section of this HOWTO fit this signature.  The first omits the format, which doesn't lend itself well to text logging.  The second omits the keyword arguments, which hostile to anything other than text logging, and is therefore ill-advised.  Finally, the third provides both.
     </p>
 
     <h3>Format strings</h3>
@@ -174,7 +195,7 @@ class Foo(object):
             Because event keys are provided via keyword arguments, and the logging system adds additional keys, the order of event attributes is non-deterministic, which means positional field names do not make sense in this context.
         </li>
         <li>
-            Field names ending in parentheses (eg. <code class="python">{foo()}</code>) will call the referenced object with no arguments, and call <code class="python">str</code> on the result, rather than calling <code class="python">str</code> on the referenced object directly.
+            Field names ending in parentheses (eg. <code class="python">{foo()}</code>) will call the referenced object with no arguments, then call <code class="python">str</code> on the result, rather than calling <code class="python">str</code> on the referenced object directly.
             There is no support for specifying arguments in the format string.
         </li>
     </ol>
@@ -199,33 +220,105 @@ class PrintingObserver(object):
     </p>
 
     <p>
-        While it is recommended, it is not required that observers declare their compliant with <code class="API" base="twisted.python.logger">ILogObserver</code>.
+        While it is recommended, in most cases it is not required that observers declare their compliance with <code class="API" base="twisted.python.logger">ILogObserver</code>.
         This flexibility exists to allow for pre-existing callables and lambda expressions to be used as observers.
-        As an example, if one would like to accumulate events in a <code class="python">list</code>, then <code class="python">list.append</code> can be used as an observer.
+        As an example, if one would like to accumulate events in a <code class="python">list</code>, then <code class="python">list.append</code> may be used as an observer.
     </p>
 
 
     <h2>Registering an observer</h2>
 
-    <p>...</p>
+    <p>
+        One way to register an observer is to contruct a <code class="API" base="twisted.python.logger">Logger</code> object with it:
+    </p>
 
+    <pre class="python">
+from twisted.python.logger import Logger
+from myobservers import PrintingObserver
 
-    <h2>The default log publisher</h2>
+log = Logger(observer=PrintingObserver())
 
-    <!-- LogPublisher" -->
-    <!-- PredicateResult" -->
-    <!-- ILogFilterPredicate" -->
-    <!-- FilteringLogObserver" -->
-    <!-- LogLevelFilterPredicate" -->
+log.info("Hello")
+    </pre>
 
-    <p>...</p>
+    <p>
+        This will cause all of a logger's events to be sent to the given observer.  In the above example, all events emitted by the logger (eg. <code class="python">"Hello"</code>) will be printed.
+        While that is useful in some cases, it is common to register multiple observers, and to do so globally for all (or most) loggers in an application.
+    </p>
+
+    <h2>The global log publisher</h2>
+
+    <p>
+        When a <code class="API" base="twisted.python.logger">Logger</code> is created without giving it an observer, it will send its events to the global log publisher, which is a singleton accessible via the name <code class="API" base="twisted.python.logger">globalLogPublisher</code>.
+    </p>
+
+    <p>
+        The global log publisher is an instance of a private subclass of <code class="API" base="twisted.python.logger">LogPublisher</code>, which is itself an <code class="API" base="twisted.python.logger">ILogObserver</code>.  What this means is that the global log publisher accepts events like any other observer, and that it forwards those events to other observers.  Observers can be registered to be forwarded events by calling the <code class="API" base="twisted.python.logger">LogPublisher</code> method <code class="API" base="twisted.python.logger.LogPublisher">addObserver</code>, and unregister by calling <code class="API" base="twisted.python.logger.LogPublisher">removeObserver</code>:
+    </p>
+
+    <pre class="python">
+from twisted.python.logger import globalLogPublisher
+from myobservers import PrintingObserver
+
+log = Logger()
+
+globalLogPublisher.addObserver(PrintingObserver())
+
+log.info("Hello")
+    </pre>
+
+    <p>
+        The result here is the same as the previous example, except that addtional observers can be (and may already have been) registered.  We know that <code class="python">"Hello"</code> will be printed.  We don't know, but it's very possible, that the same event will also be handled by other observers.
+    </p>
+
+    <p>
+        There is no supported API to discover what other observers are registered with a <code class="API" base="twisted.python.logger">LogPublisher</code>; in general, one doesn't need to know.  If an application is running in <code>twistd</code>, for example, it's likely that an observer is streaming events to a file by the time the application code is in play.  If it is running in a <code>twistd</code> web container, there will probably be another observer writing to the access log.
+    </p>
+
+    <p>
+        A caveat here is that events are <code class="python">dict</code> objects, which are mutable, so it is possible for an observer to modify an event that it sees.
+        Because doing so will modify what other observers will see, modifying a received event can be problematic and should be strongly discouraged.
+        It can be particularly dangerous to edit or remove the content of an existing event key.
+    </p>
 
 
     <h2>Provided log observers</h2>
 
-    <!-- FileLogObserver" -->
+    <p>
+        This module provides a number of pre-built observers for applications to use:
+    </p>
+
+    <dl>
+        <dt><code class="API" base="twisted.python.logger">LogPublisher</code></dt>
+        <dd>
+            Forwards events to other publishers.
+            This allows one to create a graph of observers.
+        </dd>
+
+        <dt><code class="API" base="twisted.python.logger">RingBufferLogObserver</code></dt>
+        <dd>
+            Stores received events in a ring buffer, and can be iterated on to obtain the stored events.
+            This is useful for keeping observed events in memory for later use.
+        </dd>
+
+        <dt><code class="API" base="twisted.python.logger">FileLogObserver</code></dt>
+        <dd>
+            Formats events as text, prefixed with a time stamp and a "system identifier", and writes them to a file.
+            The system identifier defaults to a combination of the event's namespace and level.
+        </dd>
+
+        <dt><code class="API" base="twisted.python.logger">FilteringLogObserver</code></dt>
+        <dd>
+            Forwards events to another observer after applying a set of filter predicates.
+            <code class="API" base="twisted.python.logger">LogLevelFilterPredicate</code> is a predicate that be configured to keep track of which log levels to filter for different namespaces, and will filter out events that are not at the appropriate level or higher.
+        </dd>
+
+    </dl>
+
+
+    <h2>Compatibility with python.logger</h2>
+
     <!-- PythonLogObserver" -->
-    <!-- RingBufferLogObserver -->
 
     <p>...</p>
 
