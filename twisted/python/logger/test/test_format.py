@@ -242,7 +242,7 @@ class FormattingTests(unittest.TestCase):
 
         class CountStr(object):
             def __str__(self):
-                return str(counter.next())
+                return str(next(counter))
 
         event = dict(
             log_format="{x} {x}",
