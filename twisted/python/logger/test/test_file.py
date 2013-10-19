@@ -52,10 +52,11 @@ class FileLogObserverTests(unittest.TestCase):
         @param encoding: an encoding
         @type encoding: str
 
-        @return: a L{FileLogObserver}-formatted output string.
-        @rtype: bytes
+        @return: a formatted output string that I{should} match the format
+            emitted by L{FileLogObserver}.
+        @rtype: L{unicode}
         """
-        return (u" ".join((timeStamp, system, text)) + u"\n").encode(encoding)
+        return (u" ".join((timeStamp, system, text)) + u"\n")
 
 
     def buildDefaultOutput(self, text, encoding="utf-8"):
