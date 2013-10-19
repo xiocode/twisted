@@ -75,12 +75,12 @@ def flatFormat(event):
     s = u""
 
     for (
-        literal_text, field_name, format_spec, conversion
+        literalText, fieldName, formatSpec, conversion
     ) in theFormatter.parse(event["log_format"]):
 
-        s += literal_text
+        s += literalText
 
-        key = flatKey(field_name, format_spec, conversion)
+        key = flatKey(fieldName, formatSpec, conversion)
         value = fields[key]
 
         s += unicode(value)
@@ -117,19 +117,18 @@ def flattenEvent(event):
     fields = {}
 
     for (
-        literal_text, field_name, format_spec, conversion
+        literalText, fieldName, formatSpec, conversion
     ) in theFormatter.parse(event["log_format"]):
 
-        key = flatKey(field_name, format_spec, conversion)
+        key = flatKey(fieldName, formatSpec, conversion)
         if key in fields:
             # We've already seen and handled this key
             continue
 
-        if field_name.endswith(u"()"):
-            fieldName = field_name[:-2]
+        if fieldName.endswith(u"()"):
+            fieldName = fieldName[:-2]
             callit = True
         else:
-            fieldName = field_name
             callit = False
 
         field = theFormatter.get_field(fieldName, (), event)
