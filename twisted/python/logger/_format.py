@@ -92,8 +92,19 @@ def flatFormat(event):
 def flatKey(fieldName, formatSpec, conversion):
     """
     Compute a string key for a given field/format/conversion.
+
+    @param fieldName: a format field name
+    @type fieldName: L{str}
+
+    @param fieldName: a format spec
+    @type fieldName: L{str}
+
+    @param fieldName: a format field conversion type
+    @type fieldName: L{str}
+
+    @return: a key specific to the given field, format and conversion
+    @rtype: L{str}
     """
-    #    "{fieldName}!{conversion}:{formatSpec}"
     return (
         "{fieldName}!{conversion}:{formatSpec}"
         .format(
