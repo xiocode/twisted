@@ -204,12 +204,12 @@ class FormattingTests(unittest.TestCase):
         """
         def keyFromFormat(format):
             for (
-                literal_text,
-                field_name,
-                format_spec,
+                literalText,
+                fieldName,
+                formatSpec,
                 conversion,
             ) in theFormatter.parse(format):
-                return flatKey(field_name, format_spec, conversion)
+                return flatKey(fieldName, formatSpec, conversion)
 
         # No name
         self.assertEquals(keyFromFormat("{}"), "!:")

@@ -96,11 +96,11 @@ def flatKey(fieldName, formatSpec, conversion):
     @param fieldName: a format field name
     @type fieldName: L{str}
 
-    @param fieldName: a format spec
-    @type fieldName: L{str}
+    @param formatSpec: a format spec
+    @type formatSpec: L{str}
 
-    @param fieldName: a format field conversion type
-    @type fieldName: L{str}
+    @param conversion: a format field conversion type
+    @type conversion: L{str}
 
     @return: a key specific to the given field, format and conversion
     @rtype: L{str}
