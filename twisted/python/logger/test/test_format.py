@@ -183,8 +183,10 @@ class FormattingTests(unittest.TestCase):
             attribute = "value"
 
         event1 = dict(
-            log_format="callable: {callme()} attribute: {object.attribute}",
+            log_format="callable: {callme()} attribute: {object.attribute} "
+                       "numrepr: {number!r} strrepr: {string!r}",
             callme=lambda: next(counter), object=Ephemeral(),
+            number=7, string="hello",
         )
 
         flattenEvent(event1)
@@ -192,10 +194,10 @@ class FormattingTests(unittest.TestCase):
         event2 = dict(event1)
         del event2["callme"]
         del event2["object"]
-
         event3 = json.loads(json.dumps(event2))
-
-        self.assertEquals(formatEvent(event3), u"callable: 0 attribute: value")
+        self.assertEquals(formatEvent(event3),
+                          u"callable: 0 attribute: value numrepr: 7 "
+                          "strrepr: 'hello'")
 
 
     def test_flatKey(self):
