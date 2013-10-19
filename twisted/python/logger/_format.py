@@ -144,8 +144,15 @@ def flattenEvent(event):
 
         field = theFormatter.get_field(fieldName, (), event)
         fieldValue = field[0]
+        if conversion == 's':
+            conversionFunction = str
+        elif conversion == 'r':
+            conversionFunction = repr
+        else:
+            conversionFunction = lambda x: x
         if callit:
             fieldValue = fieldValue()
+        fieldValue = conversionFunction(fieldValue)
 
         fields[key] = fieldValue
 
