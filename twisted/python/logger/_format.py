@@ -209,6 +209,16 @@ def formatTime(when, timeFormat=timeFormatRFC3339, default=u"-"):
     """
     Format a timestamp as text.
 
+    Example::
+
+        >>> from time import time
+        >>> from twisted.python.logger import formatTime
+        >>> t = time()
+        >>> formatTime(t)
+        u'2013-10-22T14:19:11-0700'
+        >>> formatTime(t, timeFormat="%Y/%W")  # year and week number
+        u'2013/42'
+
     @param when: a timestamp.
     @type then: L{float}
 

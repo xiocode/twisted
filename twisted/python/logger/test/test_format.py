@@ -5,24 +5,37 @@
 Test cases for L{twisted.python.logger._format}.
 """
 
+from os import environ
 from itertools import count
 import json
+from time import mktime
+from datetime import timedelta as TimeDelta
+
+try:
+    from time import tzset
+    # We should upgrade to a version of pyflakes that does not require this.
+    tzset
+except ImportError:
+    tzset = None
 
 from twisted.trial import unittest
+from twisted.trial.unittest import SkipTest
 
 from twisted.python.compat import _PY3, unicode
 from twisted.python.logger._format import formatEvent
 from twisted.python.logger._format import formatUnformattableEvent
 from twisted.python.logger._format import flattenEvent
 from twisted.python.logger._format import flatKey
+from twisted.python.logger._format import formatTime
 from twisted.python.logger._format import formatWithCall
 from twisted.python.logger._format import theFormatter
+from twisted.python.logger._format import FixedOffsetTimeZone
 
 
 
 class FormattingTests(unittest.TestCase):
     """
-    Tests for event formatting functions.
+    Tests for basic event formatting functions.
     """
 
     def test_formatEvent(self):
@@ -147,28 +160,11 @@ class FormattingTests(unittest.TestCase):
         self.assertIn(repr("recoverable") + " = " + repr("okay"), result)
 
 
-    def test_formatWithCall(self):
-        """
-        L{formatWithCall} is an extended version of L{unicode.format} that
-        will interpret a set of parentheses "C{()}" at the end of a format key
-        to mean that the format key ought to be I{called} rather than
-        stringified.
-        """
-        self.assertEquals(
-            formatWithCall(
-                u"Hello, {world}. {callme()}.",
-                dict(world="earth", callme=lambda: "maybe")
-            ),
-            "Hello, earth. maybe."
-        )
-        self.assertEquals(
-            formatWithCall(
-                u"Hello, {repr()!r}.",
-                dict(repr=lambda: "repr")
-            ),
-            "Hello, 'repr'."
-        )
 
+class FlatFormattingTests(unittest.TestCase):
+    """
+    Tests for flattened event formatting functions.
+    """
 
     def test_formatFlatEvent(self):
         """
@@ -253,6 +249,215 @@ class FormattingTests(unittest.TestCase):
 
 
 
+class TimeFormattingTests(unittest.TestCase):
+    """
+    Tests for time formatting functions.
+    """
+
+    def setUp(self):
+        addTZCleanup(self)
+
+
+    def test_formatTimeWithDefaultFormat(self):
+        """
+        Default time stamp format is RFC 3339 and offset respects the timezone
+        as set by the standard C{TZ} environment variable and L{tzset} API.
+        """
+        if tzset is None:
+            raise SkipTest(
+                "Platform cannot change timezone; unable to verify offsets."
+            )
+
+        def testForTimeZone(name, expectedDST, expectedSTD):
+            setTZ(name)
+
+            # On some rare platforms (FreeBSD 8?  I was not able to reproduce
+            # on FreeBSD 9) 'mktime' seems to always fail once tzset() has been
+            # called more than once in a process lifetime.  I think this is
+            # just a platform bug, so let's work around it.  -glyph
+            try:
+                localDST = mktime((2006, 6, 30, 0, 0, 0, 4, 181, 1))
+            except OverflowError:
+                raise SkipTest(
+                    "Platform cannot construct time zone for {0!r}"
+                    .format(name)
+                )
+            localSTD = mktime((2007, 1, 31, 0, 0, 0, 2,  31, 0))
+
+            self.assertEquals(formatTime(localDST), expectedDST)
+            self.assertEquals(formatTime(localSTD), expectedSTD)
+
+        # UTC
+        testForTimeZone(
+            "UTC+00",
+            u"2006-06-30T00:00:00+0000",
+            u"2007-01-31T00:00:00+0000",
+        )
+
+        # West of UTC
+        testForTimeZone(
+            "EST+05EDT,M4.1.0,M10.5.0",
+            u"2006-06-30T00:00:00-0400",
+            u"2007-01-31T00:00:00-0500",
+        )
+
+        # East of UTC
+        testForTimeZone(
+            "CEST-01CEDT,M4.1.0,M10.5.0",
+            u"2006-06-30T00:00:00+0200",
+            u"2007-01-31T00:00:00+0100",
+        )
+
+        # No DST
+        testForTimeZone(
+            "CST+06",
+            u"2006-06-30T00:00:00-0600",
+            u"2007-01-31T00:00:00-0600",
+        )
+
+
+    def test_formatTimeWithNoTime(self):
+        """
+        If C{when} argument is C{None}, we should get the default output.
+        """
+        self.assertEquals(formatTime(None), u"-")
+        self.assertEquals(formatTime(None, default=u"!"), u"!")
+
+
+    def test_formatTimeWithNoFormat(self):
+        """
+        If C{timeFormat} argument is C{None}, we should get the default output.
+        """
+        t = mktime((2013, 9, 24, 11, 40, 47, 1, 267, 1))
+        self.assertEquals(formatTime(t, timeFormat=None), u"-")
+        self.assertEquals(formatTime(t, timeFormat=None, default=u"!"), u"!")
+
+
+
+class ClassicLogFormattingTests(unittest.TestCase):
+    """
+    Tests for classic text log event formatting functions.
+    """
+
+    def test_(self):
+        pass
+    test_.todo = "Need some tests here"
+
+
+class FormatFieldTests(unittest.TestCase):
+    """
+    Tests for format field functions.
+    """
+
+    def test_formatWithCall(self):
+        """
+        L{formatWithCall} is an extended version of L{unicode.format} that
+        will interpret a set of parentheses "C{()}" at the end of a format key
+        to mean that the format key ought to be I{called} rather than
+        stringified.
+        """
+        self.assertEquals(
+            formatWithCall(
+                u"Hello, {world}. {callme()}.",
+                dict(world="earth", callme=lambda: "maybe")
+            ),
+            "Hello, earth. maybe."
+        )
+        self.assertEquals(
+            formatWithCall(
+                u"Hello, {repr()!r}.",
+                dict(repr=lambda: "repr")
+            ),
+            "Hello, 'repr'."
+        )
+
+
+
+class FixedOffsetTimeZoneTests(unittest.TestCase):
+    """
+    Tests for L{FixedOffsetTimeZone}.
+    """
+
+    def setUp(self):
+        addTZCleanup(self)
+
+
+    def test_tzinfo(self):
+        """
+        Test that timezone attributes respect the timezone as set by the
+        standard C{TZ} environment variable and L{tzset} API.
+        """
+        if tzset is None:
+            raise SkipTest(
+                "Platform cannot change timezone; unable to verify offsets."
+            )
+
+        def testForTimeZone(name, expectedOffsetDST, expectedOffsetSTD):
+            setTZ(name)
+
+            # On some rare platforms (FreeBSD 8?  I was not able to reproduce
+            # on FreeBSD 9) 'mktime' seems to always fail once tzset() has been
+            # called more than once in a process lifetime.  I think this is
+            # just a platform bug, so let's work around it.  -glyph
+            try:
+                localDST = mktime((2006, 6, 30, 0, 0, 0, 4, 181, 1))
+            except OverflowError:
+                raise SkipTest(
+                    "Platform cannot construct time zone for {0!r}"
+                    .format(name)
+                )
+            localSTD = mktime((2007, 1, 31, 0, 0, 0, 2,  31, 0))
+
+            tzDST = FixedOffsetTimeZone.fromTimeStamp(localDST)
+            tzSTD = FixedOffsetTimeZone.fromTimeStamp(localSTD)
+
+            self.assertEquals(
+                tzDST.tzname(localDST),
+                "UTC{0}".format(expectedOffsetDST)
+            )
+            self.assertEquals(
+                tzSTD.tzname(localSTD),
+                "UTC{0}".format(expectedOffsetSTD)
+            )
+
+            self.assertEquals(tzDST.dst(localDST), TimeDelta(0))
+            self.assertEquals(tzSTD.dst(localSTD), TimeDelta(0))
+
+            def timeDeltaFromOffset(offset):
+                assert len(offset) == 5
+
+                sign = offset[0]
+                hours = int(offset[1:3])
+                minutes = int(offset[3:5])
+
+                if sign == "-":
+                    hours = -hours
+                    minutes = -minutes
+                else:
+                    assert sign == "+"
+
+                return TimeDelta(hours=hours, minutes=minutes)
+
+            self.assertEquals(
+                tzDST.utcoffset(localDST),
+                timeDeltaFromOffset(expectedOffsetDST)
+            )
+            self.assertEquals(
+                tzSTD.utcoffset(localSTD),
+                timeDeltaFromOffset(expectedOffsetSTD)
+            )
+
+        # UTC
+        testForTimeZone("UTC+00", "+0000", "+0000")
+        # West of UTC
+        testForTimeZone("EST+05EDT,M4.1.0,M10.5.0", "-0400", "-0500")
+        # East of UTC
+        testForTimeZone("CEST-01CEDT,M4.1.0,M10.5.0", "+0200", "+0100")
+        # No DST
+        testForTimeZone("CST+06", "-0600", "-0600")
+
+
+
 class Unformattable(object):
     """
     An object that raises an exception from C{__repr__}.
@@ -260,3 +465,26 @@ class Unformattable(object):
 
     def __repr__(self):
         return str(1/0)
+
+
+
+def setTZ(name):
+    if tzset is None:
+        return
+
+    if name is None:
+        try:
+            del environ["TZ"]
+        except KeyError:
+            pass
+    else:
+        environ["TZ"] = name
+    tzset()
+
+
+def addTZCleanup(testCase):
+    tzIn = environ.get("TZ", None)
+
+    @testCase.addCleanup
+    def resetTZ():
+        setTZ(tzIn)
