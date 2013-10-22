@@ -225,9 +225,11 @@ class FileLogObserverTests(unittest.TestCase):
         Time format is None == no time stamp.
         """
         t = mktime((2013, 9, 24, 11, 40, 47, 1, 267, 1))
+        formatTimeNone = lambda t: formatTime(t, timeFormat=None)
+        formatEvent = lambda e: formatEventAsLine(e, formatTime=formatTimeNone)
         self._testObserver(
             t, u"XYZZY",
-            dict(formatEvent=lambda e: formatEventAsLine(e, formatTime=lambda t: formatTime(t, timeFormat=None))),
+            dict(formatEvent=formatEvent),
             self.buildDefaultOutput(u"XYZZY"),
         )
 
@@ -237,9 +239,11 @@ class FileLogObserverTests(unittest.TestCase):
         Alternate time format in output.
         """
         t = mktime((2013, 9, 24, 11, 40, 47, 1, 267, 1))
+        formatTimeYW = lambda t: formatTime(t, timeFormat="%Y/%W")
+        formatEvent = lambda e: formatEventAsLine(e, formatTime=formatTimeYW)
         self._testObserver(
             t, u"XYZZY",
-            dict(formatEvent=lambda e: formatEventAsLine(e, formatTime=lambda t: formatTime(t, timeFormat="%Y/%W"))),
+            dict(formatEvent=formatEvent),
             self.buildOutput(u"2013/38", self.DEFAULT_SYSTEM, u"XYZZY",
                              "utf-8")
         )
@@ -249,9 +253,11 @@ class FileLogObserverTests(unittest.TestCase):
         """
         "%f" supported in time format.
         """
+        formatTimeF = lambda t: formatTime(t, timeFormat="%f")
+        formatEvent = lambda e: formatEventAsLine(e, formatTime=formatTimeF)
         self._testObserver(
             1.23456, u"XYZZY",
-            dict(formatEvent=lambda e: formatEventAsLine(e, formatTime=lambda t: formatTime(t, timeFormat="%f"))),
+            dict(formatEvent=formatEvent),
             self.buildOutput(u"234560", self.DEFAULT_SYSTEM, u"XYZZY",
                              "utf-8"),
         )

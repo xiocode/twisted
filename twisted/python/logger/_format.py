@@ -223,9 +223,10 @@ def formatTime(when, timeFormat=timeFormatRFC3339):
         return u"-"
 
 
-def formatEventAsLine(event, formatTime=formatTime):
+def formatEventAsClassicLogText(event, formatTime=formatTime):
     """
-    Format an event as a line of text for, eg. file output.
+    Format an event as a line of human-readable text for, eg. traditional log
+    file output.
 
     @param event: an event.
     @type event: L{dict}

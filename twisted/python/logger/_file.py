@@ -14,7 +14,7 @@ from zope.interface import implementer
 
 from twisted.python.compat import ioType, unicode
 from twisted.python.logger._observer import ILogObserver
-from twisted.python.logger._format import formatEventAsLine
+from twisted.python.logger._format import formatEventAsClassicLogText
 from twisted.python.logger._format import timeFormatRFC3339
 
 
@@ -74,8 +74,9 @@ def textFileLogObserver(textOutput, timeFormat=timeFormatRFC3339):
     @return
     """
     if timeFormat is None:
-        formatEvent = formatEventAsLine
+        formatEvent = formatEventAsClassicLogText
     else:
-        formatEvent = lambda e: formatEventAsLine(e, timeFormat=timeFormat)
+        def formatEvent(event):
+            return formatEventAsClassicLogText(event, timeFormat=timeFormat)
 
     return FileLogObserver(textOutput, formatEvent)
