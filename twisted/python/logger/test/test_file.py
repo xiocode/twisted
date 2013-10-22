@@ -24,7 +24,9 @@ from twisted.trial.unittest import SkipTest
 
 from twisted.python.logger._observer import ILogObserver
 from twisted.python.logger._file import FileLogObserver
-from twisted.python.logger._file import FixedOffsetTimeZone
+from twisted.python.logger._format import formatEventAsLine
+from twisted.python.logger._format import formatTime
+from twisted.python.logger._format import FixedOffsetTimeZone
 from twisted.python.logger.test.test_format import Unformattable
 
 
@@ -225,7 +227,7 @@ class FileLogObserverTests(unittest.TestCase):
         t = mktime((2013, 9, 24, 11, 40, 47, 1, 267, 1))
         self._testObserver(
             t, u"XYZZY",
-            dict(timeFormat=None),
+            dict(formatEvent=lambda e: formatEventAsLine(e, formatTime=lambda t: formatTime(t, timeFormat=None))),
             self.buildDefaultOutput(u"XYZZY"),
         )
 
@@ -237,7 +239,7 @@ class FileLogObserverTests(unittest.TestCase):
         t = mktime((2013, 9, 24, 11, 40, 47, 1, 267, 1))
         self._testObserver(
             t, u"XYZZY",
-            dict(timeFormat="%Y/%W"),
+            dict(formatEvent=lambda e: formatEventAsLine(e, formatTime=lambda t: formatTime(t, timeFormat="%Y/%W"))),
             self.buildOutput(u"2013/38", self.DEFAULT_SYSTEM, u"XYZZY",
                              "utf-8")
         )
@@ -249,7 +251,7 @@ class FileLogObserverTests(unittest.TestCase):
         """
         self._testObserver(
             1.23456, u"XYZZY",
-            dict(timeFormat="%f"),
+            dict(formatEvent=lambda e: formatEventAsLine(e, formatTime=lambda t: formatTime(t, timeFormat="%f"))),
             self.buildOutput(u"234560", self.DEFAULT_SYSTEM, u"XYZZY",
                              "utf-8"),
         )

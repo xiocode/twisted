@@ -41,6 +41,9 @@ __all__ = [
 
     # From twisted.python.logger._format
     "formatEvent",
+    "formatEventAsLine",
+    "formatTime",
+    "timeFormatRFC3339",
 
     # From twisted.python.logger._logger
     "Logger",

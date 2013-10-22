@@ -11,10 +11,14 @@ __all__ = [
 ]
 
 from string import Formatter
+from datetime import datetime as DateTime, tzinfo as TZInfo
+from datetime import timedelta as TimeDelta
 
 from twisted.python.compat import unicode
 from twisted.python.failure import Failure
 from twisted.python.reflect import safe_repr
+
+timeFormatRFC3339 = "%Y-%m-%dT%H:%M:%S%z"
 
 
 
@@ -198,6 +202,64 @@ def formatUnformattableEvent(event, error):
         )
 
 
+def formatTime(when, timeFormat=timeFormatRFC3339):
+    """
+    Format a timestamp as text.
+
+    @param when: a timestamp.
+    @type then: L{float}
+
+    @return: a formatted time.
+    @rtype: L{unicode}
+    """
+    if (
+        timeFormat is not None and
+        when is not None
+    ):
+        tz = FixedOffsetTimeZone.fromTimeStamp(when)
+        datetime = DateTime.fromtimestamp(when, tz)
+        return unicode(datetime.strftime(timeFormat))
+    else:
+        return u"-"
+
+
+def formatEventAsLine(event, formatTime=formatTime):
+    """
+    Format an event as a line of text for, eg. file output.
+
+    @param event: an event.
+    @type event: L{dict}
+
+    @return: a formatted event, or C{None} if no output is appropriate.
+    @rtype: L{unicode} or C{None}
+    """
+    eventText = formatEvent(event)
+    if not eventText:
+        return None
+
+    eventText = eventText.replace(u"\n", u"\n\t")
+    timeStamp = formatTime(event.get("log_time", None))
+
+    system = event.get("log_system", None)
+
+    if system is None:
+        system = u"{namespace}#{level}".format(
+            namespace=event.get("log_namespace", u"-"),
+            level=event.get("log_level", u"-"),
+        )
+    else:
+        try:
+            system = unicode(system)
+        except Exception:
+            system = u"UNFORMATTABLE"
+
+    return u"{timeStamp} [{system}] {event}\n".format(
+        timeStamp=timeStamp,
+        system=system,
+        event=eventText,
+    )
+
+
 
 class CallMapping(object):
     """
@@ -259,3 +321,48 @@ def formatWithCall(formatString, mapping):
     )
 
 theFormatter = Formatter()
+
+
+
+class FixedOffsetTimeZone(TZInfo):
+    """
+    Time zone with a fixed offset.
+    """
+
+    @classmethod
+    def fromTimeStamp(cls, timeStamp):
+        """
+        Create a time zone with a fixed offset corresponding to a time stamp.
+
+        @param timeStamp: a time stamp
+        @type timeStamp: L{int}
+
+        @return: a time zone
+        @rtype: L{FixedOffsetTimeZone}
+        """
+        offset = (
+            DateTime.fromtimestamp(timeStamp) -
+            DateTime.utcfromtimestamp(timeStamp)
+        )
+        return cls(offset)
+
+
+    def __init__(self, offset):
+        self._offset = offset
+
+
+    def utcoffset(self, dt):
+        return self._offset
+
+
+    def tzname(self, dt):
+        dt = DateTime.fromtimestamp(0, self)
+        return dt.strftime("UTC%z")
+
+
+    def dst(self, dt):
+        return timeDeltaZero
+
+
+
+timeDeltaZero = TimeDelta(0)
