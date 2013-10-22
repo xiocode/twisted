@@ -41,32 +41,22 @@ class FileLogObserver(object):
             logged events.  If C{None}, no timestamp prefix is added.
         """
         if ioType(textOutput) is not unicode:
-            self._encoding = 'utf-8'
+            self._encoding = "utf-8"
         else:
             self._encoding = None
         self._outputStream = textOutput
         self._timeFormat = timeFormat
 
 
-    def _writeText(self, text):
-        """
-        Write text to the output stream, encoding it first if necessary.
-
-        @param text: the text to write
-        @type text: L{unicode}
-        """
-        if self._encoding is not None:
-            text = text.encode(self._encoding)
-        self._outputStream.write(text)
-
-
     def formatTime(self, when):
         """
-        Format a timestamp.
+        Format a timestamp as text.
 
-        @param when: A timestamp.
+        @param when: a timestamp.
+        @type then: L{float}
 
-        @return: a formatted time as a str.
+        @return: a formatted time.
+        @rtype: L{unicode}
         """
         if (
             self._timeFormat is not None and
@@ -74,18 +64,25 @@ class FileLogObserver(object):
         ):
             tz = FixedOffsetTimeZone.fromTimeStamp(when)
             datetime = DateTime.fromtimestamp(when, tz)
-            return datetime.strftime(self._timeFormat)
+            return unicode(datetime.strftime(self._timeFormat))
         else:
-            return "-"
+            return u"-"
 
 
-    def __call__(self, event):
+    def formatEvent(self, event):
         """
-        Write event to file.
+        Format an event for output.
+
+        @param event: an event.
+        @type event: L{dict}
+
+        @return: a formatted event, or C{None} if no output is appropriate.
+        @rtype: L{unicode} or C{None}
         """
         eventText = formatEvent(event)
         if not eventText:
-            return
+            return None
+
         eventText = eventText.replace(u"\n", u"\n\t")
         timeStamp = self.formatTime(event.get("log_time", None))
 
@@ -102,13 +99,26 @@ class FileLogObserver(object):
             except Exception:
                 system = u"UNFORMATTABLE"
 
-        text = u"{timeStamp} [{system}] {event}\n".format(
+        return u"{timeStamp} [{system}] {event}\n".format(
             timeStamp=timeStamp,
             system=system,
             event=eventText,
         )
 
-        self._writeText(text)
+
+    def __call__(self, event):
+        """
+        Write event to file.
+
+        @param event: an event.
+        @type event: L{dict}
+        """
+        text = self.formatEvent(event)
+        if text is None:
+            return
+        if self._encoding is not None:
+            text = text.encode(self._encoding)
+        self._outputStream.write(text)
         self._outputStream.flush()
 
 
