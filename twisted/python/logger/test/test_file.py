@@ -23,9 +23,7 @@ from twisted.trial import unittest
 from twisted.trial.unittest import SkipTest
 
 from twisted.python.logger._observer import ILogObserver
-from twisted.python.logger._file import FileLogObserver
-from twisted.python.logger._format import formatEventAsLine
-from twisted.python.logger._format import formatTime
+from twisted.python.logger._file import textFileLogObserver
 from twisted.python.logger._format import FixedOffsetTimeZone
 from twisted.python.logger.test.test_format import Unformattable
 
@@ -89,7 +87,7 @@ class FileLogObserverTests(unittest.TestCase):
         """
         try:
             fileHandle = StringIO()
-            observer = FileLogObserver(fileHandle)
+            observer = textFileLogObserver(fileHandle)
             try:
                 verifyObject(ILogObserver, observer)
             except BrokenMethodImplementation as e:
@@ -120,7 +118,7 @@ class FileLogObserverTests(unittest.TestCase):
         event = dict(log_time=logTime, log_format=logFormat)
         fileHandle = StringIO()
         try:
-            observer = FileLogObserver(fileHandle, **observerKwargs)
+            observer = textFileLogObserver(fileHandle, **observerKwargs)
             observer(event)
             output = fileHandle.getvalue()
             self.assertEquals(
@@ -225,11 +223,9 @@ class FileLogObserverTests(unittest.TestCase):
         Time format is None == no time stamp.
         """
         t = mktime((2013, 9, 24, 11, 40, 47, 1, 267, 1))
-        formatTimeNone = lambda t: formatTime(t, timeFormat=None)
-        formatEvent = lambda e: formatEventAsLine(e, formatTime=formatTimeNone)
         self._testObserver(
             t, u"XYZZY",
-            dict(formatEvent=formatEvent),
+            dict(timeFormat=None),
             self.buildDefaultOutput(u"XYZZY"),
         )
 
@@ -239,13 +235,15 @@ class FileLogObserverTests(unittest.TestCase):
         Alternate time format in output.
         """
         t = mktime((2013, 9, 24, 11, 40, 47, 1, 267, 1))
-        formatTimeYW = lambda t: formatTime(t, timeFormat="%Y/%W")
-        formatEvent = lambda e: formatEventAsLine(e, formatTime=formatTimeYW)
         self._testObserver(
             t, u"XYZZY",
-            dict(formatEvent=formatEvent),
-            self.buildOutput(u"2013/38", self.DEFAULT_SYSTEM, u"XYZZY",
-                             "utf-8")
+            dict(timeFormat="%Y/%W"),
+            self.buildOutput(
+                u"2013/38",
+                self.DEFAULT_SYSTEM,
+                u"XYZZY",
+                "utf-8",
+            )
         )
 
 
@@ -253,13 +251,15 @@ class FileLogObserverTests(unittest.TestCase):
         """
         "%f" supported in time format.
         """
-        formatTimeF = lambda t: formatTime(t, timeFormat="%f")
-        formatEvent = lambda e: formatEventAsLine(e, formatTime=formatTimeF)
         self._testObserver(
             1.23456, u"XYZZY",
-            dict(formatEvent=formatEvent),
-            self.buildOutput(u"234560", self.DEFAULT_SYSTEM, u"XYZZY",
-                             "utf-8"),
+            dict(timeFormat="%f"),
+            self.buildOutput(
+                u"234560",
+                self.DEFAULT_SYSTEM,
+                u"XYZZY",
+                "utf-8",
+            ),
         )
 
 
@@ -298,7 +298,7 @@ class FileLogObserverTests(unittest.TestCase):
         )
         fileHandle = StringIO()
         try:
-            observer = FileLogObserver(fileHandle)
+            observer = textFileLogObserver(fileHandle)
             observer(event)
             output = fileHandle.getvalue()
             expectedOutput = u"- [UNFORMATTABLE] XYZZY\n"

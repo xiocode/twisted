@@ -41,7 +41,7 @@ __all__ = [
 
     # From twisted.python.logger._format
     "formatEvent",
-    "formatEventAsLine",
+    "formatEventAsClassicLogText",
     "formatTime",
     "timeFormatRFC3339",
 
@@ -57,6 +57,7 @@ __all__ = [
 
     # From twisted.python.logger._file
     "FileLogObserver",
+    "textFileLogObserver",
 
     # From twisted.python.logger._filter
     "PredicateResult",
@@ -82,6 +83,9 @@ from twisted.python.logger._levels import InvalidLogLevelError
 from twisted.python.logger._levels import LogLevel
 
 from twisted.python.logger._format import formatEvent
+from twisted.python.logger._format import formatEventAsClassicLogText
+from twisted.python.logger._format import formatTime
+from twisted.python.logger._format import timeFormatRFC3339
 
 from twisted.python.logger._logger import Logger
 
@@ -91,6 +95,7 @@ from twisted.python.logger._observer import LogPublisher
 from twisted.python.logger._buffer import RingBufferLogObserver
 
 from twisted.python.logger._file import FileLogObserver
+from twisted.python.logger._file import textFileLogObserver
 
 from twisted.python.logger._filter import PredicateResult
 from twisted.python.logger._filter import ILogFilterPredicate

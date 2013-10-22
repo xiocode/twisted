@@ -8,6 +8,9 @@ Tools for formatting logging events.
 
 __all__ = [
     "formatEvent",
+    "formatEventAsClassicLogText",
+    "formatTime",
+    "timeFormatRFC3339",
 ]
 
 from string import Formatter
@@ -202,25 +205,28 @@ def formatUnformattableEvent(event, error):
         )
 
 
-def formatTime(when, timeFormat=timeFormatRFC3339):
+def formatTime(when, timeFormat=timeFormatRFC3339, default=u"-"):
     """
     Format a timestamp as text.
 
     @param when: a timestamp.
     @type then: L{float}
 
+    @param timeFormat: a time format
+    @type timeFormat: L{unicode} or C{None}
+
+    @param default: text to return if C{when} or C{timeFormat} is C{None}.
+    @type default: L{unicode}
+
     @return: a formatted time.
     @rtype: L{unicode}
     """
-    if (
-        timeFormat is not None and
-        when is not None
-    ):
+    if (timeFormat is None or when is None):
+        return default
+    else:
         tz = FixedOffsetTimeZone.fromTimeStamp(when)
         datetime = DateTime.fromtimestamp(when, tz)
         return unicode(datetime.strftime(timeFormat))
-    else:
-        return u"-"
 
 
 def formatEventAsClassicLogText(event, formatTime=formatTime):
@@ -230,6 +236,10 @@ def formatEventAsClassicLogText(event, formatTime=formatTime):
 
     @param event: an event.
     @type event: L{dict}
+
+    @param formatTime: a time formatter
+    @type formatTime: a L{callable} that takes an C{event} argument and returns
+        a L{unicode}
 
     @return: a formatted event, or C{None} if no output is appropriate.
     @rtype: L{unicode} or C{None}

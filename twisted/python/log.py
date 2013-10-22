@@ -23,7 +23,7 @@ from twisted.python import failure
 from twisted.python.threadable import synchronize
 from twisted.python.logger import (
     LogLevel as NewLogLevel,
-    FileLogObserver as NewFileLogObserver,
+    textFileLogObserver as newFileLogObserver,
     STDLibLogObserver as NewSTDLibLogObserver,
     LegacyLogObserverWrapper, LoggingFile,
     LogPublisher as NewPublisher,
@@ -434,7 +434,7 @@ class FileLogObserver(_GlobalStartStopMixIn):
         # Compatibility
         self.write = f.write
         self.flush = f.flush
-        self._newObserver = NewFileLogObserver(f)
+        self._newObserver = newFileLogObserver(f)
 
 
     def getTimezoneOffset(self, when):

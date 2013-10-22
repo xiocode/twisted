@@ -8,14 +8,16 @@ File log observer.
 
 __all__ = [
     "FileLogObserver",
+    "textFileLogObserver",
 ]
 
 from zope.interface import implementer
 
 from twisted.python.compat import ioType, unicode
 from twisted.python.logger._observer import ILogObserver
-from twisted.python.logger._format import formatEventAsClassicLogText
+from twisted.python.logger._format import formatTime
 from twisted.python.logger._format import timeFormatRFC3339
+from twisted.python.logger._format import formatEventAsClassicLogText
 
 
 
@@ -62,21 +64,24 @@ class FileLogObserver(object):
 
 def textFileLogObserver(textOutput, timeFormat=timeFormatRFC3339):
     """
-    Create a L{FileLogObserver} that emits text.
+    Create a L{FileLogObserver} that emits text to a specified (writable)
+        file-like object.
 
     @param textOutput: a file-like object.  Ideally one should be passed
         which accepts unicode; if not, utf-8 will be used as the encoding.
     @type textOutput: L{io.IOBase}
 
     @param timeFormat: the format to use when adding timestamp prefixes to
-        logged events.  If C{None}, no timestamp prefix is added.
+        logged events.  If C{None}, or for events with no C{"log_timestamp"}
+        key, the default timestamp prefix of C{u"-"} is used.
+    @type timeFormat: L{unicode} or C{None}
 
-    @return
+    @return: a file log observer.
+    @rtype: L{FileLogObserver}
     """
-    if timeFormat is None:
-        formatEvent = formatEventAsClassicLogText
-    else:
-        def formatEvent(event):
-            return formatEventAsClassicLogText(event, timeFormat=timeFormat)
+    def formatEvent(event):
+        return formatEventAsClassicLogText(
+            event, formatTime=lambda e: formatTime(e, timeFormat)
+        )
 
     return FileLogObserver(textOutput, formatEvent)
