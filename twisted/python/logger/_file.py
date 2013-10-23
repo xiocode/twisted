@@ -27,21 +27,21 @@ class FileLogObserver(object):
     """
     Log observer that writes to a file-like object.
     """
-    def __init__(self, textOutput, formatEvent):
+    def __init__(self, outFile, formatEvent):
         """
-        @param textOutput: a file-like object.  Ideally one should be passed
+        @param outFile: a file-like object.  Ideally one should be passed
             which accepts unicode; if not, utf-8 will be used as the encoding.
-        @type textOutput: L{io.IOBase}
+        @type outFile: L{io.IOBase}
 
         @param formatEvent: a callable formats an event
         @type formatEvent: L{callable} that takes an C{event} argument and
             returns a formatted event as L{unicode}.
         """
-        if ioType(textOutput) is not unicode:
+        if ioType(outFile) is not unicode:
             self._encoding = "utf-8"
         else:
             self._encoding = None
-        self._outputStream = textOutput
+        self._outputStream = outFile
         self.formatEvent = formatEvent
 
 
@@ -62,14 +62,14 @@ class FileLogObserver(object):
 
 
 
-def textFileLogObserver(textOutput, timeFormat=timeFormatRFC3339):
+def textFileLogObserver(outFile, timeFormat=timeFormatRFC3339):
     """
     Create a L{FileLogObserver} that emits text to a specified (writable)
         file-like object.
 
-    @param textOutput: a file-like object.  Ideally one should be passed
+    @param outFile: a file-like object.  Ideally one should be passed
         which accepts unicode; if not, utf-8 will be used as the encoding.
-    @type textOutput: L{io.IOBase}
+    @type outFile: L{io.IOBase}
 
     @param timeFormat: the format to use when adding timestamp prefixes to
         logged events.  If C{None}, or for events with no C{"log_timestamp"}
@@ -84,4 +84,4 @@ def textFileLogObserver(textOutput, timeFormat=timeFormatRFC3339):
             event, formatTime=lambda e: formatTime(e, timeFormat)
         )
 
-    return FileLogObserver(textOutput, formatEvent)
+    return FileLogObserver(outFile, formatEvent)
