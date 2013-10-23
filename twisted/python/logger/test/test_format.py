@@ -462,6 +462,28 @@ class ClassicLogFormattingTests(unittest.TestCase):
         )
 
 
+    def test_formatNoFormat(self):
+        """
+        No format string.
+        """
+        event = dict(id="123")
+        self.assertIdentical(
+            formatEventAsClassicLogText(event),
+            None
+        )
+
+
+    def test_formatEmptyFormat(self):
+        """
+        Empty format string.
+        """
+        event = dict(log_format="", id="123")
+        self.assertIdentical(
+            formatEventAsClassicLogText(event),
+            None
+        )
+
+
     def test_formatFormatMultiLine(self):
         """
         If the formatted event has newlines, indent additional lines.
