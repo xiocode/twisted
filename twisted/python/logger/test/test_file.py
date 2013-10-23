@@ -54,6 +54,16 @@ class FileLogObserverTests(unittest.TestCase):
 
 
     def _test_observeWrites(self, what, count):
+        """
+        Verify that observer performs an expected number of writes when the
+        formatter returns a given value.
+
+        @param what: the value for the formatter to return.
+        @type what: L{unicode}
+
+        @param count: the expected number of writes.
+        @type count: L{int}
+        """
         try:
             fileHandle = DummyFile()
             observer = FileLogObserver(fileHandle, lambda e: what)
@@ -71,6 +81,7 @@ class FileLogObserverTests(unittest.TestCase):
         C{formatEvent} returns C{None}.
         """
         self._test_observeWrites(None, 0)
+
 
     def test_observeWritesEmpty(self):
         """
@@ -97,7 +108,7 @@ class FileLogObserverTests(unittest.TestCase):
 
 
 
-class textFileLogObserverTests(unittest.TestCase):
+class TextFileLogObserverTests(unittest.TestCase):
     """
     Tests for L{textFileLogObserver}.
     """
@@ -141,15 +152,34 @@ class textFileLogObserverTests(unittest.TestCase):
 
 
 class DummyFile(object):
+    """
+    File that counts writes and flushes.
+    """
+
     def __init__(self):
         self.writes = 0
         self.flushes = 0
 
+
     def write(self, data):
+        """
+        Write data.
+
+        @param data: data
+        @type data: L{unicode} or L{bytes}
+        """
         self.writes += 1
 
+
     def flush(self):
+        """
+        Flush buffers.
+        """
         self.flushes += 1
 
+
     def close(self):
+        """
+        Close.
+        """
         pass

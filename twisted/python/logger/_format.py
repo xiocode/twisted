@@ -205,6 +205,7 @@ def formatUnformattableEvent(event, error):
         )
 
 
+
 def formatTime(when, timeFormat=timeFormatRFC3339, default=u"-"):
     """
     Format a timestamp as text.
@@ -217,7 +218,7 @@ def formatTime(when, timeFormat=timeFormatRFC3339, default=u"-"):
         >>> t = time()
         >>> formatTime(t)
         u'2013-10-22T14:19:11-0700'
-        >>> formatTime(t, timeFormat="%Y/%W")  # year and week number
+        >>> formatTime(t, timeFormat="%Y/%W")  # Year and week number
         u'2013/42'
         >>>
 
@@ -239,6 +240,7 @@ def formatTime(when, timeFormat=timeFormatRFC3339, default=u"-"):
         tz = FixedOffsetTimeZone.fromTimeStamp(when)
         datetime = DateTime.fromtimestamp(when, tz)
         return unicode(datetime.strftime(timeFormat))
+
 
 
 def formatEventAsClassicLogText(event, formatTime=formatTime):

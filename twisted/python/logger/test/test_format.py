@@ -619,6 +619,12 @@ class Unformattable(object):
 
 
 def setTZ(name):
+    """
+    Set time zone.
+
+    @param name: a time zone name
+    @type name: L{str}
+    """
     if tzset is None:
         return
 
@@ -632,7 +638,14 @@ def setTZ(name):
     tzset()
 
 
+
 def addTZCleanup(testCase):
+    """
+    Add cleanup hooks to a test case to reset timezone to orginial value.
+
+    @param testCase: the test case to add the cleanup to.
+    @type testCase: L{unittest.TestCase}
+    """
     tzIn = environ.get("TZ", None)
 
     @testCase.addCleanup
