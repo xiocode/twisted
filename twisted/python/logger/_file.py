@@ -41,7 +41,7 @@ class FileLogObserver(object):
             self._encoding = "utf-8"
         else:
             self._encoding = None
-        self._outputStream = outFile
+        self._outFile = outFile
         self.formatEvent = formatEvent
 
 
@@ -57,8 +57,8 @@ class FileLogObserver(object):
             return
         if self._encoding is not None:
             text = text.encode(self._encoding)
-        self._outputStream.write(text)
-        self._outputStream.flush()
+        self._outFile.write(text)
+        self._outFile.flush()
 
 
 
