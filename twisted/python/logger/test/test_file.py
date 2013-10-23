@@ -53,36 +53,31 @@ class FileLogObserverTests(unittest.TestCase):
             fileHandle.close()
 
 
+    def _test_observeWrites(self, what, count):
+        try:
+            fileHandle = DummyFile()
+            observer = FileLogObserver(fileHandle, lambda e: what)
+            event = dict(x=1)
+            observer(event)
+            self.assertEquals(fileHandle.writes, count)
+
+        finally:
+            fileHandle.close()
+
+
     def test_observeWritesNone(self):
         """
         L{FileLogObserver} writes to the given file when it observes events and
         C{formatEvent} returns C{None}.
         """
-        try:
-            fileHandle = DummyFile()
-            observer = FileLogObserver(fileHandle, lambda e: None)
-            event = dict(x=1)
-            observer(event)
-            self.assertEquals(fileHandle.writes, 0)
-
-        finally:
-            fileHandle.close()
-
+        self._test_observeWrites(None, 0)
 
     def test_observeWritesEmpty(self):
         """
         L{FileLogObserver} writes to the given file when it observes events and
         C{formatEvent} returns C{u""}.
         """
-        try:
-            fileHandle = DummyFile()
-            observer = FileLogObserver(fileHandle, lambda e: u"")
-            event = dict(x=1)
-            observer(event)
-            self.assertEquals(fileHandle.writes, 0)
-
-        finally:
-            fileHandle.close()
+        self._test_observeWrites(u"", 0)
 
 
     def test_observeFlushes(self):
