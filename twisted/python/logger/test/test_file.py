@@ -58,19 +58,6 @@ class FileLogObserverTests(unittest.TestCase):
         L{FileLogObserver} writes to the given file when it observes events and
         C{formatEvent} returns C{None}.
         """
-        class DummyFile(object):
-            def __init__(self):
-                self.writes = 0
-
-            def write(self, data):
-                self.writes += 1
-
-            def flush(self):
-                pass
-
-            def close(self):
-                pass
-
         try:
             fileHandle = DummyFile()
             observer = FileLogObserver(fileHandle, lambda e: None)
@@ -87,19 +74,6 @@ class FileLogObserverTests(unittest.TestCase):
         L{FileLogObserver} writes to the given file when it observes events and
         C{formatEvent} returns C{u""}.
         """
-        class DummyFile(object):
-            def __init__(self):
-                self.writes = 0
-
-            def write(self, data):
-                self.writes += 1
-
-            def flush(self):
-                pass
-
-            def close(self):
-                pass
-
         try:
             fileHandle = DummyFile()
             observer = FileLogObserver(fileHandle, lambda e: u"")
@@ -116,20 +90,6 @@ class FileLogObserverTests(unittest.TestCase):
         L{FileLogObserver} calles C{flush()} on the output file when it
         observes an event.
         """
-
-        class DummyFile(object):
-            def __init__(self):
-                self.flushes = 0
-
-            def write(self, data):
-                pass
-
-            def flush(self):
-                self.flushes += 1
-
-            def close(self):
-                pass
-
         try:
             fileHandle = DummyFile()
             observer = FileLogObserver(fileHandle, lambda e: unicode(e))
@@ -182,3 +142,19 @@ class textFileLogObserverTests(unittest.TestCase):
             self.assertEquals(fileHandle.getvalue(), u"234560 [-#-] XYZZY\n")
         finally:
             fileHandle.close()
+
+
+
+class DummyFile(object):
+    def __init__(self):
+        self.writes = 0
+        self.flushes = 0
+
+    def write(self, data):
+        self.writes += 1
+
+    def flush(self):
+        self.flushes += 1
+
+    def close(self):
+        pass
