@@ -22,11 +22,13 @@ from twisted.trial import unittest
 from twisted.trial.unittest import SkipTest
 
 from twisted.python.compat import _PY3, unicode
+from twisted.python.logger._levels import LogLevel
 from twisted.python.logger._format import formatEvent
 from twisted.python.logger._format import formatUnformattableEvent
 from twisted.python.logger._format import flattenEvent
 from twisted.python.logger._format import flatKey
 from twisted.python.logger._format import formatTime
+from twisted.python.logger._format import formatEventAsClassicLogText
 from twisted.python.logger._format import formatWithCall
 from twisted.python.logger._format import theFormatter
 from twisted.python.logger._format import FixedOffsetTimeZone
@@ -339,9 +341,73 @@ class ClassicLogFormattingTests(unittest.TestCase):
     Tests for classic text log event formatting functions.
     """
 
-    def test_(self):
-        pass
-    test_.todo = "Need some tests here"
+    def test_formatFormat(self):
+        """
+        Formatted event is last field.
+        """
+        event = dict(log_format=u"id:{id}", id="123")
+        self.assertEquals(
+            formatEventAsClassicLogText(event),
+            u"- [-#-] id:123\n",
+        )
+
+
+    def test_formatTimeDefault(self):
+        """
+        Time is first field.  Default time stamp format is RFC 3339 and offset
+        respects the timezone as set by the standard C{TZ} environment variable
+        and L{tzset} API.
+        """
+        if tzset is None:
+            raise SkipTest(
+                "Platform cannot change timezone; unable to verify offsets."
+            )
+
+        addTZCleanup(self)
+        setTZ("UTC+00")
+
+        t = mktime((2013, 9, 24, 11, 40, 47, 1, 267, 1))
+        event = dict(log_format=u"XYZZY", log_time=t)
+        self.assertEquals(
+            formatEventAsClassicLogText(event),
+            u"2013-09-24T11:40:47+0000 [-#-] XYZZY\n",
+        )
+
+
+    def test_formatTimeCustom(self):
+        """
+        Time is first field.  Custom formatting function is an optional
+        argument.
+        """
+        t = mktime((2013, 9, 24, 11, 40, 47, 1, 267, 1))
+        formatTime = lambda t: u"__{0}__".format(t)
+        event = dict(log_format=u"XYZZY", log_time=t)
+        self.assertEquals(
+            formatEventAsClassicLogText(event, formatTime=formatTime),
+            u"__1380048047.0__ [-#-] XYZZY\n",
+        )
+
+
+    def test_formatNamespace(self):
+        """
+        Namespace is first part of second field.
+        """
+        event = dict(log_format=u"XYZZY", log_namespace="my.namespace")
+        self.assertEquals(
+            formatEventAsClassicLogText(event),
+            u"- [my.namespace#-] XYZZY\n",
+        )
+
+
+    def test_formatLevel(self):
+        """
+        Level is second part of second field.
+        """
+        event = dict(log_format=u"XYZZY", log_level=LogLevel.warn)
+        self.assertEquals(
+            formatEventAsClassicLogText(event),
+            u"- [-#warn] XYZZY\n",
+        )
 
 
 class FormatFieldTests(unittest.TestCase):
@@ -377,10 +443,6 @@ class FixedOffsetTimeZoneTests(unittest.TestCase):
     """
     Tests for L{FixedOffsetTimeZone}.
     """
-
-    def setUp(self):
-        addTZCleanup(self)
-
 
     def test_tzinfo(self):
         """
@@ -446,6 +508,8 @@ class FixedOffsetTimeZoneTests(unittest.TestCase):
                 tzSTD.utcoffset(localSTD),
                 timeDeltaFromOffset(expectedOffsetSTD)
             )
+
+        addTZCleanup(self)
 
         # UTC
         testForTimeZone("UTC+00", "+0000", "+0000")
