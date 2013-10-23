@@ -213,11 +213,13 @@ def formatTime(when, timeFormat=timeFormatRFC3339, default=u"-"):
 
         >>> from time import time
         >>> from twisted.python.logger import formatTime
+        >>>
         >>> t = time()
         >>> formatTime(t)
         u'2013-10-22T14:19:11-0700'
         >>> formatTime(t, timeFormat="%Y/%W")  # year and week number
         u'2013/42'
+        >>>
 
     @param when: a timestamp.
     @type then: L{float}
@@ -244,6 +246,35 @@ def formatEventAsClassicLogText(event, formatTime=formatTime):
     Format an event as a line of human-readable text for, eg. traditional log
     file output.
 
+    The output format is C{u"{timeStamp} [{system}] {event}\n"}, where:
+
+      - C{timeStamp} is computed by calling the given C{formatTime} callable
+        on the event's C{"log_time"} value
+
+      - C{system} is the event's C{"log_system"} value, if set, otherwise,
+        the C{"log_namespace"} and C{"log_level"}, joined by a C{u"#"}.
+        Each defaults to C{u"-"} is not set.
+
+      - C{event} is the event, as formatted by L{formatEvent}.
+
+    Example::
+
+        >>> from __future__ import print_function
+        >>> from time import time
+        >>> from twisted.python.logger import formatEventAsClassicLogText
+        >>>
+        >>> formatEventAsClassicLogText(dict())  # No format, returns None
+        >>> formatEventAsClassicLogText(event)
+        u'2013-10-22T15:09:18-0700 [-#-] Hello!\n'
+        >>> formatEventAsClassicLogText(dict(
+        ...     log_format=u"Hello!",
+        ...     log_time=time(),
+        ...     log_namespace="my.namespace",
+        ...     log_level=LogLevel.info,
+        ... ))
+        u'2013-10-22T17:30:02-0700 [my.namespace#info] Hello!\n'
+        >>>
+
     @param event: an event.
     @type event: L{dict}
 
@@ -264,9 +295,15 @@ def formatEventAsClassicLogText(event, formatTime=formatTime):
     system = event.get("log_system", None)
 
     if system is None:
+        level = event.get("log_level", None)
+        if level is None:
+            levelName = u"-"
+        else:
+            levelName = level.name
+
         system = u"{namespace}#{level}".format(
             namespace=event.get("log_namespace", u"-"),
-            level=event.get("log_level", u"-"),
+            level=levelName,
         )
     else:
         try:
