@@ -335,22 +335,26 @@ class TimeFormattingTests(unittest.TestCase):
         self.assertEquals(formatTime(t, timeFormat=None, default=u"!"), u"!")
 
 
+    def test_formatTimeWithAlternateTimeFormat(self):
+        """
+        Alternate time format in output.
+        """
+        t = mktime((2013, 9, 24, 11, 40, 47, 1, 267, 1))
+        self.assertEquals(formatTime(t, timeFormat="%Y/%W"), u"2013/38")
+
+
+    def test_formatTime_f(self):
+        """
+        "%f" supported in time format.
+        """
+        self.assertEquals(formatTime(1.23456, timeFormat="%f"), u"234560")
+
+
 
 class ClassicLogFormattingTests(unittest.TestCase):
     """
     Tests for classic text log event formatting functions.
     """
-
-    def test_formatFormat(self):
-        """
-        Formatted event is last field.
-        """
-        event = dict(log_format=u"id:{id}", id="123")
-        self.assertEquals(
-            formatEventAsClassicLogText(event),
-            u"- [-#-] id:123\n",
-        )
-
 
     def test_formatTimeDefault(self):
         """
@@ -408,6 +412,67 @@ class ClassicLogFormattingTests(unittest.TestCase):
             formatEventAsClassicLogText(event),
             u"- [-#warn] XYZZY\n",
         )
+
+
+    def test_formatSystem(self):
+        """
+        System is second field.
+        """
+        event = dict(log_format=u"XYZZY", log_system=u"S.Y.S.T.E.M.")
+        self.assertEquals(
+            formatEventAsClassicLogText(event),
+            u"- [S.Y.S.T.E.M.] XYZZY\n",
+        )
+
+
+    def test_formatSystemRulz(self):
+        """
+        System is not supplanted by namespace and level.
+        """
+        event = dict(
+            log_format=u"XYZZY",
+            log_namespace="my.namespace",
+            log_level=LogLevel.warn,
+            log_system=u"S.Y.S.T.E.M.",
+        )
+        self.assertEquals(
+            formatEventAsClassicLogText(event),
+            u"- [S.Y.S.T.E.M.] XYZZY\n",
+        )
+
+
+    def test_formatSystemUnformattable(self):
+        """
+        System is not supplanted by namespace and level.
+        """
+        event = dict(log_format=u"XYZZY", log_system=Unformattable())
+        self.assertEquals(
+            formatEventAsClassicLogText(event),
+            u"- [UNFORMATTABLE] XYZZY\n",
+        )
+
+
+    def test_formatFormat(self):
+        """
+        Formatted event is last field.
+        """
+        event = dict(log_format=u"id:{id}", id="123")
+        self.assertEquals(
+            formatEventAsClassicLogText(event),
+            u"- [-#-] id:123\n",
+        )
+
+
+    def test_formatFormatMultiLine(self):
+        """
+        If the formatted event has newlines, indent additional lines.
+        """
+        event = dict(log_format=u'XYZZY\nA hollow voice says:\n"Plugh"')
+        self.assertEquals(
+            formatEventAsClassicLogText(event),
+            u'- [-#-] XYZZY\n\tA hollow voice says:\n\t"Plugh"\n',
+        )
+
 
 
 class FormatFieldTests(unittest.TestCase):
