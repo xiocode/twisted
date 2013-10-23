@@ -53,7 +53,7 @@ class FileLogObserver(object):
         @type event: L{dict}
         """
         text = self.formatEvent(event)
-        if text is None:
+        if not text:
             return
         if self._encoding is not None:
             text = text.encode(self._encoding)

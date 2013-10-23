@@ -53,6 +53,64 @@ class FileLogObserverTests(unittest.TestCase):
             fileHandle.close()
 
 
+    def test_observeWritesNone(self):
+        """
+        L{FileLogObserver} writes to the given file when it observes events and
+        C{formatEvent} returns C{None}.
+        """
+        class DummyFile(object):
+            def __init__(self):
+                self.writes = 0
+
+            def write(self, data):
+                self.writes += 1
+
+            def flush(self):
+                pass
+
+            def close(self):
+                pass
+
+        try:
+            fileHandle = DummyFile()
+            observer = FileLogObserver(fileHandle, lambda e: None)
+            event = dict(x=1)
+            observer(event)
+            self.assertEquals(fileHandle.writes, 0)
+
+        finally:
+            fileHandle.close()
+
+
+    def test_observeWritesEmpty(self):
+        """
+        L{FileLogObserver} writes to the given file when it observes events and
+        C{formatEvent} returns C{u""}.
+        """
+        class DummyFile(object):
+            def __init__(self):
+                self.writes = 0
+
+            def write(self, data):
+                self.writes += 1
+
+            def flush(self):
+                pass
+
+            def close(self):
+                pass
+
+        try:
+            fileHandle = DummyFile()
+            observer = FileLogObserver(fileHandle, lambda e: u"")
+            event = dict(x=1)
+            observer(event)
+            self.assertEquals(fileHandle.writes, 0)
+
+        finally:
+            fileHandle.close()
+
+
     def test_observeFlushes(self):
         """
         L{FileLogObserver} calles C{flush()} on the output file when it
