@@ -383,12 +383,11 @@ class ClassicLogFormattingTests(unittest.TestCase):
         Time is first field.  Custom formatting function is an optional
         argument.
         """
-        t = mktime((2013, 9, 24, 11, 40, 47, 1, 267, 1))
         formatTime = lambda t: u"__{0}__".format(t)
-        event = dict(log_format=u"XYZZY", log_time=t)
+        event = dict(log_format=u"XYZZY", log_time=12345)
         self.assertEquals(
             formatEventAsClassicLogText(event, formatTime=formatTime),
-            u"__1380048047.0__ [-#-] XYZZY\n",
+            u"__12345__ [-#-] XYZZY\n",
         )
 
 
