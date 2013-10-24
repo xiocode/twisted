@@ -364,7 +364,7 @@ log.info("Hello, again")
     </p>
 
 
-    <h3>Incrementally porting emitting applications</h3>
+    <h3>Incrementally porting emitters</h3>
 
     <p>
         Applications that wish to switch from the old module to the new module without having to change much code may do so my using the <code class="API" base="twisted.python.logger">LegacyLogger</code> class, which exposes an API that is largely compatible with many uses of the <code class="API" base="">twisted.python.log</code> module.  For example, this code:
@@ -412,7 +412,7 @@ except Exception as e:
     </p>
 
 
-    <h3>Incrementally porting emitting applications</h3>
+    <h3>Incrementally porting observers</h3>
 
     <p>
         Observers also have an incremental path for porting to the new module.  <code class="API" base="twisted.python.logger">LegacyLogObserverWrapper</code> is an <code class="API" base="twisted.python.logger">ILogObserver</code> that wraps a log observer written for the older module.
