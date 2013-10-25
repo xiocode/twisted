@@ -644,6 +644,9 @@ class NullFile:
     def write(self, bytes):
         """
         Do nothing.
+
+        @param bytes: data
+        @type bytes: L{bytes}
         """
 
 
@@ -687,6 +690,12 @@ class DefaultObserver(_GlobalStartStopMixIn):
     stderr = sys.stderr
 
     def emit(self, eventDict):
+        """
+        Emit an event dict.
+
+        @param eventDict: an event dict
+        @type eventDict: dict
+        """
         if eventDict["isError"]:
             if 'failure' in eventDict:
                 text = ((eventDict.get('why') or 'Unhandled Error')
