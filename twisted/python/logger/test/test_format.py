@@ -9,7 +9,7 @@ import sys
 from os import environ
 from itertools import count
 import json
-from time import mktime
+from time import mktime as mktime_real
 from datetime import timedelta as TimeDelta
 
 try:
@@ -33,6 +33,31 @@ from twisted.python.logger._format import formatEventAsClassicLogText
 from twisted.python.logger._format import formatWithCall
 from twisted.python.logger._format import theFormatter
 from twisted.python.logger._format import FixedOffsetTimeZone
+
+
+
+# On some rare platforms (FreeBSD 8?  I was not able to reproduce
+# on FreeBSD 9) 'mktime' seems to always fail once tzset() has been
+# called more than once in a process lifetime.  I think this is
+# just a platform bug, so let's work around it.  -glyph
+def mktime(t9):
+    """
+    Call L{mktime_real}, and if it raises L{OverflowError}, catch it and raise
+    SkipTest instead.
+
+    @param t9: a time as a 9-item tuple
+    @type t9: L{tuple}
+
+    @return: a timestamp
+    @rtype: L{float}
+    """
+    try:
+        return mktime_real(t9)
+    except OverflowError:
+        raise SkipTest(
+            "Platform cannot construct time zone for {0!r}"
+            .format(t9)
+        )
 
 
 
@@ -283,17 +308,7 @@ class TimeFormattingTests(unittest.TestCase):
         def testForTimeZone(name, expectedDST, expectedSTD):
             setTZ(name)
 
-            # On some rare platforms (FreeBSD 8?  I was not able to reproduce
-            # on FreeBSD 9) 'mktime' seems to always fail once tzset() has been
-            # called more than once in a process lifetime.  I think this is
-            # just a platform bug, so let's work around it.  -glyph
-            try:
-                localDST = mktime((2006, 6, 30, 0, 0, 0, 4, 181, 1))
-            except OverflowError:
-                raise SkipTest(
-                    "Platform cannot construct time zone for {0!r}"
-                    .format(name)
-                )
+            localDST = mktime((2006, 6, 30, 0, 0, 0, 4, 181, 1))
             localSTD = mktime((2007, 1, 31, 0, 0, 0, 2,  31, 0))
 
             self.assertEquals(formatTime(localDST), expectedDST)
@@ -553,17 +568,7 @@ class FixedOffsetTimeZoneTests(unittest.TestCase):
         def testForTimeZone(name, expectedOffsetDST, expectedOffsetSTD):
             setTZ(name)
 
-            # On some rare platforms (FreeBSD 8?  I was not able to reproduce
-            # on FreeBSD 9) 'mktime' seems to always fail once tzset() has been
-            # called more than once in a process lifetime.  I think this is
-            # just a platform bug, so let's work around it.  -glyph
-            try:
-                localDST = mktime((2006, 6, 30, 0, 0, 0, 4, 181, 1))
-            except OverflowError:
-                raise SkipTest(
-                    "Platform cannot construct time zone for {0!r}"
-                    .format(name)
-                )
+            localDST = mktime((2006, 6, 30, 0, 0, 0, 4, 181, 1))
             localSTD = mktime((2007, 1, 31, 0, 0, 0, 2,  31, 0))
 
             tzDST = FixedOffsetTimeZone.fromTimeStamp(localDST)
