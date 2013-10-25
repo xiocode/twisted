@@ -49,8 +49,7 @@ class Logger(object):
         @type source: L{object}
 
         @param observer: The observer that this logger will send events to.
-            If C{None}, use the L{global log publisher
-            <twisted.python.logger.globalLogPublisher>}.
+            If C{None}, use the L{global log publisher <globalLogPublisher>}.
         @type observer: L{ILogObserver}
         """
         if namespace is None:
