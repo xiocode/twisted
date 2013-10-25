@@ -5,6 +5,7 @@
 Test cases for L{twisted.python.logger._format}.
 """
 
+import sys
 from os import environ
 from itertools import count
 import json
@@ -212,7 +213,17 @@ class FlatFormattingTests(unittest.TestCase):
                 return flatKey(fieldName, formatSpec, conversion)
 
         # No name
-        self.assertEquals(keyFromFormat("{}"), "!:")
+        try:
+            self.assertEquals(keyFromFormat("{}"), "!:")
+        except ValueError:
+            version = sys.version_info
+            if (version.major == 2 and version.minor == 6):
+                # In python 2.6, an empty field name causes Formatter.parse to
+                # raise ValueError.
+                pass
+            else:
+                # In Python 2.7, it's allowed, so this exception is unexpected.
+                raise
 
         # Just a name
         self.assertEquals(keyFromFormat("{foo}"), "foo!:")
