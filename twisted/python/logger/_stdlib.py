@@ -6,10 +6,6 @@
 Integration with Python standard library logging.
 """
 
-__all__ = [
-    "STDLibLogObserver",
-]
-
 import logging as stdlibLogging
 
 from zope.interface import implementer

@@ -6,10 +6,6 @@
 Ring buffer log observer.
 """
 
-__all__ = [
-    "RingBufferLogObserver",
-]
-
 from collections import deque
 
 from zope.interface import implementer

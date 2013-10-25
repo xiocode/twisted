@@ -6,10 +6,6 @@
 File-like object that logs.
 """
 
-__all__ = [
-    "LoggingFile",
-]
-
 import sys
 
 from twisted.python.logger._levels import LogLevel

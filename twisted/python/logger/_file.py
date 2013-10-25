@@ -6,11 +6,6 @@
 File log observer.
 """
 
-__all__ = [
-    "FileLogObserver",
-    "textFileLogObserver",
-]
-
 from zope.interface import implementer
 
 from twisted.python.compat import ioType, unicode

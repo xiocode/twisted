@@ -6,11 +6,6 @@
 Basic log observers.
 """
 
-__all__ = [
-    "ILogObserver",
-    "LogPublisher",
-]
-
 from zope.interface import Interface, implementer
 
 from twisted.python.failure import Failure

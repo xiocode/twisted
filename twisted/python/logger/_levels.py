@@ -6,11 +6,6 @@
 Log levels.
 """
 
-__all__ = [
-    "InvalidLogLevelError",
-    "LogLevel",
-]
-
 from twisted.python.constants import NamedConstant, Names
 
 

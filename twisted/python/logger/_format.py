@@ -6,13 +6,6 @@
 Tools for formatting logging events.
 """
 
-__all__ = [
-    "formatEvent",
-    "formatEventAsClassicLogText",
-    "formatTime",
-    "timeFormatRFC3339",
-]
-
 from string import Formatter
 from datetime import datetime as DateTime, tzinfo as TZInfo
 from datetime import timedelta as TimeDelta

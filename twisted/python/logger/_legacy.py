@@ -6,11 +6,6 @@
 Integration with L{twisted.python.log}.
 """
 
-__all__ = [
-    "LegacyLogger",
-    "LegacyLogObserverWrapper",
-]
-
 from zope.interface import implementer
 
 from twisted.python.reflect import safe_str

@@ -6,10 +6,6 @@
 Global log publisher.
 """
 
-__all__ = [
-    "globalLogPublisher",
-]
-
 from twisted.python.logger._observer import LogPublisher
 from twisted.python.logger._buffer import RingBufferLogObserver
 

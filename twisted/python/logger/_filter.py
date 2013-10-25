@@ -6,13 +6,6 @@
 Filtering log observer.
 """
 
-__all__ = [
-    "PredicateResult",
-    "ILogFilterPredicate",
-    "FilteringLogObserver",
-    "LogLevelFilterPredicate",
-]
-
 from zope.interface import Interface, implementer
 
 from twisted.python.constants import NamedConstant, Names

@@ -6,10 +6,6 @@
 Logging utilities.
 """
 
-__all__ = [
-    "formatTrace",
-]
-
 
 
 def formatTrace(trace):

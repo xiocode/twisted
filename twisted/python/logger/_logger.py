@@ -6,10 +6,6 @@
 Logger class.
 """
 
-__all__ = [
-    "Logger",
-]
-
 from time import time
 
 from twisted.python.compat import currentframe
