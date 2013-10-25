@@ -216,8 +216,7 @@ class FlatFormattingTests(unittest.TestCase):
         try:
             self.assertEquals(keyFromFormat("{}"), "!:")
         except ValueError:
-            version = sys.version_info
-            if (version.major == 2 and version.minor == 6):
+            if sys.version_info[:2] == (2, 6):
                 # In python 2.6, an empty field name causes Formatter.parse to
                 # raise ValueError.
                 pass
