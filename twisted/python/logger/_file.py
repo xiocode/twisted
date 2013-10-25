@@ -65,7 +65,7 @@ class FileLogObserver(object):
 def textFileLogObserver(outFile, timeFormat=timeFormatRFC3339):
     """
     Create a L{FileLogObserver} that emits text to a specified (writable)
-        file-like object.
+    file-like object.
 
     @param outFile: a file-like object.  Ideally one should be passed
         which accepts unicode; if not, utf-8 will be used as the encoding.
