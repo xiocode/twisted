@@ -90,6 +90,8 @@ class SaveLoadTests(TestCase):
 
         inputEvent = {"hello": asbytes(range(255))}
         if bytes is not str:
+            # On Python 3, bytes keys will be skipped by the JSON encoder. Not
+            # much we can do about that.
             inputEvent.update({b'skipped': 'okay'})
         self.assertEquals(
             loadEventJSON(saveEventJSON(inputEvent)),
