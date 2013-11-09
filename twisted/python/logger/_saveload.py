@@ -26,7 +26,17 @@ def saveEventJSON(event):
         file.
     @rtype: L{unicode}
     """
-    return dumps(event, default=lambda x: {'unpersistable': True})
+    if bytes is str:
+        kw = dict(default=lambda x: {'unpersistable': True},
+                  encoding="charmap", skipkeys=True)
+    else:
+        def default(unencodable):
+            if isinstance(unencodable, bytes):
+                return unencodable.decode("charmap")
+            else:
+                return {'unpersistable': True}
+        kw = dict(default=default, skipkeys=True)
+    return dumps(event, **kw)
 
 
 

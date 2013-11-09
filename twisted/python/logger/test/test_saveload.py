@@ -79,8 +79,19 @@ class SaveLoadTests(TestCase):
 
     def test_saveBytes(self):
         """
-        Any L{bytes} objects will be saved as latin-1 so they can be faithfully
-        re-loaded.
+        Any L{bytes} objects will be saved as if they are latin-1 so they can
+        be faithfully re-loaded.
         """
+        def asbytes(x):
+            if bytes is str:
+                return b''.join(map(chr, x))
+            else:
+                return bytes(x)
 
-
+        inputEvent = {"hello": asbytes(range(255))}
+        if bytes is not str:
+            inputEvent.update({b'skipped': 'okay'})
+        self.assertEquals(
+            loadEventJSON(saveEventJSON(inputEvent)),
+            {u"hello": asbytes(range(255)).decode("charmap")}
+        )
