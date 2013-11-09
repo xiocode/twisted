@@ -3,9 +3,10 @@
 # See LICENSE for details.
 
 """
-Tools for saving and loading events in a structured format.
+Tools for saving and loading log events in a structured format.
 """
 
+from twisted.python.logger._format import flattenEvent
 from json import dumps, loads
 from twisted.python.compat import unicode
 
@@ -36,6 +37,7 @@ def saveEventJSON(event):
             else:
                 return {'unpersistable': True}
         kw = dict(default=default, skipkeys=True)
+    flattenEvent(event)
     return dumps(event, **kw)
 
 

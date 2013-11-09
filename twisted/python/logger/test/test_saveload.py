@@ -8,6 +8,7 @@ Tests for L{twisted.python.logger._saveload}.
 from twisted.python.compat import unicode
 
 from twisted.trial.unittest import TestCase
+from twisted.python.logger import formatEvent
 from twisted.python.logger._saveload import saveEventJSON, loadEventJSON
 
 def savedJSONInvariants(testCase, savedJSON):
@@ -98,3 +99,23 @@ class SaveLoadTests(TestCase):
             loadEventJSON(saveEventJSON(inputEvent)),
             {u"hello": asbytes(range(255)).decode("charmap")}
         )
+
+
+    def test_saveUnPersistableThenFormat(self):
+        """
+        Saving and loading an object which cannot be represented in JSON, but
+        has a string representation which I{can} be saved as JSON, will result
+        in the same string formatting; any extractable fields will retain their
+        data types.
+        """
+        class reprable(object):
+            def __init__(self, value):
+                self.value = value
+            def __repr__(self):
+                return("reprable")
+        inputEvent = {
+            "log_format": "{object} {object.value}",
+            "object": reprable(7)
+        }
+        outputEvent = loadEventJSON(saveEventJSON(inputEvent))
+        self.assertEquals(formatEvent(outputEvent), "reprable 7")
