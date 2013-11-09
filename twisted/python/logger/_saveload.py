@@ -6,6 +6,7 @@
 Tools for saving and loading events in a structured format.
 """
 
+from json import dumps, loads
 from twisted.python.compat import unicode
 
 
@@ -25,7 +26,7 @@ def saveEventJSON(event):
         file.
     @rtype: L{unicode}
     """
-    return u''
+    return dumps(event, default=lambda x: {'unpersistable': True})
 
 
 
@@ -39,4 +40,4 @@ def loadEventJSON(eventText):
     @return: a reconstructed version of the log event.
     @rtype: L{dict}
     """
-    return {}
+    return loads(eventText)
