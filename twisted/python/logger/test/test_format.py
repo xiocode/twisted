@@ -220,6 +220,24 @@ class FlatFormattingTests(unittest.TestCase):
                           "strrepr: 'hello'")
 
 
+    def test_formatFlatEventWithMutatedFields(self):
+        """
+        L{formatEvent} will prefer the stored str or repr value for an object,
+        in case the other version.
+        """
+        class unpersistable(object):
+            def __repr__(self):
+                return "un-persistable"
+        event1 = dict(
+            log_format="unpersistable: {unpersistable}",
+            unpersistable=unpersistable()
+        )
+        flattenEvent(event1)
+        event1['unpersistable'] = "post-serialization garbage"
+        self.assertEquals(formatEvent(event1),
+                          "unpersistable: un-persistable")
+
+
     def test_flatKey(self):
         """
         Test that flatKey returns the expected keys for format fields.
