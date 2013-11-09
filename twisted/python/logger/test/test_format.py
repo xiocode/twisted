@@ -24,15 +24,11 @@ from twisted.trial.unittest import SkipTest
 
 from twisted.python.compat import _PY3, unicode
 from twisted.python.logger._levels import LogLevel
-from twisted.python.logger._format import formatEvent
-from twisted.python.logger._format import formatUnformattableEvent
-from twisted.python.logger._format import flattenEvent
-from twisted.python.logger._format import flatKey
-from twisted.python.logger._format import formatTime
-from twisted.python.logger._format import formatEventAsClassicLogText
-from twisted.python.logger._format import formatWithCall
-from twisted.python.logger._format import theFormatter
-from twisted.python.logger._format import FixedOffsetTimeZone
+from twisted.python.logger._format import (
+    formatEvent, formatUnformattableEvent, flattenEvent, flatKey, formatTime,
+    formatEventAsClassicLogText, formatWithCall, theFormatter,
+    FixedOffsetTimeZone
+)
 
 
 
