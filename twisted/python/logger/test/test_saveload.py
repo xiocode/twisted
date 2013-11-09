@@ -9,6 +9,7 @@ from twisted.python.compat import unicode
 
 from twisted.trial.unittest import TestCase
 from twisted.python.logger import formatEvent
+from twisted.python.logger._format import extractField
 from twisted.python.logger._saveload import saveEventJSON, loadEventJSON
 
 def savedJSONInvariants(testCase, savedJSON):
@@ -119,3 +120,22 @@ class SaveLoadTests(TestCase):
         }
         outputEvent = loadEventJSON(saveEventJSON(inputEvent))
         self.assertEquals(formatEvent(outputEvent), "reprable 7")
+
+
+    def test_extractingFieldsPostLoad(self):
+        """
+        L{extractField} can extract fields from an object that's been saved and
+        loaded from JSON.
+        """
+        class obj(object):
+            def __init__(self):
+                self.value = 345
+        inputEvent = dict(log_format="{object.value}", object=obj())
+        loadedEvent = loadEventJSON(saveEventJSON(inputEvent))
+        self.assertEquals(extractField("object.value", loadedEvent), 345)
+
+        # The behavior of extractField is consistent between pre-persistence
+        # and post-persistence events, although looking up the key directly
+        # won't be:
+        self.assertRaises(KeyError, extractField, "object", loadedEvent)
+        self.assertRaises(KeyError, extractField, "object", inputEvent)
