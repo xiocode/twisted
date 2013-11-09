@@ -180,6 +180,13 @@ def extractField(field, event):
 
     @raise KeyError: if the field is not found in the given event.
     """
+    [[literalText, fieldName, formatSpec, conversion]] = theFormatter.parse(
+        '{' + field + '}'
+    )
+    key = flatKey(fieldName, formatSpec, conversion)
+    if "log_flattened" not in event:
+        flattenEvent(event)
+    return event["log_flattened"][key]
 
 
 
