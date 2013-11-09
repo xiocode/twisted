@@ -14,9 +14,6 @@ from twisted.python.logger._format import formatTime
 from twisted.python.logger._format import timeFormatRFC3339
 from twisted.python.logger._format import formatEventAsClassicLogText
 
-
-
-
 @implementer(ILogObserver)
 class FileLogObserver(object):
     """
@@ -62,8 +59,8 @@ def textFileLogObserver(outFile, timeFormat=timeFormatRFC3339):
     Create a L{FileLogObserver} that emits text to a specified (writable)
     file-like object.
 
-    @param outFile: a file-like object.  Ideally one should be passed
-        which accepts unicode; if not, utf-8 will be used as the encoding.
+    @param outFile: a file-like object.  Ideally one should be passed which
+        accepts unicode; if not, utf-8 will be used as the encoding.
     @type outFile: L{io.IOBase}
 
     @param timeFormat: the format to use when adding timestamp prefixes to
