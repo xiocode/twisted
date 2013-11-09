@@ -125,6 +125,8 @@ def flattenEvent(event):
     @param event: a logging event
     @type event: L{dict}
     """
+    if "log_format" not in event:
+        return
     fields = {}
 
     for (
