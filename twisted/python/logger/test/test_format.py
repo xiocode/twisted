@@ -226,14 +226,20 @@ class FlatFormattingTests(unittest.TestCase):
         in case the other version.
         """
         class unpersistable(object):
+            destructed = False
+            def selfDestruct(self):
+                self.destructed = True
             def __repr__(self):
-                return "un-persistable"
+                if self.destructed:
+                    return 'post-serialization garbage'
+                else:
+                    return "un-persistable"
+        up = unpersistable()
         event1 = dict(
-            log_format="unpersistable: {unpersistable}",
-            unpersistable=unpersistable()
+            log_format="unpersistable: {unpersistable}", unpersistable=up
         )
         flattenEvent(event1)
-        event1['unpersistable'] = "post-serialization garbage"
+        up.selfDestruct()
         self.assertEquals(formatEvent(event1),
                           "unpersistable: un-persistable")
 
