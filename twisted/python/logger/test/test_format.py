@@ -27,7 +27,7 @@ from twisted.python.logger._levels import LogLevel
 from twisted.python.logger._format import (
     formatEvent, formatUnformattableEvent, flattenEvent, flatKey, formatTime,
     formatEventAsClassicLogText, formatWithCall, theFormatter,
-    FixedOffsetTimeZone
+    FixedOffsetTimeZone, extractField
 )
 
 
@@ -279,6 +279,25 @@ class FlatFormattingTests(unittest.TestCase):
         )
         flattenEvent(event)
         self.assertEquals(formatEvent(event), u"0 1")
+
+
+    def test_extractField(self, flattenFirst=lambda x: x):
+        """
+        L{extractField} will extract a field used in the format string.
+        """
+        class Something(object):
+            def __init__(self):
+                self.other = 7
+            def __getstate__(self):
+                raise NotImplementedError("Just in case.")
+
+        event = dict(
+            log_format="{something.other}",
+            something=Something(),
+        )
+
+        self.assertEquals(extractField("something.other", flattenFirst(event)),
+                          7)
 
 
 

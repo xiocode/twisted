@@ -160,6 +160,29 @@ def flattenEvent(event):
 
 
 
+def extractField(field, event):
+    """
+    Extract a given format field from the given event.
+
+    @param field: A string describing a format field or log key.  This is the
+        text that would normally fall between a pair of curly braces in a
+        format string: for example, C{"key[2].attribute"}.  If a conversion is
+        specified (the thing after the C{"!"} character in a format field) then
+        the result will always be L{unicode}.
+    @type field: L{str} (native string)
+
+    @param event: A log event.
+
+    @param dict: L{dict}
+
+    @return: A value extracted from the field.
+    @rtype: L{object}
+
+    @raise KeyError: if the field is not found in the given event.
+    """
+
+
+
 def formatUnformattableEvent(event, error):
     """
     Formats an event as a L{unicode} that describes the event generically and a
