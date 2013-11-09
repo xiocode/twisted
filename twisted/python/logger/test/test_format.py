@@ -25,9 +25,9 @@ from twisted.trial.unittest import SkipTest
 from twisted.python.compat import _PY3, unicode
 from twisted.python.logger._levels import LogLevel
 from twisted.python.logger._format import (
-    formatEvent, formatUnformattableEvent, flattenEvent, flatKey, formatTime,
+    formatEvent, formatUnformattableEvent, flattenEvent, formatTime,
     formatEventAsClassicLogText, formatWithCall, theFormatter,
-    FixedOffsetTimeZone, extractField
+    FixedOffsetTimeZone, extractField, KeyFlattener,
 )
 
 
@@ -240,14 +240,15 @@ class FlatFormattingTests(unittest.TestCase):
         )
         flattenEvent(event1)
         up.selfDestruct()
-        self.assertEquals(formatEvent(event1),
-                          "unpersistable: un-persistable")
+        self.assertEquals(formatEvent(event1), "unpersistable: un-persistable")
 
 
-    def test_flatKey(self):
+    def test_keyFlattening(self):
         """
-        Test that flatKey returns the expected keys for format fields.
+        Test that L{KeyFlattener.flatKey} returns the expected keys for format
+        fields.
         """
+
         def keyFromFormat(format):
             for (
                 literalText,
@@ -255,7 +256,8 @@ class FlatFormattingTests(unittest.TestCase):
                 formatSpec,
                 conversion,
             ) in theFormatter.parse(format):
-                return flatKey(fieldName, formatSpec, conversion)
+                return KeyFlattener().flatKey(fieldName, formatSpec,
+                                              conversion)
 
         # No name
         try:
@@ -285,6 +287,11 @@ class FlatFormattingTests(unittest.TestCase):
         self.assertEquals(keyFromFormat("{foo!s:%s}"), "foo!s:%s")
         self.assertEquals(keyFromFormat("{foo!s:!}"), "foo!s:!")
         self.assertEquals(keyFromFormat("{foo!s::}"), "foo!s::")
+        [keyPlusLiteral] = theFormatter.parse("{x}")
+        key = keyPlusLiteral[1:]
+        sameFlattener = KeyFlattener()
+        self.assertEquals(sameFlattener.flatKey(*key), "x!:")
+        self.assertEquals(sameFlattener.flatKey(*key), "x!:/2")
 
 
     def test_formatFlatEvent_fieldNamesSame(self):
@@ -309,19 +316,37 @@ class FlatFormattingTests(unittest.TestCase):
         """
         L{extractField} will extract a field used in the format string.
         """
+        class ObjectWithRepr(object):
+            def __repr__(self):
+                return "repr"
         class Something(object):
             def __init__(self):
-                self.other = 7
+                self.number = 7
+                self.object = ObjectWithRepr()
             def __getstate__(self):
                 raise NotImplementedError("Just in case.")
 
         event = dict(
-            log_format="{something.other}",
+            log_format="{something.number} {something.object}",
             something=Something(),
         )
 
-        self.assertEquals(extractField("something.other", flattenFirst(event)),
-                          7)
+        flattened = flattenFirst(event)
+        self.assertEquals(extractField("something.number", flattened), 7)
+        self.assertEquals(extractField("something.number!s", flattened), "7")
+        self.assertEquals(extractField("something.object!s", flattened),
+                          "repr")
+
+
+    def test_extractFieldFlattenFirst(self):
+        """
+        L{extractField} behaves identically if the event is explicitly
+        flattened first.
+        """
+        def flattened(evt):
+            flattenEvent(evt)
+            return evt
+        self.test_extractField(flattened)
 
 
     def test_flattenEventWithoutFormat(self):

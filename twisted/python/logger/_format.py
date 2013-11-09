@@ -6,6 +6,7 @@
 Tools for formatting logging events.
 """
 
+from collections import defaultdict
 from string import Formatter
 from datetime import datetime as DateTime, tzinfo as TZInfo
 from datetime import timedelta as TimeDelta
@@ -73,6 +74,7 @@ def flatFormat(event):
     """
     fields = event["log_flattened"]
     s = u""
+    keyFlattener = KeyFlattener()
 
     for (
         literalText, fieldName, formatSpec, conversion
@@ -80,7 +82,7 @@ def flatFormat(event):
 
         s += literalText
 
-        key = flatKey(fieldName, formatSpec, conversion)
+        key = keyFlattener.flatKey(fieldName, formatSpec, conversion or "s")
         value = fields[key]
 
         s += unicode(value)
@@ -89,30 +91,50 @@ def flatFormat(event):
 
 
 
-def flatKey(fieldName, formatSpec, conversion):
+class KeyFlattener(object):
     """
-    Compute a string key for a given field/format/conversion.
-
-    @param fieldName: a format field name
-    @type fieldName: L{str}
-
-    @param formatSpec: a format spec
-    @type formatSpec: L{str}
-
-    @param conversion: a format field conversion type
-    @type conversion: L{str}
-
-    @return: a key specific to the given field, format and conversion
-    @rtype: L{str}
+    A L{KeyFlattener} computes keys for the things within curly braces in
+    PEP-3101-style format strings as parsed by L{Formatter.parse}.
     """
-    return (
-        "{fieldName}!{conversion}:{formatSpec}"
-        .format(
-            fieldName=fieldName,
-            formatSpec=(formatSpec or ""),
-            conversion=(conversion or ""),
+
+    def __init__(self):
+        """
+        Initialize a L{KeyFlattener}.
+        """
+        self.keys = defaultdict(lambda: 0)
+
+
+    def flatKey(self, fieldName, formatSpec, conversion):
+        """
+        Compute a string key for a given field/format/conversion.
+
+        @param fieldName: a format field name
+        @type fieldName: L{str}
+
+        @param formatSpec: a format spec
+        @type formatSpec: L{str}
+
+        @param conversion: a format field conversion type
+        @type conversion: L{str}
+
+        @return: a key specific to the given field, format and conversion, as
+            well as the occurrence of that combination within this
+            L{KeyFlattener}'s lifetime.
+        @rtype: L{str}
+        """
+        result = (
+            "{fieldName}!{conversion}:{formatSpec}"
+            .format(
+                fieldName=fieldName,
+                formatSpec=(formatSpec or ""),
+                conversion=(conversion or ""),
+            )
         )
-    )
+        self.keys[result] += 1
+        n = self.keys[result]
+        if n != 1:
+            result += "/" + str(self.keys[result])
+        return result
 
 
 
@@ -129,12 +151,15 @@ def flattenEvent(event):
         return
     fields = {}
 
-    for (
-        literalText, fieldName, formatSpec, conversion
-    ) in theFormatter.parse(event["log_format"]):
+    keyFlattener = KeyFlattener()
 
-        key = flatKey(fieldName, formatSpec, conversion)
-        if key in fields:
+    for (literalText, fieldName, formatSpec, conversion) in (
+            theFormatter.parse(event["log_format"])):
+        if conversion != 'r':
+            conversion = 's'
+        flattenedKey = keyFlattener.flatKey(fieldName, formatSpec, conversion)
+        structuredKey = keyFlattener.flatKey(fieldName, formatSpec, "")
+        if flattenedKey in fields:
             # We've already seen and handled this key
             continue
 
@@ -151,12 +176,13 @@ def flattenEvent(event):
         elif conversion == "r":
             conversionFunction = repr
         else:
+            conversion = "s"
             conversionFunction = lambda x: x
         if callit:
             fieldValue = fieldValue()
-        fieldValue = conversionFunction(fieldValue)
-
-        fields[key] = fieldValue
+        flattenedValue = conversionFunction(fieldValue)
+        fields[flattenedKey] = flattenedValue
+        fields[structuredKey] = fieldValue
 
     event["log_flattened"] = fields
 
@@ -182,10 +208,11 @@ def extractField(field, event):
 
     @raise KeyError: if the field is not found in the given event.
     """
+    keyFlattener = KeyFlattener()
     [[literalText, fieldName, formatSpec, conversion]] = theFormatter.parse(
         '{' + field + '}'
     )
-    key = flatKey(fieldName, formatSpec, conversion)
+    key = keyFlattener.flatKey(fieldName, formatSpec, conversion)
     if "log_flattened" not in event:
         flattenEvent(event)
     return event["log_flattened"][key]
