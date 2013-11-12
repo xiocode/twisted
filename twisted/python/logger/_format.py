@@ -332,7 +332,7 @@ def formatEventAsClassicLogText(event, formatTime=formatTime):
         ...     log_time=time(),
         ...     log_system="my_system",
         ... ))
-        u'2013-11-11T17:22:06-0800 [my_system] Hello!\n'
+        u'2013-11-11T17:22:06-0800 [my_system] Hello!\\n'
         >>>
 
     @param event: an event.
