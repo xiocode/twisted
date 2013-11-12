@@ -100,11 +100,10 @@ class LogLevelFilterPredicate(object):
 
     Events that not not have a log level or namespace are also dropped.
     """
-    defaultLogLevel = LogLevel.info
 
-
-    def __init__(self):
+    def __init__(self, defaultLogLevel=LogLevel.info):
         self._logLevelsByNamespace = {}
+        self.defaultLogLevel = defaultLogLevel
         self.clearLogLevels()
 
 
@@ -144,7 +143,7 @@ class LogLevelFilterPredicate(object):
 
     def setLogLevelForNamespace(self, namespace, level):
         """
-        Sets the global log level for a logging namespace.
+        Sets the log level for a logging namespace.
 
         @param namespace: A logging namespace.
         @type namespace: L{str} (native string)
@@ -163,21 +162,22 @@ class LogLevelFilterPredicate(object):
 
     def clearLogLevels(self):
         """
-        Clears all global log levels to the default.
+        Clears all log levels to the default.
         """
         self._logLevelsByNamespace.clear()
         self._logLevelsByNamespace[None] = self.defaultLogLevel
 
 
     def __call__(self, event):
-        level     = event.get("log_level", None)
+        eventLevel     = event.get("log_level", None)
         namespace = event.get("log_namespace", None)
+        namespaceLevel = self.logLevelForNamespace(namespace)
 
         if (
-            level is None or
+            eventLevel is None or
             namespace is None or
-            LogLevel._priorityForLevel(level) <
-            LogLevel._priorityForLevel(self.logLevelForNamespace(namespace))
+            LogLevel._priorityForLevel(eventLevel) <
+            LogLevel._priorityForLevel(namespaceLevel)
         ):
             return PredicateResult.no
 

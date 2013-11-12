@@ -253,15 +253,15 @@ class LogLevelFilterPredicateTests(unittest.TestCase):
 
         self.assertEquals(
             predicate.logLevelForNamespace(None),
-            LogLevelFilterPredicate.defaultLogLevel
+            predicate.defaultLogLevel
         )
         self.assertEquals(
             predicate.logLevelForNamespace(""),
-            LogLevelFilterPredicate.defaultLogLevel
+            predicate.defaultLogLevel
         )
         self.assertEquals(
             predicate.logLevelForNamespace("rocker.cool.namespace"),
-            LogLevelFilterPredicate.defaultLogLevel
+            predicate.defaultLogLevel
         )
 
 
@@ -332,23 +332,23 @@ class LogLevelFilterPredicateTests(unittest.TestCase):
 
         self.assertEquals(
             predicate.logLevelForNamespace("twisted"),
-            LogLevelFilterPredicate.defaultLogLevel
+            predicate.defaultLogLevel
         )
         self.assertEquals(
             predicate.logLevelForNamespace("twext.web2"),
-            LogLevelFilterPredicate.defaultLogLevel
+            predicate.defaultLogLevel
         )
         self.assertEquals(
             predicate.logLevelForNamespace("twext.web2.dav"),
-            LogLevelFilterPredicate.defaultLogLevel
+            predicate.defaultLogLevel
         )
         self.assertEquals(
             predicate.logLevelForNamespace("twext.web2.dav.test"),
-            LogLevelFilterPredicate.defaultLogLevel
+            predicate.defaultLogLevel
         )
         self.assertEquals(
             predicate.logLevelForNamespace("twext.web2.dav.test1.test2"),
-            LogLevelFilterPredicate.defaultLogLevel
+            predicate.defaultLogLevel
         )
 
 
