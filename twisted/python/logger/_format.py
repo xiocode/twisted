@@ -8,12 +8,12 @@ Tools for formatting logging events.
 
 from collections import defaultdict
 from string import Formatter
-from datetime import datetime as DateTime, tzinfo as TZInfo
-from datetime import timedelta as TimeDelta
+from datetime import datetime as DateTime
 
 from twisted.python.compat import unicode
 from twisted.python.failure import Failure
 from twisted.python.reflect import safe_repr
+from twisted.python._tzhelper import FixedOffsetTimeZone
 
 timeFormatRFC3339 = "%Y-%m-%dT%H:%M:%S%z"
 
@@ -439,48 +439,3 @@ def formatWithCall(formatString, mapping):
     )
 
 theFormatter = Formatter()
-
-
-
-class FixedOffsetTimeZone(TZInfo):
-    """
-    Time zone with a fixed offset.
-    """
-
-    @classmethod
-    def fromTimeStamp(cls, timeStamp):
-        """
-        Create a time zone with a fixed offset corresponding to a time stamp.
-
-        @param timeStamp: A time stamp.
-        @type timeStamp: L{int}
-
-        @return: A time zone.
-        @rtype: L{FixedOffsetTimeZone}
-        """
-        offset = (
-            DateTime.fromtimestamp(timeStamp) -
-            DateTime.utcfromtimestamp(timeStamp)
-        )
-        return cls(offset)
-
-
-    def __init__(self, offset):
-        self._offset = offset
-
-
-    def utcoffset(self, dt):
-        return self._offset
-
-
-    def tzname(self, dt):
-        dt = DateTime.fromtimestamp(0, self)
-        return dt.strftime("UTC%z")
-
-
-    def dst(self, dt):
-        return timeDeltaZero
-
-
-
-timeDeltaZero = TimeDelta(0)
