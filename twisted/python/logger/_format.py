@@ -288,7 +288,7 @@ def formatTime(when, timeFormat=timeFormatRFC3339, default=u"-"):
     if (timeFormat is None or when is None):
         return default
     else:
-        tz = FixedOffsetTimeZone.fromTimeStamp(when)
+        tz = FixedOffsetTimeZone.fromLocalTimeStamp(when)
         datetime = DateTime.fromtimestamp(when, tz)
         return unicode(datetime.strftime(timeFormat))
 
