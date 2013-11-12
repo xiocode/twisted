@@ -10,6 +10,7 @@ import io
 from twisted.trial import unittest
 
 from twisted.python.logger._observer import LogPublisher
+from twisted.python.logger import Logger
 from twisted.python.logger._global import LogStartupBuffer
 
 
@@ -74,3 +75,13 @@ class LogStartupBufferTests(unittest.TestCase):
             AssertionError,
             self.buffer.beginLoggingTo, []
         )
+
+
+    def test_criticalLogging(self):
+        """
+        Critical messages will be written as text to the error stream.
+        """
+        log = Logger(observer=self.publisher)
+        log.info('ignore this')
+        log.critical('a critical {message}', message="message")
+        self.assertEquals(self.errorStream.getvalue(), u'a critical message\n')
