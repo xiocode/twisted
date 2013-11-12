@@ -203,16 +203,16 @@ class Foo(object):
     <h2>Implementing an observer</h2>
 
     <p>
-        An observer must implement the <code class="API" base="twisted.python.logger">ILogObserver</code> interface, which means it provides a <code class="python">__call__</code> that takes an event as its sole argument:
+        An observer must provide the <code class="API" base="twisted.python.logger">ILogObserver</code> interface.  That interface simply describes a 1-argument callable that takes a <code>dict</code>, so a simple implementation may simply use the handy <code class="API" base="zope.interface">provider</code> decorator on a function that takes one argument:
     </p>
 
     <pre class="python">
+from zope.interface import provider
 from twisted.python.logger import ILogObserver, formatEvent
 
-@implementer(ILogObserver)
-class PrintingObserver(object):
-    def __call__(self, event):
-        print formatEvent(event)
+@provider(ILogObserver)
+def simpleObserver(event):
+    print(formatEvent(event))
     </pre>
 
     <p>
