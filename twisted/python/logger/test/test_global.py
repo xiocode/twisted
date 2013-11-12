@@ -5,37 +5,30 @@
 Test cases for L{twisted.python.logger._global}.
 """
 
-from zope.interface.verify import verifyObject, BrokenMethodImplementation
+import io
 
 from twisted.trial import unittest
 
-from twisted.python.logger._observer import ILogObserver
-from twisted.python.logger._global import GlobalLogPublisher
+from twisted.python.logger._observer import LogPublisher
+from twisted.python.logger._global import LogStartupBuffer
 
 
 
-class GlobalLogPublisherTests(unittest.TestCase):
+class LogStartupBufferTests(unittest.TestCase):
     """
-    Tests for L{GlobalLogPublisher}.
+    Tests for L{LogStartupBuffer}.
     """
 
-    def test_interface(self):
-        """
-        L{GlobalLogPublisher} is an L{ILogObserver}.
-        """
-        publisher = GlobalLogPublisher()
-        try:
-            verifyObject(ILogObserver, publisher)
-        except BrokenMethodImplementation as e:
-            self.fail(e)
+    def setUp(self):
+        self.publisher = LogPublisher()
+        self.errorStream = io.StringIO()
+        self.buffer = LogStartupBuffer(self.publisher, self.errorStream)
 
 
-    def test_startLoggingWithObservers_addObservers(self):
+    def test_beginLoggingTo_addObservers(self):
         """
-        Test that C{startLoggingWithObservers()} adds observers.
+        Test that C{beginLoggingTo()} adds observers.
         """
-        publisher = GlobalLogPublisher()
-
         event = dict(foo=1, bar=2)
 
         events1 = []
@@ -44,20 +37,18 @@ class GlobalLogPublisherTests(unittest.TestCase):
         o1 = lambda e: events1.append(e)
         o2 = lambda e: events2.append(e)
 
-        publisher.startLoggingWithObservers((o1, o2))
-        publisher(event)
+        self.buffer.beginLoggingTo((o1, o2))
+        self.publisher(event)
 
         self.assertEquals([event], events1)
         self.assertEquals([event], events2)
 
 
-    def test_startLoggingWithObservers_bufferedEvents(self):
+    def test_beginLoggingTo_bufferedEvents(self):
         """
-        Test that events are buffered until C{startLoggingWithObservers()} is
+        Test that events are buffered until C{beginLoggingTo()} is
         called.
         """
-        publisher = GlobalLogPublisher()
-
         event = dict(foo=1, bar=2)
 
         events1 = []
@@ -66,22 +57,20 @@ class GlobalLogPublisherTests(unittest.TestCase):
         o1 = lambda e: events1.append(e)
         o2 = lambda e: events2.append(e)
 
-        publisher(event)  # Before startLoggingWithObservers; this is buffered
-        publisher.startLoggingWithObservers((o1, o2))
+        self.publisher(event)  # Before beginLoggingTo; this is buffered
+        self.buffer.beginLoggingTo((o1, o2))
 
         self.assertEquals([event], events1)
         self.assertEquals([event], events2)
 
 
-    def test_startLoggingWithObservers_twice(self):
+    def test_beginLoggingTo_twice(self):
         """
-        Test that C{startLoggingWithObservers()} complains when called twice.
+        Test that C{beginLoggingTo()} complains when called twice.
         """
-        publisher = GlobalLogPublisher()
-
-        publisher.startLoggingWithObservers(())
+        self.buffer.beginLoggingTo([])
 
         self.assertRaises(
             AssertionError,
-            publisher.startLoggingWithObservers, ()
+            self.buffer.beginLoggingTo, []
         )

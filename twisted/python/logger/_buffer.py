@@ -11,6 +11,7 @@ from collections import deque
 from zope.interface import implementer
 
 from twisted.python.logger._observer import ILogObserver
+from twisted.python.logger._observer import LogPublisher
 
 _DEFAULT_BUFFER_MAXIMUM = 64*1024
 
