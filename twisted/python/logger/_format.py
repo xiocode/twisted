@@ -296,7 +296,7 @@ def formatTime(when, timeFormat=timeFormatRFC3339, default=u"-"):
 
 def formatEventAsClassicLogText(event, formatTime=formatTime):
     """
-    Format an event as a line of human-readable text for, eg.  traditional log
+    Format an event as a line of human-readable text for, e.g. traditional log
     file output.
 
     The output format is C{u"{timeStamp} [{system}] {event}\\n"}, where:
