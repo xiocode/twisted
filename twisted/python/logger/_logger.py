@@ -29,7 +29,7 @@ class Logger(object):
         @return: the fully qualified python name of a module.
         @rtype: L{str} (native string)
         """
-        return currentframe().f_back.f_back.f_globals["__name__"]
+        return currentframe(2).f_globals["__name__"]
 
 
     def __init__(self, namespace=None, source=None, observer=None):
