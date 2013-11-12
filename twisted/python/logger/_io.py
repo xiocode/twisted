@@ -23,12 +23,10 @@ class LoggingFile(object):
 
     @cvar defaultLogger: The default L{Logger} instance to use when none is
         supplied to L{LoggingFile.__init__}.
-
     @type defaultLogger: L{Logger}
 
     @ivar softspace: File-like L{'softspace' attribute <file.softspace>}; zero
         or one.
-
     @type softspace: L{int}
     """
 
@@ -40,11 +38,13 @@ class LoggingFile(object):
         """
         @param level: the log level to emit events with.
 
-        @param encoding: the encoding to expect when receiving bytes via
+        @param encoding: The encoding to expect when receiving bytes via
             C{write()}.  If C{None}, use C{sys.getdefaultencoding()}.
+        @type encoding: L{str}
 
-        @param log: the L{Logger} to send events to.  If C{None}, use
+        @param log: The logger to send events to.  If C{None}, use
             L{LoggingFile.defaultLogger}.
+        @type log: L{Logger}
         """
         self.level = level
 
@@ -112,7 +112,7 @@ class LoggingFile(object):
         The name of this file; a repr-style string giving information about its
         namespace.
 
-        @return: a file name
+        @return: A file name.
         @rtype: L{str}
         """
         return (
@@ -162,7 +162,7 @@ class LoggingFile(object):
         """
         Log the given message.
 
-        @param string: data to write
+        @param string: Data to write.
         @type string: L{bytes} in this file's preferred encoding or L{unicode}
         """
         if self._closed:
@@ -183,9 +183,9 @@ class LoggingFile(object):
         """
         Log each of the given lines as a separate message.
 
-        @param lines: iterable of data to write
-        @type lines: iterable of L{bytes} in this file's preferred encoding
-           or L{unicode}
+        @param lines: Data to write.
+        @type lines: iterable of L{unicode} or L{bytes} in this file's
+            declared encoding
         """
         for line in lines:
             self.write(line)
@@ -195,7 +195,7 @@ class LoggingFile(object):
         """
         Template for unsupported operations.
 
-        @param args: arguments
+        @param args: Arguments.
         @type args: tuple of L{object}
         """
         raise IOError("unsupported operation")

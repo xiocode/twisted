@@ -102,6 +102,10 @@ class StringifiableFromEvent(object):
     formatting until it's converted into a C{str}.
     """
     def __init__(self, event):
+        """
+        @param event: An event.
+        @type event: L{dict}
+        """
         self.event = event
 
 

@@ -47,7 +47,8 @@ class LegacyLogger(object):
 
     def __init__(self, logger=None):
         """
-        @param logger: a L{Logger}
+        @param logger: A logger.
+        @type logger: L{Logger}
         """
         if logger is None:
             self.newStyleLogger = Logger(Logger._namespaceFromCallingContext())
@@ -70,8 +71,8 @@ class LegacyLogger(object):
         This method is API-compatible with L{twisted.python.log.msg} and exists
         for compatibility with that API.
 
-        @param message: L{bytes} objects.
-        @type message: L{tuple}
+        @param message: A message.
+        @type message: L{tuple} of L{bytes}
 
         @param kwargs: Fields in the legacy log message.
         @type kwargs: L{dict}
@@ -89,8 +90,8 @@ class LegacyLogger(object):
         This method is API-compatible with L{twisted.python.log.err} and exists
         for compatibility with that API.
 
-        @param _stuff: A L{Failure}, a string, or an exception.
-        @type _stuff: Something that describes a problem.
+        @param _stuff: Something that describes a problem.
+        @type _stuff: L{Failure}, L{str}, or L{Exception}
 
         @param _why: A string describing what caused the failure.
         @type _why: L{str}

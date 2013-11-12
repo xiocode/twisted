@@ -28,10 +28,10 @@ def formatEvent(event):
     cannot be done, the returned string will describe the event generically so
     that a useful message is emitted regardless.
 
-    @param event: a logging event
+    @param event: A logging event.
     @type event: L{dict}
 
-    @return: a formatted string
+    @return: A formatted string.
     @rtype: L{unicode}
     """
     try:
@@ -66,10 +66,10 @@ def flatFormat(event):
     """
     Format an event which has been flattened with flattenEvent.
 
-    @param event: a logging event
+    @param event: A logging event.
     @type event: L{dict}
 
-    @return: a formatted string
+    @return: A formatted string.
     @rtype: L{unicode}
     """
     fields = event["log_flattened"]
@@ -108,16 +108,16 @@ class KeyFlattener(object):
         """
         Compute a string key for a given field/format/conversion.
 
-        @param fieldName: a format field name
+        @param fieldName: A format field name.
         @type fieldName: L{str}
 
-        @param formatSpec: a format spec
+        @param formatSpec: A format spec.
         @type formatSpec: L{str}
 
-        @param conversion: a format field conversion type
+        @param conversion: A format field conversion type.
         @type conversion: L{str}
 
-        @return: a key specific to the given field, format and conversion, as
+        @return: A key specific to the given field, format and conversion, as
             well as the occurrence of that combination within this
             L{KeyFlattener}'s lifetime.
         @rtype: L{str}
@@ -144,7 +144,7 @@ def flattenEvent(event):
     objects and callable results in a L{dict} put into the C{"log_flattened"}
     key in the event.
 
-    @param event: a logging event
+    @param event: A logging event.
     @type event: L{dict}
     """
     if "log_format" not in event:
@@ -155,8 +155,8 @@ def flattenEvent(event):
 
     for (literalText, fieldName, formatSpec, conversion) in (
             theFormatter.parse(event["log_format"])):
-        if conversion != 'r':
-            conversion = 's'
+        if conversion != "r":
+            conversion = "s"
         flattenedKey = keyFlattener.flatKey(fieldName, formatSpec, conversion)
         structuredKey = keyFlattener.flatKey(fieldName, formatSpec, "")
         if flattenedKey in fields:
@@ -200,8 +200,7 @@ def extractField(field, event):
     @type field: L{str} (native string)
 
     @param event: A log event.
-
-    @param dict: L{dict}
+    @type event: L{dict}
 
     @return: A value extracted from the field.
     @rtype: L{object}
@@ -210,7 +209,7 @@ def extractField(field, event):
     """
     keyFlattener = KeyFlattener()
     [[literalText, fieldName, formatSpec, conversion]] = theFormatter.parse(
-        '{' + field + '}'
+        "{" + field + "}"
     )
     key = keyFlattener.flatKey(fieldName, formatSpec, conversion)
     if "log_flattened" not in event:
@@ -224,13 +223,13 @@ def formatUnformattableEvent(event, error):
     Formats an event as a L{unicode} that describes the event generically and a
     formatting error.
 
-    @param event: a logging event
+    @param event: A logging event.
     @type event: L{dict}
 
-    @param error: the formatting error
+    @param error: The formatting error.
     @type error: L{Exception}
 
-    @return: a formatted string
+    @return: A formatted string.
     @rtype: L{unicode}
     """
     try:
@@ -274,16 +273,16 @@ def formatTime(when, timeFormat=timeFormatRFC3339, default=u"-"):
         u'2013/42'
         >>>
 
-    @param when: a timestamp.
+    @param when: A timestamp.
     @type then: L{float}
 
-    @param timeFormat: a time format
+    @param timeFormat: A time format.
     @type timeFormat: L{unicode} or C{None}
 
-    @param default: text to return if C{when} or C{timeFormat} is C{None}.
+    @param default: Text to return if C{when} or C{timeFormat} is C{None}.
     @type default: L{unicode}
 
-    @return: a formatted time.
+    @return: A formatted time.
     @rtype: L{unicode}
     """
     if (timeFormat is None or when is None):
@@ -316,27 +315,34 @@ def formatEventAsClassicLogText(event, formatTime=formatTime):
         >>> from __future__ import print_function
         >>> from time import time
         >>> from twisted.python.logger import formatEventAsClassicLogText
+        >>> from twisted.python.logger import LogLevel
         >>>
         >>> formatEventAsClassicLogText(dict())  # No format, returns None
-        >>> formatEventAsClassicLogText(event)
-        u'2013-10-22T15:09:18-0700 [-#-] Hello!\\n'
+        >>> formatEventAsClassicLogText(dict(log_format=u"Hello!"))
+        u'- [-#-] Hello!\\n'
         >>> formatEventAsClassicLogText(dict(
         ...     log_format=u"Hello!",
         ...     log_time=time(),
-        ...     log_namespace="my.namespace",
+        ...     log_namespace="my_namespace",
         ...     log_level=LogLevel.info,
         ... ))
-        u'2013-10-22T17:30:02-0700 [my.namespace#info] Hello!\\n'
+        u'2013-10-22T17:30:02-0700 [my_namespace#info] Hello!\\n'
+        >>> formatEventAsClassicLogText(dict(
+        ...     log_format=u"Hello!",
+        ...     log_time=time(),
+        ...     log_system="my_system",
+        ... ))
+        u'2013-11-11T17:22:06-0800 [my_system] Hello!\n'
         >>>
 
     @param event: an event.
     @type event: L{dict}
 
-    @param formatTime: a time formatter
-    @type formatTime: a L{callable} that takes an C{event} argument and returns
+    @param formatTime: A time formatter
+    @type formatTime: L{callable} that takes an C{event} argument and returns
         a L{unicode}
 
-    @return: a formatted event, or C{None} if no output is appropriate.
+    @return: A formatted event, or C{None} if no output is appropriate.
     @rtype: L{unicode} or C{None}
     """
     eventText = formatEvent(event)
@@ -446,10 +452,10 @@ class FixedOffsetTimeZone(TZInfo):
         """
         Create a time zone with a fixed offset corresponding to a time stamp.
 
-        @param timeStamp: a time stamp
+        @param timeStamp: A time stamp.
         @type timeStamp: L{int}
 
-        @return: a time zone
+        @return: A time zone.
         @rtype: L{FixedOffsetTimeZone}
         """
         offset = (

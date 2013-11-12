@@ -14,6 +14,8 @@ from twisted.python.logger._format import formatTime
 from twisted.python.logger._format import timeFormatRFC3339
 from twisted.python.logger._format import formatEventAsClassicLogText
 
+
+
 @implementer(ILogObserver)
 class FileLogObserver(object):
     """
@@ -21,11 +23,11 @@ class FileLogObserver(object):
     """
     def __init__(self, outFile, formatEvent):
         """
-        @param outFile: a file-like object.  Ideally one should be passed
+        @param outFile: A file-like object.  Ideally one should be passed
             which accepts unicode; if not, utf-8 will be used as the encoding.
         @type outFile: L{io.IOBase}
 
-        @param formatEvent: a callable formats an event
+        @param formatEvent: A callable formats an event
         @type formatEvent: L{callable} that takes an C{event} argument and
             returns a formatted event as L{unicode}.
         """
@@ -41,7 +43,7 @@ class FileLogObserver(object):
         """
         Write event to file.
 
-        @param event: an event.
+        @param event: An event.
         @type event: L{dict}
         """
         text = self.formatEvent(event)
@@ -59,16 +61,16 @@ def textFileLogObserver(outFile, timeFormat=timeFormatRFC3339):
     Create a L{FileLogObserver} that emits text to a specified (writable)
     file-like object.
 
-    @param outFile: a file-like object.  Ideally one should be passed which
+    @param outFile: A file-like object.  Ideally one should be passed which
         accepts unicode; if not, utf-8 will be used as the encoding.
     @type outFile: L{io.IOBase}
 
-    @param timeFormat: the format to use when adding timestamp prefixes to
+    @param timeFormat: The format to use when adding timestamp prefixes to
         logged events.  If C{None}, or for events with no C{"log_timestamp"}
         key, the default timestamp prefix of C{u"-"} is used.
     @type timeFormat: L{unicode} or C{None}
 
-    @return: a file log observer.
+    @return: A file log observer.
     @rtype: L{FileLogObserver}
     """
     def formatEvent(event):

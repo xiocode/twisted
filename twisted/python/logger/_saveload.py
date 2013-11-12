@@ -8,7 +8,6 @@ Tools for saving and loading log events in a structured format.
 
 from twisted.python.logger._format import flattenEvent
 from json import dumps, loads
-from twisted.python.compat import unicode
 
 
 def saveEventJSON(event):
@@ -22,20 +21,20 @@ def saveEventJSON(event):
     @param event: A log event dictionary.
     @type event: L{dict} with arbitrary keys and values
 
-    @return: a string of the serialized JSON; note that this will contain no
+    @return: A string of the serialized JSON; note that this will contain no
         newline characters, and may thus safely be stored in a line-delimited
         file.
     @rtype: L{unicode}
     """
     if bytes is str:
-        kw = dict(default=lambda x: {'unpersistable': True},
+        kw = dict(default=lambda x: {"unpersistable": True},
                   encoding="charmap", skipkeys=True)
     else:
         def default(unencodable):
             if isinstance(unencodable, bytes):
                 return unencodable.decode("charmap")
             else:
-                return {'unpersistable': True}
+                return {"unpersistable": True}
         kw = dict(default=default, skipkeys=True)
     flattenEvent(event)
     return dumps(event, **kw)
@@ -49,7 +48,7 @@ def loadEventJSON(eventText):
     @param eventText: The output of a previous call to L{saveEventJSON}
     @type eventText: L{unicode}
 
-    @return: a reconstructed version of the log event.
+    @return: A reconstructed version of the log event.
     @rtype: L{dict}
     """
     return loads(eventText)

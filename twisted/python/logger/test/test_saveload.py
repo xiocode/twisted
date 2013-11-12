@@ -12,6 +12,8 @@ from twisted.python.logger import formatEvent
 from twisted.python.logger._format import extractField
 from twisted.python.logger._saveload import saveEventJSON, loadEventJSON
 
+
+
 def savedJSONInvariants(testCase, savedJSON):
     """
     Assert a few things about the result of L{saveEventJSON}, then return it.
@@ -52,8 +54,8 @@ class SaveLoadTests(TestCase):
         though, all dictionary keys must be L{unicode} and any non-L{unicode}
         keys will be converted.
         """
-        self.assertEquals(loadEventJSON(saveEventJSON({1: 2, u'3': u'4'})),
-                          {u'1': 2, u'3': u'4'})
+        self.assertEquals(loadEventJSON(saveEventJSON({1: 2, u"3": u"4"})),
+                          {u"1": 2, u"3": u"4"})
 
 
     def test_saveUnPersistable(self):
@@ -63,7 +65,7 @@ class SaveLoadTests(TestCase):
         """
         self.assertEquals(
             loadEventJSON(saveEventJSON({u"1": 2, u"3": object()})),
-            {u'1': 2, u'3': {u'unpersistable': True}}
+            {u"1": 2, u"3": {u"unpersistable": True}}
         )
 
 
@@ -75,7 +77,7 @@ class SaveLoadTests(TestCase):
             loadEventJSON(saveEventJSON(
                 {u"\u1234": u"\u4321", u"3": object()}
             )),
-            {u'\u1234': u'\u4321', u'3': {u'unpersistable': True}}
+            {u"\u1234": u"\u4321", u"3": {u"unpersistable": True}}
         )
 
 
@@ -86,7 +88,7 @@ class SaveLoadTests(TestCase):
         """
         def asbytes(x):
             if bytes is str:
-                return b''.join(map(chr, x))
+                return b"".join(map(chr, x))
             else:
                 return bytes(x)
 
@@ -95,7 +97,7 @@ class SaveLoadTests(TestCase):
             # On Python 3, bytes keys will be skipped by the JSON encoder. Not
             # much we can do about that.  Let's make sure that we don't get an
             # error, though.
-            inputEvent.update({b'skipped': 'okay'})
+            inputEvent.update({b"skipped": "okay"})
         self.assertEquals(
             loadEventJSON(saveEventJSON(inputEvent)),
             {u"hello": asbytes(range(255)).decode("charmap")}

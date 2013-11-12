@@ -41,10 +41,10 @@ def mktime(t9):
     Call L{mktime_real}, and if it raises L{OverflowError}, catch it and raise
     SkipTest instead.
 
-    @param t9: a time as a 9-item tuple
+    @param t9: A time as a 9-item tuple.
     @type t9: L{tuple}
 
-    @return: a timestamp
+    @return: A timestamp.
     @rtype: L{float}
     """
     try:
@@ -222,24 +222,29 @@ class FlatFormattingTests(unittest.TestCase):
 
     def test_formatFlatEventWithMutatedFields(self):
         """
-        L{formatEvent} will prefer the stored str or repr value for an object,
-        in case the other version.
+        L{formatEvent} will prefer the stored C{str()} or C{repr()} value for
+        an object, in case the other version.
         """
         class unpersistable(object):
             destructed = False
+
             def selfDestruct(self):
                 self.destructed = True
+
             def __repr__(self):
                 if self.destructed:
-                    return 'post-serialization garbage'
+                    return "post-serialization garbage"
                 else:
                     return "un-persistable"
+
         up = unpersistable()
         event1 = dict(
             log_format="unpersistable: {unpersistable}", unpersistable=up
         )
+
         flattenEvent(event1)
         up.selfDestruct()
+
         self.assertEquals(formatEvent(event1), "unpersistable: un-persistable")
 
 
@@ -319,10 +324,12 @@ class FlatFormattingTests(unittest.TestCase):
         class ObjectWithRepr(object):
             def __repr__(self):
                 return "repr"
+
         class Something(object):
             def __init__(self):
                 self.number = 7
                 self.object = ObjectWithRepr()
+
             def __getstate__(self):
                 raise NotImplementedError("Just in case.")
 

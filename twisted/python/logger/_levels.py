@@ -58,10 +58,10 @@ class LogLevel(Names):
         consequences are unknown.
     """
 
-    debug    = NamedConstant()
-    info     = NamedConstant()
-    warn     = NamedConstant()
-    error    = NamedConstant()
+    debug = NamedConstant()
+    info = NamedConstant()
+    warn = NamedConstant()
+    error = NamedConstant()
     critical = NamedConstant()
 
 
@@ -70,10 +70,10 @@ class LogLevel(Names):
         """
         Get the log level with the given name.
 
-        @param name: the name of a L{LogLevel}
+        @param name: The name of a log level.
         @type name: L{str} (native string)
 
-        @return: the L{LogLevel} with the specified C{name}
+        @return: The L{LogLevel} with the specified C{name}.
         @rtype: L{LogLevel}
 
         @raise InvalidLogLevelError: if the C{name} does not name a valid log
@@ -86,7 +86,7 @@ class LogLevel(Names):
 
 
     @classmethod
-    def _priorityForLevel(cls, constant):
+    def _priorityForLevel(cls, level):
         """
         We want log levels to have defined ordering - the order of definition -
         but they aren't value constants (the only value is the name).  This is
@@ -94,16 +94,16 @@ class LogLevel(Names):
         this is fixed in some way
         <https://twistedmatrix.com/trac/ticket/6523>}.
 
-        @param constant: One of the L{LogLevel} values.
-        @type constant: L{LogLevel}
+        @param level: A log level.
+        @type level: L{LogLevel}
 
         @return: A numeric index indicating priority (lower is higher level).
         @rtype: L{int}
         """
-        return cls._levelPriorities[constant]
+        return cls._levelPriorities[level]
 
 
 LogLevel._levelPriorities = dict(
-    (constant, idx) for (idx, constant) in
+    (level, index) for (index, level) in
     (enumerate(LogLevel.iterconstants()))
 )

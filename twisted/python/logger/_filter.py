@@ -18,8 +18,8 @@ class PredicateResult(Names):
     """
     Predicate results.
     """
-    yes   = NamedConstant()  # Log this
-    no    = NamedConstant()  # Don't log this
+    yes = NamedConstant()    # Log this
+    no = NamedConstant()     # Don't log this
     maybe = NamedConstant()  # No opinion
 
 
@@ -41,19 +41,21 @@ class ILogFilterPredicate(Interface):
 @implementer(ILogObserver)
 class FilteringLogObserver(object):
     """
-    L{ILogObserver} that wraps another L{ILogObserver}, but filters
-    out events based on applying a series of L{ILogFilterPredicate}s.
+    L{ILogObserver} that wraps another L{ILogObserver}, but filters out events
+    based on applying a series of L{ILogFilterPredicate}s.
     """
 
     def __init__(self, observer, predicates):
         """
-        @param observer: an L{ILogObserver} to which this observer
-            will forward events.
+        @param observer: An observer to which this observer will forward
+            events.
+        @type observer: L{ILogObserver}
 
-        @param predicates: an ordered iterable of predicates to apply
-            to events before forwarding to the wrapped observer.
+        @param predicates: Predicates to apply to events before forwarding to
+            the wrapped observer.
+        @type predicates: ordered iterable of predicates
         """
-        self.observer   = observer
+        self.observer = observer
         self.predicates = list(predicates)
 
 
@@ -61,7 +63,7 @@ class FilteringLogObserver(object):
         """
         Determine whether an event should be logged, based C{self.predicates}.
 
-        @param event: an event
+        @param event: An event
         @type event: L{dict}
 
         @return: yes, no, or maybe
@@ -93,8 +95,8 @@ class FilteringLogObserver(object):
 @implementer(ILogFilterPredicate)
 class LogLevelFilterPredicate(object):
     """
-    L{ILogFilterPredicate} that filters out events with a log level
-    lower than the log level for the event's namespace.
+    L{ILogFilterPredicate} that filters out events with a log level lower than
+    the log level for the event's namespace.
 
     Events that not not have a log level or namespace are also dropped.
     """
@@ -115,11 +117,12 @@ class LogLevelFilterPredicate(object):
         C{logLevelForNamespace("mypackage.subpackage")} will return
         C{LogLevel.debug}.
 
-        @param namespace: a logging namespace, or C{None} for the default
+        @param namespace: A logging namespace, or C{None} for the default
             namespace.
         @type namespace: L{str} (native string)
 
-        @return: the L{LogLevel} for the specified namespace.
+        @return: The log level for the specified namespace.
+        @rtype: L{LogLevel}
         """
         if not namespace:
             return self._logLevelsByNamespace[None]
@@ -143,9 +146,11 @@ class LogLevelFilterPredicate(object):
         """
         Sets the global log level for a logging namespace.
 
-        @param namespace: a logging namespace
+        @param namespace: A logging namespace.
+        @type namespace: L{str} (native string)
 
-        @param level: the L{LogLevel} for the given namespace.
+        @param level: The log level for the given namespace.
+        @type level: L{LogLevel}
         """
         if level not in LogLevel.iterconstants():
             raise InvalidLogLevelError(level)

@@ -36,8 +36,9 @@ class RingBufferLogObserver(object):
 
     def __init__(self, size=None):
         """
-        @param size: the maximum number of events to buffer.  If C{None}, the
+        @param size: The maximum number of events to buffer.  If C{None}, the
             buffer is unbounded.
+        @type size: L{int}
         """
         self._buffer = deque(maxlen=size)
 
