@@ -27,7 +27,7 @@ class FileLogObserver(object):
             which accepts unicode; if not, utf-8 will be used as the encoding.
         @type outFile: L{io.IOBase}
 
-        @param formatEvent: A callable formats an event
+        @param formatEvent: A callable that formats an event.
         @type formatEvent: L{callable} that takes an C{event} argument and
             returns a formatted event as L{unicode}.
         """
