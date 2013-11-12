@@ -25,10 +25,10 @@ def mktime(t9):
     Call L{mktime_real}, and if it raises L{OverflowError}, catch it and raise
     SkipTest instead.
 
-    @param t9: a time as a 9-item tuple
+    @param t9: A time as a 9-item tuple.
     @type t9: L{tuple}
 
-    @return: a timestamp
+    @return: A timestamp.
     @rtype: L{float}
     """
     try:
