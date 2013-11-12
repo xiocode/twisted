@@ -176,7 +176,8 @@ class AppProfiler(object):
 
 class AppLogger(object):
     """
-    Class managing logging faciliy of the application.
+    An L{AppLogger} attaches the configured log observer specified on the
+    commandline to a L{ServerOptions} object or the custom L{ILogObserver}.
 
     @ivar _logfilename: The name of the file to which to log, if other than the
         default.
@@ -191,22 +192,26 @@ class AppLogger(object):
     _observer = None
 
     def __init__(self, options):
+        """
+        Initialize an L{AppLogger} with a L{ServerOptions}.
+        """
         self._logfilename = options.get("logfile", "")
         self._observerFactory = options.get("logger") or None
 
 
     def start(self, application):
         """
-        Initialize the logging system.
+        Initialize the global logging system for the given application.
 
-        If a customer logger was specified on the command line it will be
-        used. If not, and an L{ILogObserver} component has been set on
+        If a custom logger was specified on the command line it will be used.
+        If not, and an L{ILogObserver} component has been set on
         C{application}, then it will be used as the log observer.  Otherwise a
         log observer will be created based on the command-line options for
-        built-in loggers (e.g. C{--logfile}).
+        built-in loggers (e.g.  C{--logfile}).
 
         @param application: The application on which to check for an
             L{ILogObserver}.
+        @type application: L{twisted.python.components.Componentized}
         """
         if self._observerFactory is not None:
             observer = self._observerFactory()
@@ -245,7 +250,7 @@ class AppLogger(object):
 
     def stop(self):
         """
-        Print twistd stop log message.
+        Remove all log observers previously set up by L{AppLogger.start}.
         """
         log.msg("Server Shut Down.")
         if self._observer is not None:
