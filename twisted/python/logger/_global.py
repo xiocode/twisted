@@ -20,7 +20,7 @@ class GlobalLogPublisher(LogPublisher):
     """
 
     def __init__(self):
-        self._temporaryObserver = RingBufferLogObserver(64*1024)
+        self._temporaryObserver = RingBufferLogObserver()
         LogPublisher.__init__(self, self._temporaryObserver)
 
 
@@ -32,20 +32,14 @@ class GlobalLogPublisher(LogPublisher):
         @param observers: The observers to register.
         @type observers: iterable of L{ILogObserver}s
         """
-
         if self._temporaryObserver is None:
             raise AssertionError(
                 "startLoggingWithObservers() may only be called once."
             )
-
         for observer in observers:
             self.addObserver(observer)
-
         self.removeObserver(self._temporaryObserver)
-
-        for event in self._temporaryObserver:
-            self(event)
-
+        self._temporaryObserver.replayTo(self)
         self._temporaryObserver = None
 
 

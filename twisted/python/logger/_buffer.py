@@ -12,7 +12,7 @@ from zope.interface import implementer
 
 from twisted.python.logger._observer import ILogObserver
 
-
+_DEFAULT_BUFFER_MAXIMUM = 64*1024
 
 @implementer(ILogObserver)
 class RingBufferLogObserver(object):
@@ -34,7 +34,7 @@ class RingBufferLogObserver(object):
         ()
     """
 
-    def __init__(self, size=None):
+    def __init__(self, size=_DEFAULT_BUFFER_MAXIMUM):
         """
         @param size: The maximum number of events to buffer.  If C{None}, the
             buffer is unbounded.
@@ -66,3 +66,11 @@ class RingBufferLogObserver(object):
         Clear the event buffer.
         """
         self._buffer.clear()
+
+
+    def replayTo(self, otherObserver):
+        """
+        Re-play the buffered events to another log observer.
+        """
+        for event in self:
+            otherObserver(event)
