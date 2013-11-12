@@ -15,8 +15,8 @@ class GlobalLogPublisher(LogPublisher):
     """
     Class for the (singleton) default log publisher.
 
-    Received events are buffered until C{startLoggingWithObservers()} is
-    called.
+    Received events are buffered until
+    L{GlobalLogPublisher.startLoggingWithObservers} is called.
     """
 
     def __init__(self):
