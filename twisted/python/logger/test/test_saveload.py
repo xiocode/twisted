@@ -114,8 +114,10 @@ class SaveLoadTests(TestCase):
         class reprable(object):
             def __init__(self, value):
                 self.value = value
+
             def __repr__(self):
                 return("reprable")
+
         inputEvent = {
             "log_format": "{object} {object.value}",
             "object": reprable(7)
@@ -132,6 +134,7 @@ class SaveLoadTests(TestCase):
         class obj(object):
             def __init__(self):
                 self.value = 345
+
         inputEvent = dict(log_format="{object.value}", object=obj())
         loadedEvent = loadEventJSON(saveEventJSON(inputEvent))
         self.assertEquals(extractField("object.value", loadedEvent), 345)
