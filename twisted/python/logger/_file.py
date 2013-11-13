@@ -23,8 +23,8 @@ class FileLogObserver(object):
     """
     def __init__(self, outFile, formatEvent):
         """
-        @param outFile: A file-like object.  Ideally one should be passed
-            which accepts unicode; if not, utf-8 will be used as the encoding.
+        @param outFile: A file-like object.  Ideally one should be passed which
+            accepts L{unicode} data.  Otherwise, UTF-8 L{bytes} will be used.
         @type outFile: L{io.IOBase}
 
         @param formatEvent: A callable that formats an event.
@@ -35,6 +35,7 @@ class FileLogObserver(object):
             self._encoding = "utf-8"
         else:
             self._encoding = None
+
         self._outFile = outFile
         self.formatEvent = formatEvent
 
@@ -51,6 +52,7 @@ class FileLogObserver(object):
             return
         if self._encoding is not None:
             text = text.encode(self._encoding)
+
         self._outFile.write(text)
         self._outFile.flush()
 
@@ -62,7 +64,7 @@ def textFileLogObserver(outFile, timeFormat=timeFormatRFC3339):
     file-like object.
 
     @param outFile: A file-like object.  Ideally one should be passed which
-        accepts unicode; if not, utf-8 will be used as the encoding.
+        accepts L{unicode} data.  Otherwise, UTF-8 L{bytes} will be used.
     @type outFile: L{io.IOBase}
 
     @param timeFormat: The format to use when adding timestamp prefixes to

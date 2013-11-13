@@ -1,7 +1,8 @@
 from twisted.python.logger import (
-    eventsFromStructuredLogFile
+    eventsFromJSONLogFile
 )
 import io
 from analyze import analyze
-for event in eventsFromStructuredLogFile(io.open("log.json")):
+
+for event in eventsFromJSONLogFile(io.open("log.json")):
     analyze(event)

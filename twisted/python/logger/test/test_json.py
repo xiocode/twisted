@@ -2,7 +2,7 @@
 # See LICENSE for details.
 
 """
-Tests for L{twisted.python.logger._saveload}.
+Tests for L{twisted.python.logger._json}.
 """
 
 from twisted.python.compat import unicode
@@ -10,7 +10,7 @@ from twisted.python.compat import unicode
 from twisted.trial.unittest import TestCase
 from twisted.python.logger import formatEvent, LogLevel
 from twisted.python.logger._format import extractField
-from twisted.python.logger._saveload import eventAsJSON, eventFromJSON
+from twisted.python.logger._json import eventAsJSON, eventFromJSON
 
 
 

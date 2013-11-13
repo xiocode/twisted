@@ -1,5 +1,5 @@
 import io
-from twisted.python.logger import eventsFromStructuredLogFile
+from twisted.python.logger import eventsFromJSONLogFile
 
-for event in eventsFromStructuredLogFile(io.open("log.json")):
+for event in eventsFromJSONLogFile(io.open("log.json")):
     print(sum(event["values"]))

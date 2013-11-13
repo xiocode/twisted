@@ -44,35 +44,28 @@ second example, it would be C{some.module.Foo}.
 
 __all__ = [
     # From twisted.python.logger._levels
-    "InvalidLogLevelError",
-    "LogLevel",
+    "InvalidLogLevelError", "LogLevel",
 
     # From twisted.python.logger._format
-    "formatEvent",
-    "formatEventAsClassicLogText",
-    "formatTime",
-    "timeFormatRFC3339",
+    "formatEvent", "formatEventAsClassicLogText",
+    "formatTime", "timeFormatRFC3339",
     "extractField",
 
     # From twisted.python.logger._logger
     "Logger",
 
     # From twisted.python.logger._observer
-    "ILogObserver",
-    "LogPublisher",
+    "ILogObserver", "LogPublisher",
 
     # From twisted.python.logger._buffer
     "LimitedHistoryLogObserver",
 
     # From twisted.python.logger._file
-    "FileLogObserver",
-    "textFileLogObserver",
+    "FileLogObserver", "textFileLogObserver",
 
     # From twisted.python.logger._filter
-    "PredicateResult",
-    "ILogFilterPredicate",
-    "FilteringLogObserver",
-    "LogLevelFilterPredicate",
+    "PredicateResult", "ILogFilterPredicate",
+    "FilteringLogObserver", "LogLevelFilterPredicate",
 
     # From twisted.python.logger._stdlib
     "STDLibLogObserver",
@@ -81,21 +74,16 @@ __all__ = [
     "LoggingFile",
 
     # From twisted.python.logger._legacy
-    "LegacyLogger",
-    "LegacyLogObserverWrapper",
+    "LegacyLogger", "LegacyLogObserverWrapper",
 
     # From twisted.python.logger._global
-    "globalLogPublisher",
-    "globalLogBeginner",
-    "LogBeginner",
+    "globalLogPublisher", "globalLogBeginner", "LogBeginner",
 
-    # From twisted.python.logger._saveload
-    "structuredFileLogObserver",
-    "eventsFromStructuredLogFile",
+    # From twisted.python.logger._json
+    "jsonFileLogObserver", "eventsFromJSONLogFile",
 ]
 
-from twisted.python.logger._levels import InvalidLogLevelError
-from twisted.python.logger._levels import LogLevel
+from twisted.python.logger._levels import InvalidLogLevelError, LogLevel
 
 from twisted.python.logger._format import (
     formatEvent, formatEventAsClassicLogText, formatTime, timeFormatRFC3339,
@@ -104,29 +92,29 @@ from twisted.python.logger._format import (
 
 from twisted.python.logger._logger import Logger
 
-from twisted.python.logger._observer import ILogObserver
-from twisted.python.logger._observer import LogPublisher
+from twisted.python.logger._observer import ILogObserver, LogPublisher
 
 from twisted.python.logger._buffer import LimitedHistoryLogObserver
 
-from twisted.python.logger._file import FileLogObserver
-from twisted.python.logger._file import textFileLogObserver
+from twisted.python.logger._file import FileLogObserver, textFileLogObserver
 
-from twisted.python.logger._filter import PredicateResult
-from twisted.python.logger._filter import ILogFilterPredicate
-from twisted.python.logger._filter import FilteringLogObserver
-from twisted.python.logger._filter import LogLevelFilterPredicate
+from twisted.python.logger._filter import (
+    PredicateResult, ILogFilterPredicate, FilteringLogObserver,
+    LogLevelFilterPredicate
+)
 
 from twisted.python.logger._stdlib import STDLibLogObserver
 
 from twisted.python.logger._io import LoggingFile
 
-from twisted.python.logger._legacy import LegacyLogger
-from twisted.python.logger._legacy import LegacyLogObserverWrapper
+from twisted.python.logger._legacy import (
+    LegacyLogger, LegacyLogObserverWrapper
+)
 
 from twisted.python.logger._global import (
     globalLogPublisher, globalLogBeginner, LogBeginner
 )
-from twisted.python.logger._saveload import (
-    structuredFileLogObserver, eventsFromStructuredLogFile
+
+from twisted.python.logger._json import (
+    jsonFileLogObserver, eventsFromJSONLogFile
 )

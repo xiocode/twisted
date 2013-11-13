@@ -1,7 +1,7 @@
 import io
-from twisted.python.logger import structuredFileLogObserver, Logger
+from twisted.python.logger import jsonFileLogObserver, Logger
 
-log = Logger(observer=structuredFileLogObserver(io.open("log.json", "a")),
+log = Logger(observer=jsonFileLogObserver(io.open("log.json", "a")),
              namespace="saver")
 
 def loggit(values):

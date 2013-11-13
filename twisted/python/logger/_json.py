@@ -1,4 +1,4 @@
-# -*- test-case-name: twisted.python.logger.test.test_saveload -*-
+# -*- test-case-name: twisted.python.logger.test.test_json -*-
 # Copyright (c) Twisted Matrix Laboratories.
 # See LICENSE for details.
 
@@ -18,7 +18,7 @@ from twisted.python.compat import unicode
 
 def eventAsJSON(event):
     """
-    Save an event as JSON, flattening it if necessary to preserve as much
+    Encode an event as JSON, flattening it if necessary to preserve as much
     structure as possible.
 
     Not all structure from the log event will be preserved when it is
@@ -56,7 +56,7 @@ def eventAsJSON(event):
 
 def eventFromJSON(eventText):
     """
-    Load a log event from JSON.
+    Decode a log event from JSON.
 
     @param eventText: The output of a previous call to L{eventAsJSON}
     @type eventText: L{unicode}
@@ -74,13 +74,13 @@ def eventFromJSON(eventText):
 
 
 
-def structuredFileLogObserver(outFile):
+def jsonFileLogObserver(outFile):
     """
     Create a L{FileLogObserver} that emits JSON lines to a specified (writable)
     file-like object.
 
     @param outFile: A file-like object.  Ideally one should be passed which
-        accepts unicode; if not, utf-8 will be used as the encoding.
+        accepts L{unicode} data.  Otherwise, UTF-8 L{bytes} will be used.
     @type outFile: L{io.IOBase}
 
     @return: A file log observer.
@@ -91,11 +91,12 @@ def structuredFileLogObserver(outFile):
 
 
 
-def eventsFromStructuredLogFile(inFile):
+def eventsFromJSONLogFile(inFile):
     """
-    Load events from a file previously saved with structuredFileLogObserver.
+    Load events from a file previously saved with jsonFileLogObserver.
 
-    @param inFile: A (readable) file-like object.
+    @param inFile: A (readable) file-like object.  Data read from L{inFile}
+        should be L{unicode} or UTF-8 L{bytes}.
     @type inFile: iterable of lines
 
     @return: an iterable of log events
