@@ -8,7 +8,7 @@ Tests for L{twisted.python.logger._saveload}.
 from twisted.python.compat import unicode
 
 from twisted.trial.unittest import TestCase
-from twisted.python.logger import formatEvent
+from twisted.python.logger import formatEvent, LogLevel
 from twisted.python.logger._format import extractField
 from twisted.python.logger._saveload import saveEventJSON, loadEventJSON
 
@@ -150,3 +150,22 @@ class SaveLoadTests(TestCase):
         # won't be:
         self.assertRaises(KeyError, extractField, "object", loadedEvent)
         self.assertRaises(KeyError, extractField, "object", inputEvent)
+
+
+    def test_saveLoadLevel(self):
+        """
+        It's important that the C{log_level} key remain a
+        L{twisted.python.constants.NamedConstant} object.
+        """
+        inputEvent = dict(log_level=LogLevel.warn)
+        loadedEvent = loadEventJSON(self.savedEventJSON(inputEvent))
+        self.assertIdentical(loadedEvent['log_level'], LogLevel.warn)
+
+
+    def test_saveLoadUnknownLevel(self):
+        """
+        If a saved bit of JSON (let's say, from a future version of Twisted)
+        were to persist a different log_level, though, it should be removed.
+        """
+        loadedEvent = loadEventJSON('{"log_level": "unknown"}')
+        self.assertEquals(loadedEvent, dict(log_level_name=u"unknown"))

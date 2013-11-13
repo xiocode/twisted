@@ -8,7 +8,11 @@ Tools for saving and loading log events in a structured format.
 
 from twisted.python.logger._format import flattenEvent
 from twisted.python.logger._file import FileLogObserver
+from twisted.python.logger._levels import LogLevel
+from twisted.python.constants import NamedConstant
+
 from json import dumps, loads
+from twisted.python.logger._levels import InvalidLogLevelError
 from twisted.python.compat import unicode
 
 
@@ -28,15 +32,19 @@ def saveEventJSON(event):
         file.
     @rtype: L{unicode}
     """
+    def unpersistable(unencodable):
+        if isinstance(unencodable, NamedConstant):
+            return unicode(unencodable.name, 'utf-8')
+        else:
+            return {"unpersistable": True}
     if bytes is str:
-        kw = dict(default=lambda x: {"unpersistable": True},
+        kw = dict(default=unpersistable,
                   encoding="charmap", skipkeys=True)
     else:
         def default(unencodable):
             if isinstance(unencodable, bytes):
                 return unencodable.decode("charmap")
-            else:
-                return {"unpersistable": True}
+            return unpersistable(unencodable)
         kw = dict(default=default, skipkeys=True)
     flattenEvent(event)
     result = dumps(event, **kw)
@@ -56,7 +64,13 @@ def loadEventJSON(eventText):
     @return: A reconstructed version of the log event.
     @rtype: L{dict}
     """
-    return loads(eventText)
+    loaded = loads(eventText)
+    if 'log_level' in loaded:
+        try:
+            loaded['log_level'] = LogLevel.levelWithName(loaded['log_level'])
+        except InvalidLogLevelError:
+            loaded['log_level_name'] = loaded.pop('log_level')
+    return loaded
 
 
 
