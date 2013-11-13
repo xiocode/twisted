@@ -49,6 +49,7 @@ class LogStartupBuffer(object):
         for observer in observers:
             self._publisher.addObserver(observer)
         self._publisher.removeObserver(self._temporaryObserver)
+        self._publisher.removeObserver(self._temporaryTracebackReporter)
         self._temporaryObserver.replayTo(self._publisher)
         self._temporaryObserver = None
         self._publisher = None
