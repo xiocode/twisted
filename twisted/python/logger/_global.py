@@ -27,9 +27,9 @@ MORE_THAN_ONCE_WARNING = (
     "beginLoggingTo."
 )
 
-class LogStartupBuffer(object):
+class LogBeginner(object):
     """
-    A L{LogStartupBuffer} holds state related to logging before logging has
+    A L{LogBeginner} holds state related to logging before logging has
     begun, and begins logging when told to do so.  Logging "begins" when
     someone has selected a set of observers, like, for example, a
     L{FileLogObserver}.
@@ -77,4 +77,4 @@ class LogStartupBuffer(object):
 
 
 globalLogPublisher = LogPublisher()
-startupBuffer = LogStartupBuffer(globalLogPublisher, sys.stderr)
+logBeginner = LogBeginner(globalLogPublisher, sys.stderr)

@@ -11,22 +11,22 @@ from twisted.trial import unittest
 
 from twisted.python.logger._observer import LogPublisher
 from twisted.python.logger import Logger
-from twisted.python.logger._global import LogStartupBuffer
+from twisted.python.logger._global import LogBeginner
 from twisted.python.logger._global import MORE_THAN_ONCE_WARNING
 from twisted.python.logger import LogLevel
 from twisted.python.logger.test.test_stdlib import nextLine
 
 
 
-class LogStartupBufferTests(unittest.TestCase):
+class LogBeginnerTests(unittest.TestCase):
     """
-    Tests for L{LogStartupBuffer}.
+    Tests for L{LogBeginner}.
     """
 
     def setUp(self):
         self.publisher = LogPublisher()
         self.errorStream = io.StringIO()
-        self.buffer = LogStartupBuffer(self.publisher, self.errorStream)
+        self.buffer = LogBeginner(self.publisher, self.errorStream)
 
 
     def test_beginLoggingTo_addObservers(self):
@@ -70,7 +70,7 @@ class LogStartupBufferTests(unittest.TestCase):
 
     def test_beginLoggingTo_twice(self):
         """
-        When invoked twice, L{LogStartupBuffer.beginLoggingTo} will emit a log
+        When invoked twice, L{LogBeginner.beginLoggingTo} will emit a log
         message warning the user that they previously began logging, and add
         the new log observers.
         """
