@@ -196,7 +196,14 @@ class Foo(object):
         </li>
         <li>
             Field names ending in parentheses (eg. <code class="python">{foo()}</code>) will call the referenced object with no arguments, then call <code class="python">str</code> on the result, rather than calling <code class="python">str</code> on the referenced object directly.
-            There is no support for specifying arguments in the format string.
+            This extension to PEP 3101 format syntax is provided to make it as easy as possible to defer potentially expensive work until a log message must be emitted.
+            For example, let's say that we wanted to log a message with some useful, but potentially expensive information from the 'request' object:
+            <pre class="python">
+log.info("{request.uri} useful, but expensive: {request.usefulButExpensive()}",
+         request=request)
+            </pre>
+            In the case where this log message is filtered out as uninteresting and not saved, no formatting work is done <i>at all</i>; and since we can use PEP3101 attribute-access syntax in conjunction with this parenthesis extension, the caller does not even need to build a function or bound method object to pass as a separate key.
+            There is no support for specifying arguments in the format string; the goal is to make it idiomatic to express that work be done later, not to implement a full Python expression evaluator.
         </li>
     </ol>
 
