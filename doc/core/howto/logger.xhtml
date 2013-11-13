@@ -184,7 +184,7 @@ class Foo(object):
     <h3>Emitter method signatures</h3>
 
     <p>
-        The emitter methods (<code class="API" base="twisted.python.logger.Logger">log_info</code>, etc.) all take an optional format string as a first argument, followed by keyword arguments that will be included in the emitted event.
+        The emitter methods (<code class="API" base="twisted.python.logger.Logger">debug</code>, <code class="API" base="twisted.python.logger.Logger">info</code>, <code class="API" base="twisted.python.logger.Logger">warn</code>, etc.) all take an optional format string as a first argument, followed by keyword arguments that will be included in the emitted event.
     </p>
 
     <p>
@@ -216,6 +216,18 @@ log.info("{request.uri} useful, but expensive: {request.usefulButExpensive()}",
             There is no support for specifying arguments in the format string; the goal is to make it idiomatic to express that work be done later, not to implement a full Python expression evaluator.
         </li>
     </ol>
+
+    <h2>Saving events for later</h2>
+
+    <p>
+        For compatibility reasons, <code>twistd</code> will log to a text-based format by default.
+        However, it's much better to use a structured log file format which preserves information about the events being logged.
+        <code>twisted.python.logger</code> provides APIs: <code class="API" base="twisted.python.logger">structuredFileLogObserver</code> <code class="API" base="twisted.python.logger">eventsFromStructuredLogFile</code> which allow you to save and retrieve structured log events with a basic level of fidelity.
+        Log events are serialized as JSON dictionaries, with dummy placeholder values for instance information.
+    </p>
+    <p>
+        
+    </p>
 
     <h2>Implementing an observer</h2>
 
@@ -263,6 +275,37 @@ def simpleObserver(event):
     <p>
         Given this extra wrinkle, it's usually best to see if you can find an existing log observer implementation that does what you need before implementing your own; thread safety can be tricky to implement.
         Luckily, <code class="API">twisted.python.logging</code> comes with several useful observers, which are documented below.
+    </p>
+
+    <h3>Writing an observer for event analysis</h3>
+
+    <p>
+        Twisted includes log observers which take care of most of the "normal" uses of logging, like writing messages to a file, saving them as text, filtering them, and so on.
+        There are two common reasons you might want to write a log observer of your own.
+        The first is to ship log messages over to a different kind of external system which Twisted itself does not support.
+        If you've read the above, you now know enough to do that; simply implement a function that converts the dictionary to something amenable to your external 
+        system or file format, and send it there or save it.
+        The second task is to do some kind of analysis, either real-time within your process or after the fact offline.
+    </p>
+
+    <p>
+        Ideally, if you want to analyze the log messages from an application, you will have carefully crafted easy-to-identify log messages with unique identifying keys which your observer can inspect for, called out every interesting value for analysis as a specifically-named log key.
+    </p>
+
+    <p>
+        However, the realities of logging are often much messier than that.
+        You're probably going to have to aggregate information from your own code and from libraries you're using, including Twisted itself, and you may not have much in the way of control over how those messages are organized.
+        You're also probably trying to aggregate information from ad-hoc messages into some kind of structure.
+    </p>
+
+    <p>
+        One way to do this is to feed your logs into an external system like <a href="http://logstash.net">logstash</a>, and process them with regular expressions.
+        Such systems are quite powerful and Twisted's built-in logging does not try to replace them.
+        However, such systems are necessarily external, and cannot provide a first line of defense and reaction <em>within</em> your application.
+    </p>
+
+    <p>
+        Assuming that the libraries you're interested in tracking are making use of <code>twisted.python.logger</code>, you can analyze log events either live as they're being logged, or saved for later.
     </p>
 
     <h2>Registering an observer</h2>
