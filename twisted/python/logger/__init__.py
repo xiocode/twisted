@@ -77,6 +77,8 @@ __all__ = [
 
     # From twisted.python.logger._global
     "globalLogPublisher",
+    "globalLogBeginner",
+    "LogBeginner",
 ]
 
 from twisted.python.logger._levels import InvalidLogLevelError
