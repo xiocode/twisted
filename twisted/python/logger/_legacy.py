@@ -14,8 +14,8 @@ from twisted.python.logger._levels import LogLevel
 from twisted.python.logger._format import formatEvent
 from twisted.python.logger._logger import Logger
 from twisted.python.logger._observer import ILogObserver
-from twisted.python.logger._stdlib import pythonLogLevelMapping
-from twisted.python.logger._stdlib import toNewLevelMapping
+from twisted.python.logger._stdlib import toStdlibLogLevelMapping
+from twisted.python.logger._stdlib import fromStdlibLogLevelMapping
 from twisted.python.logger._stdlib import StringifiableFromEvent
 
 
@@ -149,8 +149,8 @@ class LegacyLogObserverWrapper(object):
         # Twisted's logging supports indicating a python log level, so let's
         # provide the equivalent to our logging levels.
         level = event.get("log_level", None)
-        if level in pythonLogLevelMapping:
-            event["logLevel"] = pythonLogLevelMapping[level]
+        if level in toStdlibLogLevelMapping:
+            event["logLevel"] = toStdlibLogLevelMapping[level]
 
         # The "message" key is required by textFromEventDict()
         if "message" not in event:
@@ -212,7 +212,7 @@ def publishToNewObserver(observer, eventDict, textFromEventDict):
 
     if "log_level" not in eventDict:
         if "logLevel" in eventDict:
-            level = toNewLevelMapping[eventDict["logLevel"]]
+            level = fromStdlibLogLevelMapping[eventDict["logLevel"]]
         elif eventDict["isError"]:
             level = LogLevel.error
         else:

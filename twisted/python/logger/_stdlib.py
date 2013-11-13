@@ -18,16 +18,18 @@ from twisted.python.logger._observer import ILogObserver
 
 
 # Mappings to Python's logging module
-pythonLogLevelMapping = {
-    LogLevel.debug:    stdlibLogging.DEBUG,
-    LogLevel.info:     stdlibLogging.INFO,
-    LogLevel.warn:     stdlibLogging.WARNING,
-    LogLevel.error:    stdlibLogging.ERROR,
+toStdlibLogLevelMapping = {
+    LogLevel.debug: stdlibLogging.DEBUG,
+    LogLevel.info: stdlibLogging.INFO,
+    LogLevel.warn: stdlibLogging.WARNING,
+    LogLevel.error: stdlibLogging.ERROR,
     LogLevel.critical: stdlibLogging.CRITICAL,
 }
 
-toNewLevelMapping = dict([(value, key) for (key, value)
-                          in pythonLogLevelMapping.items()])
+fromStdlibLogLevelMapping = dict([
+    (value, key) for (key, value)
+    in toStdlibLogLevelMapping.items()
+])
 
 
 
@@ -94,7 +96,7 @@ class STDLibLogObserver(object):
         Format an event and bridge it to Python logging.
         """
         level = event.get("log_level", LogLevel.info)
-        stdlibLevel = pythonLogLevelMapping.get(level, stdlibLogging.INFO)
+        stdlibLevel = toStdlibLogLevelMapping.get(level, stdlibLogging.INFO)
         self.logger.log(stdlibLevel, StringifiableFromEvent(event))
 
 
