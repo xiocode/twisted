@@ -57,3 +57,35 @@ def loadEventJSON(eventText):
     @rtype: L{dict}
     """
     return loads(eventText)
+
+
+
+def structuredFileLogObserver(outFile):
+    """
+    Create a L{FileLogObserver} that emits JSON lines to a specified (writable)
+    file-like object.
+
+    @param outFile: A file-like object.  Ideally one should be passed which
+        accepts unicode; if not, utf-8 will be used as the encoding.
+    @type outFile: L{io.IOBase}
+
+    @return: A file log observer.
+    @rtype: L{FileLogObserver}
+    """
+    # FIXME: test coverage
+    return FileLogObserver(outFile, saveEventJSON)
+
+
+
+def eventsFromStructuredLogFile(inFile):
+    """
+    Load events from a file previously saved with structuredFileLogObserver.
+
+    @param inFile: A (readable) file-like object.
+    @type inFile: iterable of lines
+
+    @return: an iterable of log events
+    @rtype: iterable of L{dict}
+    """
+    for line in inFile:
+        yield loadEventJSON(line)

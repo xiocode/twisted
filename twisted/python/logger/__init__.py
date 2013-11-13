@@ -87,6 +87,10 @@ __all__ = [
     "globalLogPublisher",
     "globalLogBeginner",
     "LogBeginner",
+
+    # From twisted.python.logger._saveload
+    "structuredFileLogObserver",
+    "eventsFromStructuredLogFile",
 ]
 
 from twisted.python.logger._levels import InvalidLogLevelError
@@ -121,4 +125,7 @@ from twisted.python.logger._legacy import LegacyLogObserverWrapper
 
 from twisted.python.logger._global import (
     globalLogPublisher, globalLogBeginner, LogBeginner
+)
+from twisted.python.logger._saveload import (
+    structuredFileLogObserver, eventsFromStructuredLogFile
 )
