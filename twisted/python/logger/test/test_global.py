@@ -12,6 +12,9 @@ from twisted.trial import unittest
 from twisted.python.logger._observer import LogPublisher
 from twisted.python.logger import Logger
 from twisted.python.logger._global import LogStartupBuffer
+from twisted.python.logger._global import MORE_THAN_ONCE_WARNING
+from twisted.python.logger import LogLevel
+from twisted.python.logger.test.test_stdlib import nextLine
 
 
 
@@ -67,14 +70,43 @@ class LogStartupBufferTests(unittest.TestCase):
 
     def test_beginLoggingTo_twice(self):
         """
-        Test that C{beginLoggingTo()} complains when called twice.
+        When invoked twice, L{LogStartupBuffer.beginLoggingTo} will emit a log
+        message warning the user that they previously began logging, and add
+        the new log observers.
         """
-        self.buffer.beginLoggingTo([])
+        events1 = []
+        events2 = []
+        self.publisher(dict(event="prebuffer"))
+        firstFilename, firstLine = nextLine()
+        self.buffer.beginLoggingTo([events1.append])
+        self.publisher(dict(event="postbuffer"))
+        secondFilename, secondLine = nextLine()
+        self.buffer.beginLoggingTo([events2.append])
+        self.publisher(dict(event="postwarn"))
+        warning = dict(log_format=MORE_THAN_ONCE_WARNING,
+                       log_level=LogLevel.warn,
+                       fileNow=secondFilename, lineNow=secondLine,
+                       fileThen=firstFilename, lineThen=firstLine)
 
-        self.assertRaises(
-            AssertionError,
-            self.buffer.beginLoggingTo, []
-        )
+        def compareEvents(actualEvents, expectedEvents):
+            if len(actualEvents) != len(expectedEvents):
+                self.assertEquals(actualEvents, expectedEvents)
+            allMergedKeys = set()
+            for event in expectedEvents:
+                allMergedKeys |= set(event.keys())
+            def simplify(event):
+                copy = event.copy()
+                for key in event.keys():
+                    if key not in allMergedKeys:
+                        copy.pop(key)
+                return copy
+            simplifiedActual = [simplify(event) for event in actualEvents]
+            self.assertEquals(simplifiedActual, expectedEvents)
+
+        compareEvents(events1,
+                      [dict(event="prebuffer"), dict(event="postbuffer"),
+                       warning, dict(event="postwarn")])
+        compareEvents(events2, [warning, dict(event="postwarn")])
 
 
     def test_criticalLogging(self):

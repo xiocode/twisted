@@ -20,6 +20,16 @@ from twisted.python.logger._observer import ILogObserver
 from twisted.python.logger._stdlib import STDLibLogObserver
 
 
+def nextLine():
+    """
+    @return: a 2-tuple of (filename, line-number) of the line immediately after
+        where this function is called.
+    """
+    caller = currentframe(1)
+    return (getsourcefile(sys.modules[caller.f_globals['__name__']]),
+            caller.f_lineno + 1)
+
+
 
 class STDLibLogObserverTests(unittest.TestCase):
     """
@@ -123,12 +133,11 @@ class STDLibLogObserverTests(unittest.TestCase):
         C{pathname}, C{lineno}, C{exc_info}, C{func} should
         be set properly on records.
         """
-        logLine = currentframe().f_lineno + 1
+        filename, logLine = nextLine()
         records, output = self.logEvent({})
 
         self.assertEquals(len(records), 1)
-        self.assertEquals(records[0].pathname,
-                          getsourcefile(sys.modules[__name__]))
+        self.assertEquals(records[0].pathname, filename)
         self.assertEquals(records[0].lineno, logLine)
         self.assertEquals(records[0].exc_info, None)
 
