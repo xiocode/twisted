@@ -7,7 +7,9 @@ Tools for saving and loading log events in a structured format.
 """
 
 from twisted.python.logger._format import flattenEvent
+from twisted.python.logger._file import FileLogObserver
 from json import dumps, loads
+from twisted.python.compat import unicode
 
 
 def saveEventJSON(event):
@@ -37,7 +39,10 @@ def saveEventJSON(event):
                 return {"unpersistable": True}
         kw = dict(default=default, skipkeys=True)
     flattenEvent(event)
-    return dumps(event, **kw)
+    result = dumps(event, **kw)
+    if not isinstance(result, unicode):
+        return unicode(result, 'utf-8', 'replace')
+    return result
 
 
 
