@@ -26,6 +26,9 @@ pythonLogLevelMapping = {
     LogLevel.critical: stdlibLogging.CRITICAL,
 }
 
+toNewLevelMapping = dict([(value, key) for (key, value)
+                          in pythonLogLevelMapping.items()])
+
 
 
 @implementer(ILogObserver)

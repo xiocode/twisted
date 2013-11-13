@@ -15,6 +15,7 @@ from twisted.python.logger._format import formatEvent
 from twisted.python.logger._logger import Logger
 from twisted.python.logger._observer import ILogObserver
 from twisted.python.logger._stdlib import pythonLogLevelMapping
+from twisted.python.logger._stdlib import toNewLevelMapping
 from twisted.python.logger._stdlib import StringifiableFromEvent
 
 
@@ -175,3 +176,54 @@ class LegacyLogObserverWrapper(object):
             event["isError"] = 0
 
         self.legacyObserver(event)
+
+
+
+def publishToNewObserver(observer, eventDict, textFromEventDict):
+    """
+    Publish an old-style (L{twisted.python.log}) event to a new-style
+    (L{twisted.python.logger}) observer.
+
+    @note: It's possible that a new-style event was sent to a
+        L{LegacyLogObserverWrapper}, and may now be getting sent back to a
+        new-style observer.  In this case, it's already a new-style event,
+        adapted to also look like an old-style event, and we don't need to
+        tweak it again to be a new-style event, hence the checks for
+        already-defined new-style keys.
+
+    @param observer: A new-style observer to handle this event.
+    @type observer: L{ILogObserver}
+
+    @param eventDict: An L{old-style <twisted.python.log>}, log event.
+    @type eventDict: L{dict}
+
+    @param textFromEventDict: callable that can format an old-style event as a
+        string.  Passed here rather than imported to avoid circular dependency.
+    @type textFromEventDict: 1-arg L{callable} taking L{dict} returning L{str}
+
+    @return: L{None}
+    """
+
+    if "log_format" not in eventDict:
+        text = textFromEventDict(eventDict)
+        if text is not None:
+            eventDict["log_text"] = text
+            eventDict["log_format"] = "{log_text}"
+
+    if "log_level" not in eventDict:
+        if "logLevel" in eventDict:
+            level = toNewLevelMapping[eventDict["logLevel"]]
+        elif eventDict["isError"]:
+            level = LogLevel.error
+        else:
+            level = LogLevel.info
+
+        eventDict["log_level"] = level
+
+    if "log_namespace" not in eventDict:
+        eventDict["log_namespace"] = "log_legacy"
+
+    if "log_system" not in eventDict and "system" in eventDict:
+        eventDict["log_system"] = eventDict["system"]
+
+    observer(eventDict)

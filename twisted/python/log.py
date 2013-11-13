@@ -12,7 +12,6 @@ import sys
 import time
 import warnings
 from datetime import datetime
-import logging
 
 from zope.interface import Interface
 
@@ -29,6 +28,8 @@ from twisted.python.logger import (
     LogPublisher as NewPublisher,
     globalLogPublisher as newGlobalLogPublisher,
 )
+
+from twisted.python.logger._legacy import publishToNewObserver as _publishNew
 
 
 
@@ -226,7 +227,7 @@ class LogPublisher:
         actualEventDict['message'] = message
         actualEventDict['time'] = time.time()
 
-        publishToNewObserver(self._publishPublisher, actualEventDict)
+        _publishNew(self._publishPublisher, actualEventDict, textFromEventDict)
 
 
     def showwarning(self, message, category, filename, lineno, file=None,
@@ -491,7 +492,7 @@ class FileLogObserver(_GlobalStartStopMixIn):
         @param eventDict: a log event
         @type eventDict: L{dict} mapping L{str} (native string) to L{object}
         """
-        publishToNewObserver(self._newObserver, eventDict)
+        _publishNew(self._newObserver, eventDict, textFromEventDict)
 
 
 
@@ -523,7 +524,7 @@ class PythonLoggingObserver(_GlobalStartStopMixIn, object):
             >>> log.msg('debugging', logLevel=logging.DEBUG)
         """
         if 'log_format' in eventDict:
-            publishToNewObserver(self._newObserver, eventDict)
+            _publishNew(self._newObserver, eventDict, textFromEventDict)
 
 
 
@@ -711,60 +712,3 @@ class DefaultObserver(_GlobalStartStopMixIn):
 if 'defaultObserver' not in globals():
     defaultObserver = DefaultObserver()
     defaultObserver.start()
-
-
-
-pythonLogLevelToNewLogLevelMapping = {
-    logging.DEBUG: NewLogLevel.debug,
-    logging.INFO: NewLogLevel.info,
-    logging.WARNING: NewLogLevel.warn,
-    logging.ERROR: NewLogLevel.error,
-    logging.CRITICAL: NewLogLevel.error,
-}
-
-
-
-def publishToNewObserver(observer, eventDict):
-    """
-    Publish an old-style (L{twisted.python.log}) event to a new-style
-    (L{twisted.python.logger}) observer.
-
-    @note: It's possible that a new-style event was sent to a
-        L{LegacyLogObserverWrapper}, and may now be getting sent back to a
-        new-style observer.  In this case, it's already a new-style event,
-        adapted to also look like an old-style event, and we don't need to
-        tweak it again to be a new-style event, hence the checks for
-        already-defined new-style keys.
-
-    @param observer: A new-style observer to handle this event.
-    @type observer: L{ILogObserver}
-
-    @param eventDict: An L{old-style <twisted.python.log>}, log event.
-    @type eventDict: L{dict}
-
-    @return: L{None}
-    """
-
-    if "log_format" not in eventDict:
-        text = textFromEventDict(eventDict)
-        if text is not None:
-            eventDict["log_text"] = text
-            eventDict["log_format"] = "{log_text}"
-
-    if "log_level" not in eventDict:
-        if "logLevel" in eventDict:
-            level = pythonLogLevelToNewLogLevelMapping[eventDict["logLevel"]]
-        elif eventDict["isError"]:
-            level = NewLogLevel.error
-        else:
-            level = NewLogLevel.info
-
-        eventDict["log_level"] = level
-
-    if "log_namespace" not in eventDict:
-        eventDict["log_namespace"] = "log_legacy"
-
-    if "log_system" not in eventDict and "system" in eventDict:
-        eventDict["log_system"] = eventDict["system"]
-
-    observer(eventDict)
