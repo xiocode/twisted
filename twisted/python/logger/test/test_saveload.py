@@ -40,11 +40,15 @@ class SaveLoadTests(TestCase):
     Tests for loading and saving log events.
     """
 
+    def savedEventJSON(self, event):
+        return savedJSONInvariants(self, saveEventJSON(event))
+
+
     def test_simpleSaveLoad(self):
         """
         Saving and loading an empty dictionary results in an empty dictionary.
         """
-        self.assertEquals(loadEventJSON(saveEventJSON({})), {})
+        self.assertEquals(loadEventJSON(self.savedEventJSON({})), {})
 
 
     def test_saveLoad(self):
@@ -54,8 +58,10 @@ class SaveLoadTests(TestCase):
         though, all dictionary keys must be L{unicode} and any non-L{unicode}
         keys will be converted.
         """
-        self.assertEquals(loadEventJSON(saveEventJSON({1: 2, u"3": u"4"})),
-                          {u"1": 2, u"3": u"4"})
+        self.assertEquals(
+            loadEventJSON(self.savedEventJSON({1: 2, u"3": u"4"})),
+            {u"1": 2, u"3": u"4"}
+        )
 
 
     def test_saveUnPersistable(self):
@@ -64,7 +70,7 @@ class SaveLoadTests(TestCase):
         result in a placeholder.
         """
         self.assertEquals(
-            loadEventJSON(saveEventJSON({u"1": 2, u"3": object()})),
+            loadEventJSON(self.savedEventJSON({u"1": 2, u"3": object()})),
             {u"1": 2, u"3": {u"unpersistable": True}}
         )
 
@@ -74,7 +80,7 @@ class SaveLoadTests(TestCase):
         Non-ASCII keys and values can be saved and loaded.
         """
         self.assertEquals(
-            loadEventJSON(saveEventJSON(
+            loadEventJSON(self.savedEventJSON(
                 {u"\u1234": u"\u4321", u"3": object()}
             )),
             {u"\u1234": u"\u4321", u"3": {u"unpersistable": True}}
@@ -99,7 +105,7 @@ class SaveLoadTests(TestCase):
             # error, though.
             inputEvent.update({b"skipped": "okay"})
         self.assertEquals(
-            loadEventJSON(saveEventJSON(inputEvent)),
+            loadEventJSON(self.savedEventJSON(inputEvent)),
             {u"hello": asbytes(range(255)).decode("charmap")}
         )
 
@@ -122,7 +128,7 @@ class SaveLoadTests(TestCase):
             "log_format": "{object} {object.value}",
             "object": reprable(7)
         }
-        outputEvent = loadEventJSON(saveEventJSON(inputEvent))
+        outputEvent = loadEventJSON(self.savedEventJSON(inputEvent))
         self.assertEquals(formatEvent(outputEvent), "reprable 7")
 
 
@@ -136,7 +142,7 @@ class SaveLoadTests(TestCase):
                 self.value = 345
 
         inputEvent = dict(log_format="{object.value}", object=obj())
-        loadedEvent = loadEventJSON(saveEventJSON(inputEvent))
+        loadedEvent = loadEventJSON(self.savedEventJSON(inputEvent))
         self.assertEquals(extractField("object.value", loadedEvent), 345)
 
         # The behavior of extractField is consistent between pre-persistence
