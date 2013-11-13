@@ -223,11 +223,28 @@ log.info("{request.uri} useful, but expensive: {request.usefulButExpensive()}",
         For compatibility reasons, <code>twistd</code> will log to a text-based format by default.
         However, it's much better to use a structured log file format which preserves information about the events being logged.
         <code>twisted.python.logger</code> provides APIs: <code class="API" base="twisted.python.logger">structuredFileLogObserver</code> <code class="API" base="twisted.python.logger">eventsFromStructuredLogFile</code> which allow you to save and retrieve structured log events with a basic level of fidelity.
-        Log events are serialized as JSON dictionaries, with dummy placeholder values for instance information.
+        Log events are serialized as JSON dictionaries, with as lenient serialization rules as possible; any unknown values are replaced with simple placeholder values.
     </p>
+
     <p>
-        
+        <code>structuredFileLogObserver</code> will create a log observer that will save events as structured data, like so:
     </p>
+
+    <a href="listings/logger/saver.py" class="py-listing">saver.py</a>
+
+    <p>
+        And <code>eventsFromStructuredLogFile</code> can load those events again; here, you can see that the event has preserved enough information to be formatted as human-readable again:
+    </p>
+
+    <a href="listings/logger/loader.py" class="py-listing">loader.py</a>
+
+    <p>
+        You can also, of course, feel free to access any of the keys in the <code>event</code> object as you load them, as well; basic structures such as lists, numbers, dictionaries and strings (anything serializable with JSON) will be preserved:
+    </p>
+
+    <a href="listings/logger/loader-math.py" class="py-listing">loader-math.py</a>
+
+    <!-- TODO: command-line option for twistd to do this -->
 
     <h2>Implementing an observer</h2>
 
