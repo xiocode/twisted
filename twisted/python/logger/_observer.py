@@ -14,7 +14,7 @@ from twisted.python.logger._logger import Logger
 
 
 OBSERVER_DISABLED = (
-    "Temporarily disabling observer {observer} due to exception: {failure}"
+    "Temporarily disabling observer {observer} due to exception: {log_failure}"
 )
 
 
