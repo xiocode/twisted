@@ -11,28 +11,25 @@ from collections import deque
 from zope.interface import implementer
 
 from twisted.python.logger._observer import ILogObserver
-from twisted.python.logger._observer import LogPublisher
 
 _DEFAULT_BUFFER_MAXIMUM = 64*1024
 
 @implementer(ILogObserver)
 class RingBufferLogObserver(object):
     """
-    L{ILogObserver} that stores events in a ring buffer of a fixed
-    size::
+    L{ILogObserver} that stores events in a buffer of a fixed size::
 
         >>> from twisted.python.logger import RingBufferLogObserver
-        >>> observer = RingBufferLogObserver(5)
-        >>> for n in range(10):
-        ...   observer({"n":n})
+        >>> history = RingBufferLogObserver(5)
+        >>> for n in range(10): history({'n': n})
         ...
-        >>> len(observer)
+        >>> repeats = []
+        >>> history.replayTo(repeats.append)
+        >>> len(repeats)
         5
-        >>> tuple(observer)
-        ({'n': 5}, {'n': 6}, {'n': 7}, {'n': 8}, {'n': 9})
-        >>> observer.clear()
-        >>> tuple(observer)
-        ()
+        >>> repeats
+        [{'n': 5}, {'n': 6}, {'n': 7}, {'n': 8}, {'n': 9}]
+        >>>
     """
 
     def __init__(self, size=_DEFAULT_BUFFER_MAXIMUM):
@@ -45,33 +42,15 @@ class RingBufferLogObserver(object):
 
 
     def __call__(self, event):
+        """
+        When invoked, store the log event.
+        """
         self._buffer.append(event)
-
-
-    def __iter__(self):
-        """
-        Iterate over the buffered events.
-        """
-        return iter(self._buffer)
-
-
-    def __len__(self):
-        """
-        @return: the number of events in the buffer.
-        """
-        return len(self._buffer)
-
-
-    def clear(self):
-        """
-        Clear the event buffer.
-        """
-        self._buffer.clear()
 
 
     def replayTo(self, otherObserver):
         """
         Re-play the buffered events to another log observer.
         """
-        for event in self:
+        for event in self._buffer:
             otherObserver(event)

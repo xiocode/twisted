@@ -40,13 +40,16 @@ class RingBufferLogObserverTests(unittest.TestCase):
 
         for event in events:
             observer(event)
-        self.assertEquals(events, list(observer))
-        self.assertEquals(len(events), len(observer))
+
+        outEvents = []
+        observer.replayTo(outEvents.append)
+        self.assertEquals(events, outEvents)
 
 
     def test_size(self):
         """
-        Size of ring buffer is honored.
+        When more events than a L{RingBufferLogObserver}'s maximum size are
+        buffered, older events will be dropped.
         """
         size = 4
         events = [dict(n=n) for n in range(size*2)]
@@ -54,21 +57,6 @@ class RingBufferLogObserverTests(unittest.TestCase):
 
         for event in events:
             observer(event)
-        self.assertEquals(events[-size:], list(observer))
-        self.assertEquals(size, len(observer))
-
-
-    def test_clear(self):
-        """
-        Events are cleared by C{observer.clear()}.
-        """
-        size = 4
-        events = [dict(n=n) for n in range(size//2)]
-        observer = RingBufferLogObserver(size)
-
-        for event in events:
-            observer(event)
-        self.assertEquals(len(events), len(observer))
-        observer.clear()
-        self.assertEquals(0, len(observer))
-        self.assertEquals([], list(observer))
+        outEvents = []
+        observer.replayTo(outEvents.append)
+        self.assertEquals(events[-size:], outEvents)
