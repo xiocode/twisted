@@ -32,6 +32,14 @@ the case of a class, by using the fully qualified name of the class.
 
 In the first example above, the namespace would be C{some.module}, and in the
 second example, it would be C{some.module.Foo}.
+
+@var globalLogPublisher: The L{LogPublisher} that all L{Logger} instances that
+    are not otherwise parameterized will point to by default.
+@type globalLogPublisher: L{LogPublisher}
+
+@var globalLogBeginner: The L{LogBeginner} used to activate the main log
+    observer, whether it's a log file, or an observer pointing at stderr.
+@type globalLogBeginner: L{LogBeginner}
 """
 
 __all__ = [
@@ -111,4 +119,6 @@ from twisted.python.logger._io import LoggingFile
 from twisted.python.logger._legacy import LegacyLogger
 from twisted.python.logger._legacy import LegacyLogObserverWrapper
 
-from twisted.python.logger._global import globalLogPublisher
+from twisted.python.logger._global import (
+    globalLogPublisher, globalLogBeginner, LogBeginner
+)
