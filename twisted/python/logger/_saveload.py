@@ -16,7 +16,7 @@ from twisted.python.logger._levels import InvalidLogLevelError
 from twisted.python.compat import unicode
 
 
-def saveEventJSON(event):
+def eventAsJSON(event):
     """
     Save an event as JSON, flattening it if necessary to preserve as much
     structure as possible.
@@ -34,7 +34,7 @@ def saveEventJSON(event):
     """
     def unpersistable(unencodable):
         if isinstance(unencodable, NamedConstant):
-            return unicode(unencodable.name, 'utf-8')
+            return unicode(unencodable.name, "utf-8")
         else:
             return {"unpersistable": True}
     if bytes is str:
@@ -49,27 +49,27 @@ def saveEventJSON(event):
     flattenEvent(event)
     result = dumps(event, **kw)
     if not isinstance(result, unicode):
-        return unicode(result, 'utf-8', 'replace')
+        return unicode(result, "utf-8", "replace")
     return result
 
 
 
-def loadEventJSON(eventText):
+def eventFromJSON(eventText):
     """
     Load a log event from JSON.
 
-    @param eventText: The output of a previous call to L{saveEventJSON}
+    @param eventText: The output of a previous call to L{eventAsJSON}
     @type eventText: L{unicode}
 
     @return: A reconstructed version of the log event.
     @rtype: L{dict}
     """
     loaded = loads(eventText)
-    if 'log_level' in loaded:
+    if "log_level" in loaded:
         try:
-            loaded['log_level'] = LogLevel.levelWithName(loaded['log_level'])
+            loaded["log_level"] = LogLevel.levelWithName(loaded["log_level"])
         except InvalidLogLevelError:
-            loaded['log_level_name'] = loaded.pop('log_level')
+            loaded["log_level_name"] = loaded.pop("log_level")
     return loaded
 
 
@@ -87,7 +87,7 @@ def structuredFileLogObserver(outFile):
     @rtype: L{FileLogObserver}
     """
     # FIXME: test coverage
-    return FileLogObserver(outFile, lambda event: saveEventJSON(event) + u'\n')
+    return FileLogObserver(outFile, lambda event: eventAsJSON(event) + u"\n")
 
 
 
@@ -102,4 +102,4 @@ def eventsFromStructuredLogFile(inFile):
     @rtype: iterable of L{dict}
     """
     for line in inFile:
-        yield loadEventJSON(line)
+        yield eventFromJSON(line)

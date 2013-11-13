@@ -10,18 +10,18 @@ from twisted.python.compat import unicode
 from twisted.trial.unittest import TestCase
 from twisted.python.logger import formatEvent, LogLevel
 from twisted.python.logger._format import extractField
-from twisted.python.logger._saveload import saveEventJSON, loadEventJSON
+from twisted.python.logger._saveload import eventAsJSON, eventFromJSON
 
 
 
 def savedJSONInvariants(testCase, savedJSON):
     """
-    Assert a few things about the result of L{saveEventJSON}, then return it.
+    Assert a few things about the result of L{eventAsJSON}, then return it.
 
     @param testCase: The L{TestCase} with which to perform the assertions.
     @type testCase: L{TestCase}
 
-    @param savedJSON: The result of L{saveEventJSON}.
+    @param savedJSON: The result of L{eventAsJSON}.
     @type savedJSON: L{unicode} (we hope)
 
     @return: C{savedJSON}
@@ -41,14 +41,14 @@ class SaveLoadTests(TestCase):
     """
 
     def savedEventJSON(self, event):
-        return savedJSONInvariants(self, saveEventJSON(event))
+        return savedJSONInvariants(self, eventAsJSON(event))
 
 
     def test_simpleSaveLoad(self):
         """
         Saving and loading an empty dictionary results in an empty dictionary.
         """
-        self.assertEquals(loadEventJSON(self.savedEventJSON({})), {})
+        self.assertEquals(eventFromJSON(self.savedEventJSON({})), {})
 
 
     def test_saveLoad(self):
@@ -59,7 +59,7 @@ class SaveLoadTests(TestCase):
         keys will be converted.
         """
         self.assertEquals(
-            loadEventJSON(self.savedEventJSON({1: 2, u"3": u"4"})),
+            eventFromJSON(self.savedEventJSON({1: 2, u"3": u"4"})),
             {u"1": 2, u"3": u"4"}
         )
 
@@ -70,7 +70,7 @@ class SaveLoadTests(TestCase):
         result in a placeholder.
         """
         self.assertEquals(
-            loadEventJSON(self.savedEventJSON({u"1": 2, u"3": object()})),
+            eventFromJSON(self.savedEventJSON({u"1": 2, u"3": object()})),
             {u"1": 2, u"3": {u"unpersistable": True}}
         )
 
@@ -80,7 +80,7 @@ class SaveLoadTests(TestCase):
         Non-ASCII keys and values can be saved and loaded.
         """
         self.assertEquals(
-            loadEventJSON(self.savedEventJSON(
+            eventFromJSON(self.savedEventJSON(
                 {u"\u1234": u"\u4321", u"3": object()}
             )),
             {u"\u1234": u"\u4321", u"3": {u"unpersistable": True}}
@@ -105,7 +105,7 @@ class SaveLoadTests(TestCase):
             # error, though.
             inputEvent.update({b"skipped": "okay"})
         self.assertEquals(
-            loadEventJSON(self.savedEventJSON(inputEvent)),
+            eventFromJSON(self.savedEventJSON(inputEvent)),
             {u"hello": asbytes(range(255)).decode("charmap")}
         )
 
@@ -128,7 +128,7 @@ class SaveLoadTests(TestCase):
             "log_format": "{object} {object.value}",
             "object": reprable(7)
         }
-        outputEvent = loadEventJSON(self.savedEventJSON(inputEvent))
+        outputEvent = eventFromJSON(self.savedEventJSON(inputEvent))
         self.assertEquals(formatEvent(outputEvent), "reprable 7")
 
 
@@ -142,7 +142,7 @@ class SaveLoadTests(TestCase):
                 self.value = 345
 
         inputEvent = dict(log_format="{object.value}", object=obj())
-        loadedEvent = loadEventJSON(self.savedEventJSON(inputEvent))
+        loadedEvent = eventFromJSON(self.savedEventJSON(inputEvent))
         self.assertEquals(extractField("object.value", loadedEvent), 345)
 
         # The behavior of extractField is consistent between pre-persistence
@@ -158,8 +158,8 @@ class SaveLoadTests(TestCase):
         L{twisted.python.constants.NamedConstant} object.
         """
         inputEvent = dict(log_level=LogLevel.warn)
-        loadedEvent = loadEventJSON(self.savedEventJSON(inputEvent))
-        self.assertIdentical(loadedEvent['log_level'], LogLevel.warn)
+        loadedEvent = eventFromJSON(self.savedEventJSON(inputEvent))
+        self.assertIdentical(loadedEvent["log_level"], LogLevel.warn)
 
 
     def test_saveLoadUnknownLevel(self):
@@ -167,5 +167,5 @@ class SaveLoadTests(TestCase):
         If a saved bit of JSON (let's say, from a future version of Twisted)
         were to persist a different log_level, though, it should be removed.
         """
-        loadedEvent = loadEventJSON('{"log_level": "unknown"}')
+        loadedEvent = eventFromJSON('{"log_level": "unknown"}')
         self.assertEquals(loadedEvent, dict(log_level_name=u"unknown"))
