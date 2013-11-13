@@ -22,6 +22,10 @@ OBSERVER_DISABLED = (
 class ILogObserver(Interface):
     """
     An observer which can handle log events.
+
+    Unlike most interfaces within Twisted, an L{ILogObserver} I{must be
+    thread-safe}.  Log observers may be called indiscriminately from many
+    different threads, as any thread may wish to log a message at any time.
     """
 
     def __call__(event):
