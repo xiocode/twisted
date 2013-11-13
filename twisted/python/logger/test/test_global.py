@@ -85,3 +85,14 @@ class LogStartupBufferTests(unittest.TestCase):
         log.info('ignore this')
         log.critical('a critical {message}', message="message")
         self.assertEquals(self.errorStream.getvalue(), u'a critical message\n')
+
+
+    def test_criticalLoggingStops(self):
+        """
+        Once logging has begun with C{beginLoggingTo}, critical messages are no
+        longer written to the output stream.
+        """
+        log = Logger(observer=self.publisher)
+        self.buffer.beginLoggingTo(())
+        log.critical("another critical message")
+        self.assertEquals(self.errorStream.getvalue(), u'')
