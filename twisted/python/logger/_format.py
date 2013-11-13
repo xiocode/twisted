@@ -155,6 +155,8 @@ def flattenEvent(event):
 
     for (literalText, fieldName, formatSpec, conversion) in (
             theFormatter.parse(event["log_format"])):
+        if fieldName is None:
+            continue
         if conversion != "r":
             conversion = "s"
         flattenedKey = keyFlattener.flatKey(fieldName, formatSpec, conversion)
@@ -184,7 +186,8 @@ def flattenEvent(event):
         fields[flattenedKey] = flattenedValue
         fields[structuredKey] = fieldValue
 
-    event["log_flattened"] = fields
+    if fields:
+        event["log_flattened"] = fields
 
 
 

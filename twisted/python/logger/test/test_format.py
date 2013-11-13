@@ -338,6 +338,17 @@ class FlatFormattingTests(unittest.TestCase):
         self.assertEquals(inputEvent, {'a': 'b', 'c': 1})
 
 
+    def test_flattenEventWithInertFormat(self):
+        """
+        L{flattenEvent} will do nothing to an event with a format string that
+        contains no format fields.
+        """
+        inputEvent = {'a': 'b', 'c': 1, 'log_format': 'simple message'}
+        flattenEvent(inputEvent)
+        self.assertEquals(inputEvent, {'a': 'b', 'c': 1,
+                                       'log_format': 'simple message'})
+
+
 
 class TimeFormattingTests(unittest.TestCase):
     """
