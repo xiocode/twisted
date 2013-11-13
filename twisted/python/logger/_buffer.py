@@ -3,7 +3,7 @@
 # See LICENSE for details.
 
 """
-Ring buffer log observer.
+Log observer that maintains a buffer.
 """
 
 from collections import deque
@@ -15,12 +15,12 @@ from twisted.python.logger._observer import ILogObserver
 _DEFAULT_BUFFER_MAXIMUM = 64*1024
 
 @implementer(ILogObserver)
-class RingBufferLogObserver(object):
+class LimitedHistoryLogObserver(object):
     """
     L{ILogObserver} that stores events in a buffer of a fixed size::
 
-        >>> from twisted.python.logger import RingBufferLogObserver
-        >>> history = RingBufferLogObserver(5)
+        >>> from twisted.python.logger import LimitedHistoryLogObserver
+        >>> history = LimitedHistoryLogObserver(5)
         >>> for n in range(10): history({'n': n})
         ...
         >>> repeats = []

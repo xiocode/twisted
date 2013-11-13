@@ -11,7 +11,7 @@ import sys
 
 from twisted.python.compat import currentframe
 
-from twisted.python.logger._buffer import RingBufferLogObserver
+from twisted.python.logger._buffer import LimitedHistoryLogObserver
 from twisted.python.logger._observer import LogPublisher
 from twisted.python.logger._filter import (FilteringLogObserver,
                                            LogLevelFilterPredicate)
@@ -44,10 +44,11 @@ class LogBeginner(object):
         1. Log any critical messages (e.g.: unhandled exceptions) to the given
            file-like object.
 
-        2. Save (a limited number of) log events in a L{RingBufferLogObserver}.
+        2. Save (a limited number of) log events in a
+           L{LimitedHistoryLogObserver}.
 
     @ivar _initialBuffer: A buffer of messages logged before logging began.
-    @type _initialBuffer: L{RingBufferLogObserver}
+    @type _initialBuffer: L{LimitedHistoryLogObserver}
 
     @ivar _publisher: The log publisher passed in to L{LogBeginner}'s
         constructor.
@@ -63,7 +64,7 @@ class LogBeginner(object):
     """
 
     def __init__(self, publisher, errorStream):
-        self._initialBuffer = RingBufferLogObserver()
+        self._initialBuffer = LimitedHistoryLogObserver()
         self._publisher = publisher
         self._log = Logger(observer=publisher)
         fileObserver = FileLogObserver(errorStream,

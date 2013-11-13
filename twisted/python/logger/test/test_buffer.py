@@ -10,33 +10,33 @@ from zope.interface.verify import verifyObject, BrokenMethodImplementation
 from twisted.trial import unittest
 
 from twisted.python.logger._observer import ILogObserver
-from twisted.python.logger._buffer import RingBufferLogObserver
+from twisted.python.logger._buffer import LimitedHistoryLogObserver
 
 
 
-class RingBufferLogObserverTests(unittest.TestCase):
+class LimitedHistoryLogObserverTests(unittest.TestCase):
     """
-    Tests for L{RingBufferLogObserver}.
+    Tests for L{LimitedHistoryLogObserver}.
     """
 
     def test_interface(self):
         """
-        L{RingBufferLogObserver} is an L{ILogObserver}.
+        L{LimitedHistoryLogObserver} provides L{ILogObserver}.
         """
-        observer = RingBufferLogObserver(0)
+        observer = LimitedHistoryLogObserver(0)
         try:
             verifyObject(ILogObserver, observer)
         except BrokenMethodImplementation as e:
             self.fail(e)
 
 
-    def test_buffering(self):
+    def test_order(self):
         """
-        Events are buffered in order.
+        L{LimitedHistoryLogObserver} saves history in the order it is received.
         """
         size = 4
         events = [dict(n=n) for n in range(size//2)]
-        observer = RingBufferLogObserver(size)
+        observer = LimitedHistoryLogObserver(size)
 
         for event in events:
             observer(event)
@@ -46,14 +46,14 @@ class RingBufferLogObserverTests(unittest.TestCase):
         self.assertEquals(events, outEvents)
 
 
-    def test_size(self):
+    def test_limit(self):
         """
-        When more events than a L{RingBufferLogObserver}'s maximum size are
+        When more events than a L{LimitedHistoryLogObserver}'s maximum size are
         buffered, older events will be dropped.
         """
         size = 4
         events = [dict(n=n) for n in range(size*2)]
-        observer = RingBufferLogObserver(size)
+        observer = LimitedHistoryLogObserver(size)
 
         for event in events:
             observer(event)

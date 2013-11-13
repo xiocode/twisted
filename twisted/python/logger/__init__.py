@@ -61,7 +61,7 @@ __all__ = [
     "LogPublisher",
 
     # From twisted.python.logger._buffer
-    "RingBufferLogObserver",
+    "LimitedHistoryLogObserver",
 
     # From twisted.python.logger._file
     "FileLogObserver",
@@ -102,7 +102,7 @@ from twisted.python.logger._logger import Logger
 from twisted.python.logger._observer import ILogObserver
 from twisted.python.logger._observer import LogPublisher
 
-from twisted.python.logger._buffer import RingBufferLogObserver
+from twisted.python.logger._buffer import LimitedHistoryLogObserver
 
 from twisted.python.logger._file import FileLogObserver
 from twisted.python.logger._file import textFileLogObserver

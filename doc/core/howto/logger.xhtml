@@ -306,7 +306,7 @@ log.info("Hello")
     <h3>Starting the global log publisher</h3>
 
     <p>
-        When the global log publisher is created, it uses a <code class="API" base="twisted.python.logger">RingBufferLogObserver</code> (see below) to store events that are logged by the application in memory until logging is started.
+        When the global log publisher is created, it uses a <code class="API" base="twisted.python.logger">LimitedHistoryLogObserver</code> (see below) to store events that are logged by the application in memory until logging is started.
         Logging is started by registering the first set of observers with the global log publisher by calling <code class="API" base="twisted.python.logger.globalLogPublisher">startLoggingWithObservers</code>:
     </p>
 
@@ -326,7 +326,7 @@ log.info("Hello, again")
     </pre>
 
     <p>
-        What this does is add the given observers (in this example, the <code class="python">PrintingObserver</code>) with the global log observer, then forwards all of the events that were stored in memory prior to calling <code class="API" base="twisted.python.logger.globalLogPublisher">startLoggingWithObservers</code> to these observers, and gets rid of the <code class="API" base="twisted.python.logger">RingBufferLogObserver</code>, as it is no longer needed.
+        What this does is add the given observers (in this example, the <code class="python">PrintingObserver</code>) with the global log observer, then forwards all of the events that were stored in memory prior to calling <code class="API" base="twisted.python.logger.globalLogPublisher">startLoggingWithObservers</code> to these observers, and gets rid of the <code class="API" base="twisted.python.logger">LimitedHistoryLogObserver</code>, as it is no longer needed.
         It is an error to call <code class="API" base="twisted.python.logger.globalLogPublisher">startLoggingWithObservers</code> more than once.
     </p>
 
@@ -344,10 +344,10 @@ log.info("Hello, again")
             This allows one to create a graph of observers.
         </dd>
 
-        <dt><code class="API" base="twisted.python.logger">RingBufferLogObserver</code></dt>
+        <dt><code class="API" base="twisted.python.logger">LimitedHistoryLogObserver</code></dt>
         <dd>
-            Stores received events in a ring buffer, and can be iterated on to obtain the stored events.
-            This is useful for keeping observed events in memory for later use.
+            Stores a limited number of received events, and can re-play those stored events to another observer later.
+            This is useful for keeping recent logging history in memory for inspection when other log outputs are not available.
         </dd>
 
         <dt><code class="API" base="twisted.python.logger">FileLogObserver</code></dt>
