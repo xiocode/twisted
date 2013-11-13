@@ -108,6 +108,16 @@ class Foo(object):
         )
     </pre>
 
+    <p>
+        When associated with a class in this manner, the <code>"log_source"</code> key is set in the event, and available for the format string to retrieve values from.  For example:
+    </p>
+
+    <a href="listings/logger/logsource.py" class="py-listing">logsource.py</a>
+
+    <p>
+        This example will show the string "object with value 7 doing a task" because the <code>log_source</code> key is automatically set to the <code>MyObject</code> instance that the <code>Logger</code> is retrieved from.
+    </p>
+
     <h3>Namespaces</h3>
 
     <p>
