@@ -93,6 +93,18 @@ class LoggerTests(unittest.TestCase):
         self.assertIdentical(Logger().source, None)
 
 
+    def test_descriptorObserver(self):
+        """
+        When used as a descriptor, the observer is propagated.
+        """
+        observed = []
+        class MyObject(object):
+            log = Logger(observer=observed.append)
+        MyObject.log.info("hello")
+        self.assertEquals(len(observed), 1)
+        self.assertEquals(observed[0]['log_format'], "hello")
+
+
     def test_sourceAvailableForFormatting(self):
         """
         On instances that have a L{Logger} class attribute, the C{log_source}

@@ -87,7 +87,8 @@ class Logger(object):
 
         return self.__class__(
             ".".join([type.__module__, type.__name__]),
-            source
+            source,
+            observer=self.observer,
         )
 
 
