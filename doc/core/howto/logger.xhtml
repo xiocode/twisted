@@ -300,30 +300,35 @@ def simpleObserver(event):
         Twisted includes log observers which take care of most of the "normal" uses of logging, like writing messages to a file, saving them as text, filtering them, and so on.
         There are two common reasons you might want to write a log observer of your own.
         The first is to ship log messages over to a different kind of external system which Twisted itself does not support.
-        If you've read the above, you now know enough to do that; simply implement a function that converts the dictionary to something amenable to your external 
-        system or file format, and send it there or save it.
+        If you've read the above, you now know enough to do that; simply implement a function that converts the dictionary to something amenable to your external system or file format, and send it there or save it.
         The second task is to do some kind of analysis, either real-time within your process or after the fact offline.
     </p>
 
     <p>
-        Ideally, if you want to analyze the log messages from an application, you will have carefully crafted easy-to-identify log messages with unique identifying keys which your observer can inspect for, called out every interesting value for analysis as a specifically-named log key.
-    </p>
-
-    <p>
-        However, the realities of logging are often much messier than that.
         You're probably going to have to aggregate information from your own code and from libraries you're using, including Twisted itself, and you may not have much in the way of control over how those messages are organized.
         You're also probably trying to aggregate information from ad-hoc messages into some kind of structure.
     </p>
 
     <p>
-        One way to do this is to feed your logs into an external system like <a href="http://logstash.net">logstash</a>, and process them with regular expressions.
-        Such systems are quite powerful and Twisted's built-in logging does not try to replace them.
-        However, such systems are necessarily external, and cannot provide a first line of defense and reaction <em>within</em> your application.
+        One way to extract such semi-structured information is to feed your logs into an external system like <a href="http://logstash.net">logstash</a>, and process them there.
+        Such systems are quite powerful and <code>twisted.python.logger</code> does not try to replace them.
+        However, such systems are necessarily external, and therefore if you want to react to the log analysis <em>within</em> your application - for example, denying access in response to an abusive client - you would have to write some glue code to push messages from your log-analysis system back into your application.
+        For such cases, it's useful to be able to write log analysis code as a log observer.
     </p>
 
     <p>
-        Assuming that the libraries you're interested in tracking are making use of <code>twisted.python.logger</code>, you can analyze log events either live as they're being logged, or saved for later.
+        Assuming that the libraries whose log events you're interested in analyzing are making use of <code>twisted.python.logger</code>, you can analyze log events either live as they're being logged, or loaded from a saved log file.
     </p>
+
+    <p>
+        If you're writing code to log messages directly for potential analysis, then you should simply structure your messages to include all necessary information as serialization-friendly values of log keys, and then simply pull them out, like the <code>loader-math.py</code> example above.
+    </p>
+
+    <p>
+        However, let's say you're trying to interact with a system that logs messages like so:
+    </p>
+
+    
 
     <h2>Registering an observer</h2>
 
