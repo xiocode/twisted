@@ -73,7 +73,7 @@ def structuredFileLogObserver(outFile):
     @rtype: L{FileLogObserver}
     """
     # FIXME: test coverage
-    return FileLogObserver(outFile, saveEventJSON)
+    return FileLogObserver(outFile, lambda event: saveEventJSON(event) + u'\n')
 
 
 
