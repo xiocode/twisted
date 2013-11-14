@@ -11,6 +11,8 @@ examination.
 from string import Formatter
 from collections import defaultdict
 
+from twisted.python.compat import unicode
+
 aFormatter = Formatter()
 
 class KeyFlattener(object):

@@ -8,13 +8,13 @@ Test cases for L{twisted.python.logger._format}.
 import sys
 from io import BytesIO, TextIOWrapper
 import logging as py_logging
-from inspect import currentframe, getsourcefile
+from inspect import getsourcefile
 
 from zope.interface.verify import verifyObject, BrokenMethodImplementation
 
 from twisted.trial import unittest
 
-from twisted.python.compat import _PY3
+from twisted.python.compat import _PY3, currentframe
 from .._levels import LogLevel
 from .._observer import ILogObserver
 from .._stdlib import STDLibLogObserver
