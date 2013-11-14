@@ -39,7 +39,6 @@ def formatEvent(event):
             return flatFormat(event)
 
         format = event.get("log_format", None)
-
         if format is None:
             return u""
 
@@ -53,7 +52,7 @@ def formatEvent(event):
 
         return formatWithCall(format, event)
 
-    except Exception as e:
+    except BaseException as e:
         return formatUnformattableEvent(event, e)
 
 
@@ -228,7 +227,7 @@ def formatUnformattableEvent(event, error):
             u"Unable to format event {event!r}: {error}"
             .format(event=event, error=error)
         )
-    except Exception:
+    except:
         # Yikes, something really nasty happened.
         #
         # Try to recover as much formattable data as possible; hopefully at
