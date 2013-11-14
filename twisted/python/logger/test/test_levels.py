@@ -7,8 +7,8 @@ Test cases for L{twisted.python.logger._levels}.
 
 from twisted.trial import unittest
 
-from twisted.python.logger._levels import InvalidLogLevelError
-from twisted.python.logger._levels import LogLevel
+from .._levels import InvalidLogLevelError
+from .._levels import LogLevel
 
 
 

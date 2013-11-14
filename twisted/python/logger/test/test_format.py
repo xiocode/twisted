@@ -21,13 +21,13 @@ from twisted.trial import unittest
 from twisted.trial.unittest import SkipTest
 
 from twisted.python.compat import _PY3, unicode
-from twisted.python.logger._levels import LogLevel
-from twisted.python.logger._format import (
+from .._levels import LogLevel
+from .._format import (
     formatEvent, formatUnformattableEvent, formatTime,
     formatEventAsClassicLogText, formatWithCall,
 )
 
-from twisted.python.logger._flatten import (
+from .._flatten import (
     flattenEvent, extractField, KeyFlattener, aFormatter
 )
 

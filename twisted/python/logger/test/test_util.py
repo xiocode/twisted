@@ -7,8 +7,8 @@ Test cases for L{twisted.python.logger._util}.
 
 from twisted.trial import unittest
 
-from twisted.python.logger._observer import LogPublisher
-from twisted.python.logger._util import formatTrace
+from .._observer import LogPublisher
+from .._util import formatTrace
 
 
 

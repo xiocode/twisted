@@ -9,12 +9,12 @@ import io
 
 from twisted.trial import unittest
 
-from twisted.python.logger._observer import LogPublisher
+from .._observer import LogPublisher
 from twisted.python.logger import Logger
-from twisted.python.logger._global import LogBeginner
-from twisted.python.logger._global import MORE_THAN_ONCE_WARNING
+from .._global import LogBeginner
+from .._global import MORE_THAN_ONCE_WARNING
 from twisted.python.logger import LogLevel
-from twisted.python.logger.test.test_stdlib import nextLine
+from ..test.test_stdlib import nextLine
 
 
 

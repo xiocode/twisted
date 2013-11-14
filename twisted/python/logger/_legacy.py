@@ -10,13 +10,13 @@ from zope.interface import implementer
 
 from twisted.python.reflect import safe_str
 from twisted.python.failure import Failure
-from twisted.python.logger._levels import LogLevel
-from twisted.python.logger._format import formatEvent
-from twisted.python.logger._logger import Logger
-from twisted.python.logger._observer import ILogObserver
-from twisted.python.logger._stdlib import toStdlibLogLevelMapping
-from twisted.python.logger._stdlib import fromStdlibLogLevelMapping
-from twisted.python.logger._stdlib import StringifiableFromEvent
+from ._levels import LogLevel
+from ._format import formatEvent
+from ._logger import Logger
+from ._observer import ILogObserver
+from ._stdlib import toStdlibLogLevelMapping
+from ._stdlib import fromStdlibLogLevelMapping
+from ._stdlib import StringifiableFromEvent
 
 
 

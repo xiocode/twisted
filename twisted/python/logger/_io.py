@@ -8,8 +8,8 @@ File-like object that logs.
 
 import sys
 
-from twisted.python.logger._levels import LogLevel
-from twisted.python.logger._logger import Logger
+from ._levels import LogLevel
+from ._logger import Logger
 
 
 

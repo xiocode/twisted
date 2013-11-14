@@ -9,8 +9,8 @@ from zope.interface.verify import verifyObject, BrokenMethodImplementation
 
 from twisted.trial import unittest
 
-from twisted.python.logger._observer import ILogObserver
-from twisted.python.logger._buffer import LimitedHistoryLogObserver
+from .._observer import ILogObserver
+from .._buffer import LimitedHistoryLogObserver
 
 
 

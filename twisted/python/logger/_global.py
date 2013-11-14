@@ -11,14 +11,14 @@ import sys
 
 from twisted.python.compat import currentframe
 
-from twisted.python.logger._buffer import LimitedHistoryLogObserver
-from twisted.python.logger._observer import LogPublisher
-from twisted.python.logger._filter import (FilteringLogObserver,
+from ._buffer import LimitedHistoryLogObserver
+from ._observer import LogPublisher
+from ._filter import (FilteringLogObserver,
                                            LogLevelFilterPredicate)
-from twisted.python.logger._logger import Logger
-from twisted.python.logger._format import formatEvent
-from twisted.python.logger._levels import LogLevel
-from twisted.python.logger._file import FileLogObserver
+from ._logger import Logger
+from ._format import formatEvent
+from ._levels import LogLevel
+from ._file import FileLogObserver
 
 MORE_THAN_ONCE_WARNING = (
     "Warning: primary log target selected twice at <{fileNow}:{lineNow}> - "

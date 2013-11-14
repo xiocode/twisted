@@ -11,9 +11,9 @@ import sys
 
 from twisted.trial import unittest
 
-from twisted.python.logger._levels import LogLevel
-from twisted.python.logger._logger import Logger
-from twisted.python.logger._io import LoggingFile
+from .._levels import LogLevel
+from .._logger import Logger
+from .._io import LoggingFile
 
 
 

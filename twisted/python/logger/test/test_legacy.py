@@ -13,11 +13,11 @@ from twisted.trial import unittest
 
 from twisted.python import log as twistedLogging
 from twisted.python.failure import Failure
-from twisted.python.logger._levels import LogLevel
-from twisted.python.logger._observer import ILogObserver
-from twisted.python.logger._legacy import LegacyLogger
-from twisted.python.logger._legacy import LegacyLogObserverWrapper
-from twisted.python.logger.test.test_logger import TestLogger
+from .._levels import LogLevel
+from .._observer import ILogObserver
+from .._legacy import LegacyLogger
+from .._legacy import LegacyLogObserverWrapper
+from ..test.test_logger import TestLogger
 
 
 

@@ -9,13 +9,13 @@ from zope.interface.verify import verifyObject, BrokenMethodImplementation
 
 from twisted.trial import unittest
 
-from twisted.python.logger._levels import InvalidLogLevelError
-from twisted.python.logger._levels import LogLevel
-from twisted.python.logger._observer import ILogObserver
-from twisted.python.logger._observer import LogPublisher
-from twisted.python.logger._filter import FilteringLogObserver
-from twisted.python.logger._filter import PredicateResult
-from twisted.python.logger._filter import LogLevelFilterPredicate
+from .._levels import InvalidLogLevelError
+from .._levels import LogLevel
+from .._observer import ILogObserver
+from .._observer import LogPublisher
+from .._filter import FilteringLogObserver
+from .._filter import PredicateResult
+from .._filter import LogLevelFilterPredicate
 
 
 

@@ -12,9 +12,9 @@ from zope.interface.verify import verifyObject, BrokenMethodImplementation
 from twisted.trial import unittest
 
 from twisted.python.compat import unicode
-from twisted.python.logger._observer import ILogObserver
-from twisted.python.logger._file import FileLogObserver
-from twisted.python.logger._file import textFileLogObserver
+from .._observer import ILogObserver
+from .._file import FileLogObserver
+from .._file import textFileLogObserver
 
 
 

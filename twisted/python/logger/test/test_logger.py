@@ -7,11 +7,11 @@ Test cases for L{twisted.python.logger._logger}.
 
 from twisted.trial import unittest
 
-from twisted.python.logger._levels import InvalidLogLevelError
-from twisted.python.logger._levels import LogLevel
-from twisted.python.logger._format import formatEvent
-from twisted.python.logger._logger import Logger
-from twisted.python.logger._global import globalLogPublisher
+from .._levels import InvalidLogLevelError
+from .._levels import LogLevel
+from .._format import formatEvent
+from .._logger import Logger
+from .._global import globalLogPublisher
 
 
 

@@ -10,7 +10,7 @@ from time import time
 
 from twisted.python.compat import currentframe
 from twisted.python.failure import Failure
-from twisted.python.logger._levels import InvalidLogLevelError, LogLevel
+from ._levels import InvalidLogLevelError, LogLevel
 
 
 
@@ -55,7 +55,7 @@ class Logger(object):
         self.source = source
 
         if observer is None:
-            from twisted.python.logger._global import globalLogPublisher
+            from ._global import globalLogPublisher
             self.observer = globalLogPublisher
         else:
             self.observer = observer

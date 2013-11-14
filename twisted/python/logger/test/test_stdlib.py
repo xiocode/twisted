@@ -15,9 +15,9 @@ from zope.interface.verify import verifyObject, BrokenMethodImplementation
 from twisted.trial import unittest
 
 from twisted.python.compat import _PY3
-from twisted.python.logger._levels import LogLevel
-from twisted.python.logger._observer import ILogObserver
-from twisted.python.logger._stdlib import STDLibLogObserver
+from .._levels import LogLevel
+from .._observer import ILogObserver
+from .._stdlib import STDLibLogObserver
 
 
 def nextLine():

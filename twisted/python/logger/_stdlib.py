@@ -11,9 +11,9 @@ import logging as stdlibLogging
 from zope.interface import implementer
 
 from twisted.python.compat import _PY3, currentframe, unicode
-from twisted.python.logger._levels import LogLevel
-from twisted.python.logger._format import formatEvent
-from twisted.python.logger._observer import ILogObserver
+from ._levels import LogLevel
+from ._format import formatEvent
+from ._observer import ILogObserver
 
 
 

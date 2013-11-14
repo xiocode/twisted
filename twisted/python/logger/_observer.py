@@ -9,7 +9,7 @@ Basic log observers.
 from zope.interface import Interface, implementer
 
 from twisted.python.failure import Failure
-from twisted.python.logger._logger import Logger
+from ._logger import Logger
 
 
 

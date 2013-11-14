@@ -9,8 +9,8 @@ Filtering log observer.
 from zope.interface import Interface, implementer
 
 from twisted.python.constants import NamedConstant, Names
-from twisted.python.logger._levels import InvalidLogLevelError, LogLevel
-from twisted.python.logger._observer import ILogObserver
+from ._levels import InvalidLogLevelError, LogLevel
+from ._observer import ILogObserver
 
 
 

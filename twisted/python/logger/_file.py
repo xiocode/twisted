@@ -9,10 +9,10 @@ File log observer.
 from zope.interface import implementer
 
 from twisted.python.compat import ioType, unicode
-from twisted.python.logger._observer import ILogObserver
-from twisted.python.logger._format import formatTime
-from twisted.python.logger._format import timeFormatRFC3339
-from twisted.python.logger._format import formatEventAsClassicLogText
+from ._observer import ILogObserver
+from ._format import formatTime
+from ._format import timeFormatRFC3339
+from ._format import formatEventAsClassicLogText
 
 
 
