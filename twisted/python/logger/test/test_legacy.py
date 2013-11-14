@@ -13,13 +13,15 @@ from twisted.trial import unittest
 
 from twisted.python import log as twistedLogging
 from twisted.python.failure import Failure
+from twisted.python.log import LogPublisher as OldLogPublisher
+
 from .._levels import LogLevel
 from .._observer import ILogObserver
 from .._legacy import LegacyLogger
 from .._legacy import LegacyLogObserverWrapper
-from ..test.test_logger import TestLogger
 
-
+from twisted.python.logger._format import formatEvent
+from .test_logger import TestLogger
 
 class TestLegacyLogger(LegacyLogger):
     """
@@ -338,3 +340,49 @@ class LegacyLogObserverWrapperTests(unittest.TestCase):
         self.assertIdentical(event["failure"], failure)
         self.assertTrue(event["isError"])
         self.assertEquals(event["why"], why)
+
+
+
+class TestOldLogPublisher(unittest.TestCase):
+    """
+    L{OldLogPublisher} constructs old-style log events and then adds the
+    necessary new-style keys.
+    """
+
+    def setUp(self):
+        """
+        Create an L{OldLogPublisher} and a log observer to catch its output.
+        """
+        self.events = []
+        self.old = OldLogPublisher(self.events.append, self.events.append)
+
+
+    def test_simple(self):
+        """
+        Messages with a simple message are translated such that the readable
+        message remains the same.
+        """
+        self.old.msg("Hello world.")
+        self.assertEquals(len(self.events), 1)
+        self.assertEquals(formatEvent(self.events[0]), "Hello world.")
+        self.assertEquals(self.events[0]['log_level'], LogLevel.info)
+
+
+    def test_errorSetsLevel(self):
+        """
+        Setting the old-style 'isError' key will result in the emitted message
+        acquiring the 'isError' key.
+        """
+        self.old.msg(isError=True)
+        self.assertEquals(len(self.events), 1)
+        self.assertEquals(self.events[0]['log_level'], LogLevel.error)
+
+
+    def test_oldStyleLogLevel(self):
+        """
+        Setting the old-style 'logLevel' key will result in the emitted message
+        acquiring the new-style 'log_level' key.
+        """
+        self.old.msg(logLevel=py_logging.WARNING)
+        self.assertEquals(len(self.events), 1)
+        self.assertEquals(self.events[0]['log_level'], LogLevel.warn)

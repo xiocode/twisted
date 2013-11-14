@@ -10,15 +10,13 @@ from zope.interface import implementer
 
 from twisted.python.reflect import safe_str
 from twisted.python.failure import Failure
+
 from ._levels import LogLevel
 from ._format import formatEvent
 from ._logger import Logger
 from ._observer import ILogObserver
-from ._stdlib import toStdlibLogLevelMapping
-from ._stdlib import fromStdlibLogLevelMapping
-from ._stdlib import StringifiableFromEvent
-
-
+from ._stdlib import (toStdlibLogLevelMapping, fromStdlibLogLevelMapping,
+                      StringifiableFromEvent)
 
 class LegacyLogger(object):
     """
