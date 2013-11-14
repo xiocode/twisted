@@ -15,56 +15,13 @@ from twisted.python.logger._file import FileLogObserver
 from twisted.python.logger._levels import LogLevel
 from twisted.python.constants import NamedConstant
 
-from twisted.python.logger._levels import InvalidLogLevelError
 from twisted.python.compat import unicode
 from twisted.python.failure import Failure
 
-
-
-def levelToJSON(level):
-    return dict(name=level.name)
-
-
-
-def levelFromJSON(levelDict):
-    try:
-        return LogLevel.levelWithName(levelDict['name'])
-    except InvalidLogLevelError:
-        return None
-
-
-
-def isInstanceOf(cls):
-    return lambda obj: isinstance(obj, cls)
-
-
-
-def isLogLevel(obj):
-    if isinstance(obj, NamedConstant):
-        return getattr(LogLevel, obj.name) is obj
-    return False
-
-
-
 def saveFailure(obj):
-    saved = obj.__getstate__()
-    saved['type'] = {
-        "__module__": obj.type.__module__,
-        "__name__": obj.type.__name__,
-    }
-    return saved
-
-
-
-class _FakeType(object):
-    def __init__(self, module, name):
-        self.__module__ = module
-        self.__name__ = name
-
-
-    def __repr__(self):
-        return '<Saved, then loaded {0}.{1}>'.format(self.__module__,
-                                                     self.__name__)
+    return dict(obj.__getstate__(),
+                type=dict(__module__=obj.type.__module__,
+                          __name__=obj.type.__name__))
 
 
 
@@ -83,26 +40,27 @@ def loadFailure(failureDict):
                 return x
         failureDict = nativify(failureDict)
         f = types.InstanceType(Failure)
-    failureDict['type'] = _FakeType(
-        failureDict['type']['__module__'],
-        failureDict['type']['__name__'],
-    )
+    typeInfo = failureDict['type']
+    failureDict['type'] = type(typeInfo['__name__'], (), typeInfo)
     f.__dict__ = failureDict
     return f
 
 
 
 classInfo = [
-    (isLogLevel, UUID("02E59486-F24D-46AD-8224-3ACDF2A5732A"),
-     levelToJSON, levelFromJSON),
-    (isInstanceOf(Failure), UUID("E76887E2-20ED-49BF-A8F8-BA25CC586F2D"),
-     saveFailure, loadFailure),
+    (lambda level: (isinstance(level, NamedConstant) and
+                    getattr(LogLevel, level.name, None) is level),
+     UUID("02E59486-F24D-46AD-8224-3ACDF2A5732A"),
+     lambda level: dict(name=level.name),
+     lambda level: getattr(LogLevel, level['name'], None)),
+
+    (lambda o: isinstance(o, Failure),
+     UUID("E76887E2-20ED-49BF-A8F8-BA25CC586F2D"), saveFailure, loadFailure),
 ]
 
 
 
-uuidToLoader = dict([(uuid, loader)
-                     for (predicate, uuid, saver, loader)
+uuidToLoader = dict([(uuid, loader) for (predicate, uuid, saver, loader)
                      in classInfo])
 
 
