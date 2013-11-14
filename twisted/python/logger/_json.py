@@ -5,6 +5,8 @@
 """
 Tools for saving and loading log events in a structured format.
 """
+
+import types
 from json import dumps, loads
 from uuid import UUID
 
@@ -15,7 +17,7 @@ from twisted.python.constants import NamedConstant
 
 from twisted.python.logger._levels import InvalidLogLevelError
 from twisted.python.compat import unicode
-# from twisted.python.failure import Failure
+from twisted.python.failure import Failure
 
 
 
@@ -44,11 +46,57 @@ def isLogLevel(obj):
 
 
 
+def saveFailure(obj):
+    saved = obj.__getstate__()
+    saved['type'] = {
+        "__module__": obj.type.__module__,
+        "__name__": obj.type.__name__,
+    }
+    return saved
+
+
+
+class _FakeType(object):
+    def __init__(self, module, name):
+        self.__module__ = module
+        self.__name__ = name
+
+
+    def __repr__(self):
+        return '<Saved, then loaded {0}.{1}>'.format(self.__module__,
+                                                     self.__name__)
+
+
+
+def loadFailure(failureDict):
+    if hasattr(Failure, "__new__"):
+        f = Failure.__new__()
+    else:
+        def nativify(x):
+            if isinstance(x, list):
+                return map(nativify, x)
+            elif isinstance(x, dict):
+                return dict((nativify(k), nativify(v)) for k, v in x.items())
+            elif isinstance(x, unicode):
+                return x.encode("utf-8")
+            else:
+                return x
+        failureDict = nativify(failureDict)
+        f = types.InstanceType(Failure)
+    failureDict['type'] = _FakeType(
+        failureDict['type']['__module__'],
+        failureDict['type']['__name__'],
+    )
+    f.__dict__ = failureDict
+    return f
+
+
+
 classInfo = [
     (isLogLevel, UUID("02E59486-F24D-46AD-8224-3ACDF2A5732A"),
      levelToJSON, levelFromJSON),
-    # (isInstanceOf(Failure), UUID("E76887E2-20ED-49BF-A8F8-BA25CC586F2D"),
-    #  saveUnpersistable, loadUnpersistable),
+    (isInstanceOf(Failure), UUID("E76887E2-20ED-49BF-A8F8-BA25CC586F2D"),
+     saveFailure, loadFailure),
 ]
 
 

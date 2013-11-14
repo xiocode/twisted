@@ -8,9 +8,13 @@ Tests for L{twisted.python.logger._json}.
 from twisted.python.compat import unicode
 
 from twisted.trial.unittest import TestCase
+
+from twisted.python.failure import Failure
+
 from twisted.python.logger import formatEvent, LogLevel
 from twisted.python.logger._format import extractField
 from twisted.python.logger._json import eventAsJSON, eventFromJSON
+from twisted.python.logger._logger import Logger
 
 
 
@@ -150,6 +154,27 @@ class SaveLoadTests(TestCase):
         # won't be:
         self.assertRaises(KeyError, extractField, "object", loadedEvent)
         self.assertRaises(KeyError, extractField, "object", inputEvent)
+
+
+    def test_failureStructurePreserved(self):
+        """
+        Round-tripping a failure through L{eventAsJSON} preserves its class and
+        structure.
+        """
+        events = []
+        log = Logger(observer=events.append)
+        try:
+            1/0
+        except:
+            f = Failure()
+            log.failure("a message about failure", f)
+        import sys
+        sys.exc_clear() # make sure we don't get the same Failure by accident.
+        self.assertEquals(len(events), 1)
+        loaded = eventFromJSON(self.savedEventJSON(events[0]))['log_failure']
+        self.assertIsInstance(loaded, Failure)
+        self.assertTrue(loaded.check(ZeroDivisionError))
+        self.assertIsInstance(loaded.getTraceback(), str)
 
 
     def test_saveLoadLevel(self):
