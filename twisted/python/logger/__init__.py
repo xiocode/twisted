@@ -49,6 +49,8 @@ __all__ = [
     # From twisted.python.logger._format
     "formatEvent", "formatEventAsClassicLogText",
     "formatTime", "timeFormatRFC3339",
+
+    # From twisted.python.logger._flatten
     "extractField",
 
     # From twisted.python.logger._logger
@@ -86,9 +88,10 @@ __all__ = [
 
 from twisted.python.logger._levels import InvalidLogLevelError, LogLevel
 
+from twisted.python.logger._flatten import extractField
+
 from twisted.python.logger._format import (
     formatEvent, formatEventAsClassicLogText, formatTime, timeFormatRFC3339,
-    extractField
 )
 
 from twisted.python.logger._logger import Logger

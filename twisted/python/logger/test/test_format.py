@@ -23,9 +23,12 @@ from twisted.trial.unittest import SkipTest
 from twisted.python.compat import _PY3, unicode
 from twisted.python.logger._levels import LogLevel
 from twisted.python.logger._format import (
-    formatEvent, formatUnformattableEvent, flattenEvent, formatTime,
-    formatEventAsClassicLogText, formatWithCall, theFormatter,
-    extractField, KeyFlattener,
+    formatEvent, formatUnformattableEvent, formatTime,
+    formatEventAsClassicLogText, formatWithCall,
+)
+
+from twisted.python.logger._flatten import (
+    flattenEvent, extractField, KeyFlattener, aFormatter
 )
 
 
@@ -233,7 +236,7 @@ class FlatFormattingTests(unittest.TestCase):
                 fieldName,
                 formatSpec,
                 conversion,
-            ) in theFormatter.parse(format):
+            ) in aFormatter.parse(format):
                 return KeyFlattener().flatKey(fieldName, formatSpec,
                                               conversion)
 
@@ -265,7 +268,7 @@ class FlatFormattingTests(unittest.TestCase):
         self.assertEquals(keyFromFormat("{foo!s:%s}"), "foo!s:%s")
         self.assertEquals(keyFromFormat("{foo!s:!}"), "foo!s:!")
         self.assertEquals(keyFromFormat("{foo!s::}"), "foo!s::")
-        [keyPlusLiteral] = theFormatter.parse("{x}")
+        [keyPlusLiteral] = aFormatter.parse("{x}")
         key = keyPlusLiteral[1:]
         sameFlattener = KeyFlattener()
         self.assertEquals(sameFlattener.flatKey(*key), "x!:")

@@ -10,7 +10,7 @@ import types
 from json import dumps, loads
 from uuid import UUID
 
-from twisted.python.logger._format import flattenEvent
+from twisted.python.logger._flatten import flattenEvent
 from twisted.python.logger._file import FileLogObserver
 from twisted.python.logger._levels import LogLevel
 from twisted.python.constants import NamedConstant

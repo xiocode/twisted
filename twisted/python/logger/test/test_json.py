@@ -12,7 +12,7 @@ from twisted.trial.unittest import TestCase
 from twisted.python.failure import Failure
 
 from twisted.python.logger import formatEvent, LogLevel
-from twisted.python.logger._format import extractField
+from twisted.python.logger._flatten import extractField
 from twisted.python.logger._json import eventAsJSON, eventFromJSON
 from twisted.python.logger._logger import Logger
 
