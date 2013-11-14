@@ -72,7 +72,7 @@ def failureFromJSON(failureDict):
         failureDict = nativify(failureDict)
         f = types.InstanceType(Failure)
     else:
-        f = newFailure()
+        f = newFailure(Failure)
     typeInfo = failureDict["type"]
     failureDict["type"] = type(typeInfo["__name__"], (), typeInfo)
     f.__dict__ = failureDict

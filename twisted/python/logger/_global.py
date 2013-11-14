@@ -13,8 +13,7 @@ from twisted.python.compat import currentframe
 
 from ._buffer import LimitedHistoryLogObserver
 from ._observer import LogPublisher
-from ._filter import (FilteringLogObserver,
-                                           LogLevelFilterPredicate)
+from ._filter import FilteringLogObserver, LogLevelFilterPredicate
 from ._logger import Logger
 from ._format import formatEvent
 from ._levels import LogLevel
@@ -77,7 +76,7 @@ class LogBeginner(object):
         publisher.addObserver(self._temporaryObserver)
 
 
-    def beginLoggingTo(self, observers):
+    def beginLoggingTo(self, observers, discardBuffer=False):
         """
         Begin logging to the given set of observers.  This will:
 
@@ -85,7 +84,7 @@ class LogBeginner(object):
                L{LogPublisher} associated with this L{LogBeginner}.
 
             2. Re-play any messages that were previously logged to that
-               publisher to the new observers.
+               publisher to the new observers, if C{discardBuffer} is not set.
 
             3. Stop logging critical errors from the L{LogPublisher} as strings
                to the C{errorStream} associated with this L{LogBeginner}, and
@@ -97,6 +96,11 @@ class LogBeginner(object):
 
         @param observers: The observers to register.
         @type observers: iterable of L{ILogObserver}s
+
+        @param discardBuffer: Whether to discard the buffer and not re-play it
+            to the added observers.  (This argument is provided mainly for
+            compatibility with legacy concerns.)
+        @type discardBuffer: L{bool}
         """
         caller = currentframe(1)
         filename, lineno = caller.f_code.co_filename, caller.f_lineno
@@ -104,7 +108,8 @@ class LogBeginner(object):
             self._publisher.addObserver(observer)
         if self._temporaryObserver is not None:
             self._publisher.removeObserver(self._temporaryObserver)
-            self._initialBuffer.replayTo(self._publisher)
+            if not discardBuffer:
+                self._initialBuffer.replayTo(self._publisher)
             self._temporaryObserver = None
         else:
             previousFile, previousLine = self._previousBegin

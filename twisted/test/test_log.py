@@ -608,8 +608,17 @@ class FileObserverTestCase(LogPublisherTestCaseMixin,
         log._oldshowwarning = None
         # Global mutable state is bad, kids.  Stay in school.
         fakeFile = StringIO()
-        observer = log.startLogging(fakeFile, setStdout=False)
-        self.addCleanup(lambda: tempLogPublisher.removeObserver(observer))
+        # We didn't previously save log messages, so let's make sure we don't
+        # save them any more.
+        evt = {"pre-start": "event"}
+        received = []
+        def preStartObserver(x):
+            if 'pre-start' in x.keys():
+                received.append(x)
+        newPublisher(evt)
+        newPublisher.addObserver(preStartObserver)
+        log.startLogging(fakeFile, setStdout=False)
+        self.assertEquals(received, [])
         warnings.warn("hello!")
         output = fakeFile.getvalue()
         self.assertIn("UserWarning: hello!", output)

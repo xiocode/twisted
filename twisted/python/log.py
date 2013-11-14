@@ -192,7 +192,7 @@ class LogPublisher:
         """
         wrapped = LegacyLogObserverWrapper(other)
         self._legacyObservers.append(wrapped)
-        self._logBeginner.beginLoggingTo([wrapped])
+        self._logBeginner.beginLoggingTo([wrapped], True)
 
 
     def addObserver(self, other):

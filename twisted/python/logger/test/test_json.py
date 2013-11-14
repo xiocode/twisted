@@ -169,7 +169,9 @@ class SaveLoadTests(TestCase):
             f = Failure()
             log.failure("a message about failure", f)
         import sys
-        sys.exc_clear() # make sure we don't get the same Failure by accident.
+        if sys.exc_info()[0] is not None:
+            # make sure we don't get the same Failure by accident.
+            sys.exc_clear()
         self.assertEquals(len(events), 1)
         loaded = eventFromJSON(self.savedEventJSON(events[0]))['log_failure']
         self.assertIsInstance(loaded, Failure)
