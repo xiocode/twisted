@@ -47,11 +47,7 @@ def formatEvent(event):
         if isinstance(format, bytes):
             # If we get bytes, assume it's UTF-8 bytes
             format = format.decode("utf-8")
-
-        elif isinstance(format, unicode):
-            pass
-
-        else:
+        elif not isinstance(format, unicode):
             raise TypeError("Log format must be unicode or bytes, not {0!r}"
                             .format(format))
 
