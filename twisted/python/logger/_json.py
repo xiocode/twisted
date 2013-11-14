@@ -19,27 +19,54 @@ from twisted.python.compat import unicode
 from twisted.python.failure import Failure
 
 def saveFailure(obj):
+    """
+    Convert a L{Failure} to a JSON-serializable data structure.
+
+    @return: a L{dict} of L{str} to ...  stuff, mostly reminiscent of
+        L{Failure.__getstate__}
+    """
     return dict(obj.__getstate__(),
                 type=dict(__module__=obj.type.__module__,
                           __name__=obj.type.__name__))
 
 
 
-def loadFailure(failureDict):
-    if hasattr(Failure, "__new__"):
-        f = Failure.__new__()
+def nativify(x):
+    """
+    On Python 2, we really need native strings in a variety of places;
+    attribute names will sort of work in a __dict__, but they're subtly wrong;
+    however, printing tracebacks relies on I/O to containers that only support
+    bytes.  This function converts _all_ native strings within a
+    JSON-deserialized object to bytes.
+    """
+    if isinstance(x, list):
+        return map(nativify, x)
+    elif isinstance(x, dict):
+        return dict((nativify(k), nativify(v)) for k, v in x.items())
+    elif isinstance(x, unicode):
+        return x.encode("utf-8")
     else:
-        def nativify(x):
-            if isinstance(x, list):
-                return map(nativify, x)
-            elif isinstance(x, dict):
-                return dict((nativify(k), nativify(v)) for k, v in x.items())
-            elif isinstance(x, unicode):
-                return x.encode("utf-8")
-            else:
-                return x
+        return x
+
+
+
+def loadFailure(failureDict):
+    """
+    Load a L{Failure} from a dictionary deserialized from JSON.
+
+    @param failureDict: a JSON-deserialized object like one previously returned
+        by L{saveFailure}.
+    @type failureDict: L{dict} mapping L{unicode} to attributes
+
+    @return: L{Failure}
+    @rtype: L{Failure}
+    """
+    newFailure = getattr(Failure, "__new__", None)
+    if newFailure is None:
         failureDict = nativify(failureDict)
         f = types.InstanceType(Failure)
+    else:
+        f = newFailure()
     typeInfo = failureDict['type']
     failureDict['type'] = type(typeInfo['__name__'], (), typeInfo)
     f.__dict__ = failureDict
@@ -66,6 +93,18 @@ uuidToLoader = dict([(uuid, loader) for (predicate, uuid, saver, loader)
 
 
 def objectLoadHook(aDict):
+    """
+    dictionary-to-object-translation hook for certain value types used within
+    the logging system.
+
+    @see: the C{object_hook} parameter to L{json.load}
+
+    @param aDict: A dictionary loaded from a JSON object.
+    @type aDict: L{dict}
+
+    @return: L{aDict} itself, or the object represented by L{aDict}
+    @rtype: L{object}
+    """
     if '__class_uuid__' in aDict:
         return uuidToLoader[UUID(aDict['__class_uuid__'])](aDict)
     return aDict
@@ -73,6 +112,19 @@ def objectLoadHook(aDict):
 
 
 def objectSaveHook(pythonObject):
+    """
+    object-to-serializable hook for certain value types used within the logging
+    system.
+
+    @see: the C{default} parameter to L{json.dump}
+
+    @param pythonObject: Any object.
+    @type pythonObject: L{object}
+
+    @return: If the object is one of the special types the logging system
+        supports, a specially-formatted dictionary; otherwise, a marker
+        dictionary indicating that it could not be serialized.
+    """
     for (predicate, uuid, saver, loader) in classInfo:
         if predicate(pythonObject):
             result = saver(pythonObject)
