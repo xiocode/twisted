@@ -72,22 +72,14 @@ def flatFormat(event):
     @return: A formatted string.
     @rtype: L{unicode}
     """
-    fields = event["log_flattened"]
-    s = u""
+    fieldValues = event["log_flattened"]
+    s = []
     keyFlattener = KeyFlattener()
-
-    for (
-        literalText, fieldName, formatSpec, conversion
-    ) in theFormatter.parse(event["log_format"]):
-
-        s += literalText
-
+    formatFields = theFormatter.parse(event["log_format"])
+    for literalText, fieldName, formatSpec, conversion in formatFields:
         key = keyFlattener.flatKey(fieldName, formatSpec, conversion or "s")
-        value = fields[key]
-
-        s += unicode(value)
-
-    return s
+        s.extend([literalText, unicode(fieldValues[key])])
+    return u''.join(s)
 
 
 
