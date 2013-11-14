@@ -80,6 +80,7 @@ __all__ = [
     "globalLogPublisher", "globalLogBeginner", "LogBeginner",
 
     # From twisted.python.logger._json
+    "eventAsJSON", "eventFromJSON",
     "jsonFileLogObserver", "eventsFromJSONLogFile",
 ]
 
@@ -116,5 +117,6 @@ from twisted.python.logger._global import (
 )
 
 from twisted.python.logger._json import (
+    eventAsJSON, eventFromJSON,
     jsonFileLogObserver, eventsFromJSONLogFile
 )

@@ -18,16 +18,22 @@ from twisted.python.constants import NamedConstant
 from twisted.python.compat import unicode
 from twisted.python.failure import Failure
 
-def saveFailure(obj):
+
+
+def failureAsJSON(obj):
     """
     Convert a L{Failure} to a JSON-serializable data structure.
 
     @return: a L{dict} of L{str} to ...  stuff, mostly reminiscent of
         L{Failure.__getstate__}
     """
-    return dict(obj.__getstate__(),
-                type=dict(__module__=obj.type.__module__,
-                          __name__=obj.type.__name__))
+    return dict(
+        obj.__getstate__(),
+        type=dict(
+            __module__=obj.type.__module__,
+            __name__=obj.type.__name__,
+        )
+    )
 
 
 
@@ -50,12 +56,12 @@ def nativify(x):
 
 
 
-def loadFailure(failureDict):
+def failureFromJSON(failureDict):
     """
     Load a L{Failure} from a dictionary deserialized from JSON.
 
     @param failureDict: a JSON-deserialized object like one previously returned
-        by L{saveFailure}.
+        by L{failureAsJSON}.
     @type failureDict: L{dict} mapping L{unicode} to attributes
 
     @return: L{Failure}
@@ -67,34 +73,42 @@ def loadFailure(failureDict):
         f = types.InstanceType(Failure)
     else:
         f = newFailure()
-    typeInfo = failureDict['type']
-    failureDict['type'] = type(typeInfo['__name__'], (), typeInfo)
+    typeInfo = failureDict["type"]
+    failureDict["type"] = type(typeInfo["__name__"], (), typeInfo)
     f.__dict__ = failureDict
     return f
 
 
 
 classInfo = [
-    (lambda level: (isinstance(level, NamedConstant) and
-                    getattr(LogLevel, level.name, None) is level),
-     UUID("02E59486-F24D-46AD-8224-3ACDF2A5732A"),
-     lambda level: dict(name=level.name),
-     lambda level: getattr(LogLevel, level['name'], None)),
+    (
+        lambda level: (
+            isinstance(level, NamedConstant) and
+            getattr(LogLevel, level.name, None) is level
+        ),
+        UUID("02E59486-F24D-46AD-8224-3ACDF2A5732A"),
+        lambda level: dict(name=level.name),
+        lambda level: getattr(LogLevel, level["name"], None)
+    ),
 
-    (lambda o: isinstance(o, Failure),
-     UUID("E76887E2-20ED-49BF-A8F8-BA25CC586F2D"), saveFailure, loadFailure),
+    (
+        lambda o: isinstance(o, Failure),
+        UUID("E76887E2-20ED-49BF-A8F8-BA25CC586F2D"),
+        failureAsJSON, failureFromJSON
+    ),
 ]
 
 
 
-uuidToLoader = dict([(uuid, loader) for (predicate, uuid, saver, loader)
-                     in classInfo])
+uuidToLoader = dict([
+    (uuid, loader) for (predicate, uuid, saver, loader) in classInfo
+])
 
 
 
 def objectLoadHook(aDict):
     """
-    dictionary-to-object-translation hook for certain value types used within
+    Dictionary-to-object-translation hook for certain value types used within
     the logging system.
 
     @see: the C{object_hook} parameter to L{json.load}
@@ -105,15 +119,15 @@ def objectLoadHook(aDict):
     @return: L{aDict} itself, or the object represented by L{aDict}
     @rtype: L{object}
     """
-    if '__class_uuid__' in aDict:
-        return uuidToLoader[UUID(aDict['__class_uuid__'])](aDict)
+    if "__class_uuid__" in aDict:
+        return uuidToLoader[UUID(aDict["__class_uuid__"])](aDict)
     return aDict
 
 
 
 def objectSaveHook(pythonObject):
     """
-    object-to-serializable hook for certain value types used within the logging
+    Object-to-serializable hook for certain value types used within the logging
     system.
 
     @see: the C{default} parameter to L{json.dump}
@@ -128,7 +142,7 @@ def objectSaveHook(pythonObject):
     for (predicate, uuid, saver, loader) in classInfo:
         if predicate(pythonObject):
             result = saver(pythonObject)
-            result['__class_uuid__'] = str(uuid)
+            result["__class_uuid__"] = str(uuid)
             return result
     return {"unpersistable": True}
 
@@ -200,13 +214,13 @@ def jsonFileLogObserver(outFile):
 
 def eventsFromJSONLogFile(inFile):
     """
-    Load events from a file previously saved with jsonFileLogObserver.
+    Load events from a file previously saved with L{jsonFileLogObserver}.
 
     @param inFile: A (readable) file-like object.  Data read from L{inFile}
         should be L{unicode} or UTF-8 L{bytes}.
     @type inFile: iterable of lines
 
-    @return: an iterable of log events
+    @return: Log events as read from C{inFile}.
     @rtype: iterable of L{dict}
     """
     for line in inFile:
