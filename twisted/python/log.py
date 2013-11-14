@@ -27,6 +27,7 @@ from twisted.python.logger import (
     LegacyLogObserverWrapper, LoggingFile,
     LogPublisher as NewPublisher,
     globalLogPublisher as newGlobalLogPublisher,
+    globalLogBeginner as newGlobalLogBeginner,
 )
 
 from twisted.python.logger._legacy import publishToNewObserver as _publishNew
@@ -159,7 +160,8 @@ class LogPublisher:
     synchronized = ['msg']
 
 
-    def __init__(self, observerPublisher=None, publishPublisher=None):
+    def __init__(self, observerPublisher=None, publishPublisher=None,
+                 logBeginner=None):
         if publishPublisher is None:
             publishPublisher = NewPublisher()
             if observerPublisher is None:
@@ -169,6 +171,7 @@ class LogPublisher:
         self._observerPublisher = observerPublisher
         self._publishPublisher = publishPublisher
         self._legacyObservers = []
+        self._logBeginner = logBeginner
 
 
     @property
@@ -180,6 +183,16 @@ class LogPublisher:
         @rtype: L{list} of L{callable}
         """
         return [x.legacyObserver for x in self._legacyObservers]
+
+
+    def _startLogging(self, other):
+        """
+        Begin logging to the L{LogBeginner} associated with this
+        L{LogPublisher}.
+        """
+        wrapped = LegacyLogObserverWrapper(other)
+        self._legacyObservers.append(wrapped)
+        self._logBeginner.beginLoggingTo([wrapped])
 
 
     def addObserver(self, other):
@@ -278,7 +291,8 @@ if 'theLogPublisher' not in globals():
 
     theLogPublisher = LogPublisher(
         observerPublisher=newGlobalLogPublisher,
-        publishPublisher=newGlobalLogPublisher
+        publishPublisher=newGlobalLogPublisher,
+        logBeginner=newGlobalLogBeginner,
     )
 
 
@@ -615,14 +629,11 @@ def startLoggingWithObserver(observer, setStdout=1):
     (defaults to yes), also redirect sys.stdout and sys.stderr
     to the specified file.
     """
-    global defaultObserver, _oldshowwarning
+    global _oldshowwarning
     if not _oldshowwarning:
         _oldshowwarning = warnings.showwarning
         warnings.showwarning = showwarning
-    if defaultObserver:
-        defaultObserver.stop()
-        defaultObserver = None
-    addObserver(observer)
+    theLogPublisher._startLogging(observer)
     msg("Log opened.")
     if setStdout:
         sys.stdout = logfile
@@ -711,4 +722,3 @@ class DefaultObserver(_GlobalStartStopMixIn):
 
 if 'defaultObserver' not in globals():
     defaultObserver = DefaultObserver()
-    defaultObserver.start()

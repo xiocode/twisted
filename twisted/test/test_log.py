@@ -17,7 +17,10 @@ from twisted.trial.unittest import SkipTest
 from twisted.python import log, failure
 from twisted.python.logger.test.test_stdlib import handlerAndBytesIO
 from twisted.python.log import LogPublisher
-from twisted.python.logger import LoggingFile, LogLevel as NewLogLevel
+from twisted.python.logger import (
+    LoggingFile, LogLevel as NewLogLevel, LogBeginner,
+    LogPublisher as NewLogPublisher
+)
 
 
 class FakeWarning(Warning):
@@ -584,7 +587,11 @@ class FileObserverTestCase(LogPublisherTestCaseMixin,
         warnings go to Twisted log observers.
         """
         self._startLoggingCleanup()
-        tempLogPublisher = LogPublisher()
+        newPublisher = NewLogPublisher()
+        tempLogPublisher = LogPublisher(
+            newPublisher, newPublisher,
+            logBeginner=LogBeginner(newPublisher, StringIO())
+        )
         # Trial reports warnings in two ways.  First, it intercepts the global
         # 'showwarning' function *itself*, after starting logging (by way of
         # the '_collectWarnings' function which collects all warnings as a
@@ -596,7 +603,6 @@ class FileObserverTestCase(LogPublisherTestCaseMixin,
         # the module with our own.
         self.patch(log, "theLogPublisher", tempLogPublisher)
         self.patch(log, "showwarning", tempLogPublisher.showwarning)
-        self.patch(log, "addObserver", tempLogPublisher.addObserver)
         # And, one last thing, pretend we're starting from a fresh import, or
         # warnings.warn won't be patched at all.
         log._oldshowwarning = None
