@@ -5,15 +5,75 @@
 """
 Tools for saving and loading log events in a structured format.
 """
+from json import dumps, loads
+from uuid import UUID
 
 from twisted.python.logger._format import flattenEvent
 from twisted.python.logger._file import FileLogObserver
 from twisted.python.logger._levels import LogLevel
 from twisted.python.constants import NamedConstant
 
-from json import dumps, loads
 from twisted.python.logger._levels import InvalidLogLevelError
 from twisted.python.compat import unicode
+# from twisted.python.failure import Failure
+
+
+
+def levelToJSON(level):
+    return dict(name=level.name)
+
+
+
+def levelFromJSON(levelDict):
+    try:
+        return LogLevel.levelWithName(levelDict['name'])
+    except InvalidLogLevelError:
+        return None
+
+
+
+def isInstanceOf(cls):
+    return lambda obj: isinstance(obj, cls)
+
+
+
+def isLogLevel(obj):
+    if isinstance(obj, NamedConstant):
+        return getattr(LogLevel, obj.name) is obj
+    return False
+
+
+
+classInfo = [
+    (isLogLevel, UUID("02E59486-F24D-46AD-8224-3ACDF2A5732A"),
+     levelToJSON, levelFromJSON),
+    # (isInstanceOf(Failure), UUID("E76887E2-20ED-49BF-A8F8-BA25CC586F2D"),
+    #  saveUnpersistable, loadUnpersistable),
+]
+
+
+
+uuidToLoader = dict([(uuid, loader)
+                     for (predicate, uuid, saver, loader)
+                     in classInfo])
+
+
+
+def objectLoadHook(aDict):
+    if '__class_uuid__' in aDict:
+        return uuidToLoader[UUID(aDict['__class_uuid__'])](aDict)
+    return aDict
+
+
+
+def objectSaveHook(pythonObject):
+    for (predicate, uuid, saver, loader) in classInfo:
+        if predicate(pythonObject):
+            result = saver(pythonObject)
+            result['__class_uuid__'] = str(uuid)
+            return result
+    return {"unpersistable": True}
+
 
 
 def eventAsJSON(event):
@@ -32,19 +92,13 @@ def eventAsJSON(event):
         file.
     @rtype: L{unicode}
     """
-    def unpersistable(unencodable):
-        if isinstance(unencodable, NamedConstant):
-            return unicode(unencodable.name, "utf-8")
-        else:
-            return {"unpersistable": True}
     if bytes is str:
-        kw = dict(default=unpersistable,
-                  encoding="charmap", skipkeys=True)
+        kw = dict(default=objectSaveHook, encoding="charmap", skipkeys=True)
     else:
         def default(unencodable):
             if isinstance(unencodable, bytes):
                 return unencodable.decode("charmap")
-            return unpersistable(unencodable)
+            return objectSaveHook(unencodable)
         kw = dict(default=default, skipkeys=True)
     flattenEvent(event)
     result = dumps(event, **kw)
@@ -64,12 +118,7 @@ def eventFromJSON(eventText):
     @return: A reconstructed version of the log event.
     @rtype: L{dict}
     """
-    loaded = loads(eventText)
-    if "log_level" in loaded:
-        try:
-            loaded["log_level"] = LogLevel.levelWithName(loaded["log_level"])
-        except InvalidLogLevelError:
-            loaded["log_level_name"] = loaded.pop("log_level")
+    loaded = loads(eventText, object_hook=objectLoadHook)
     return loaded
 
 

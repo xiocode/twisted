@@ -165,7 +165,10 @@ class SaveLoadTests(TestCase):
     def test_saveLoadUnknownLevel(self):
         """
         If a saved bit of JSON (let's say, from a future version of Twisted)
-        were to persist a different log_level, though, it should be removed.
+        were to persist a different log_level, it will resolve as None.
         """
-        loadedEvent = eventFromJSON('{"log_level": "unknown"}')
-        self.assertEquals(loadedEvent, dict(log_level_name=u"unknown"))
+        loadedEvent = eventFromJSON(
+            '{"log_level": {"name": "other", '
+            '"__class_uuid__": "02E59486-F24D-46AD-8224-3ACDF2A5732A"}}'
+        )
+        self.assertEquals(loadedEvent, dict(log_level=None))
