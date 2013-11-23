@@ -162,12 +162,6 @@ class LogTest(unittest.SynchronousTestCase):
         L{twisted.python.log.showwarning} passes warnings with an explicit file
         target on to the underlying Python warning system.
         """
-        # log.showwarning depends on _oldshowwarning being set, which only
-        # happens in startLogging(), which doesn't happen if you're not
-        # running under trial. So this test only passes by accident of runner
-        # environment.
-        if log._oldshowwarning is None:
-            raise SkipTest("Currently this test only runs under trial.")
         message = "another unique message"
         category = FakeWarning
         filename = "warning-filename.py"
@@ -542,13 +536,13 @@ class FileObserverTestCase(LogPublisherTestCaseMixin,
         encoding = getattr(origStdout, "encoding", None)
         if not encoding:
             encoding = sys.getdefaultencoding()
-        self.assertEqual(sys.stdout.encoding, encoding)
+        self.assertEqual(sys.stdout.encoding.upper(), encoding.upper())
         self.assertIsInstance(sys.stderr, LoggingFile)
         self.assertEqual(sys.stderr.level, NewLogLevel.error)
         encoding = getattr(origStderr, "encoding", None)
         if not encoding:
             encoding = sys.getdefaultencoding()
-        self.assertEqual(sys.stderr.encoding, encoding)
+        self.assertEqual(sys.stderr.encoding.upper(), encoding.upper())
 
 
     def test_startLoggingTwice(self):
@@ -588,9 +582,12 @@ class FileObserverTestCase(LogPublisherTestCaseMixin,
         class SysModule(object):
             stdout = object()
             stderr = object()
+        class WarningsModule(object):
+            showwarning = object()
         tempLogPublisher = LogPublisher(
             newPublisher, newPublisher,
-            logBeginner=LogBeginner(newPublisher, StringIO(), SysModule)
+            logBeginner=LogBeginner(newPublisher, StringIO(), SysModule,
+                                    WarningsModule)
         )
         # Trial reports warnings in two ways.  First, it intercepts the global
         # 'showwarning' function *itself*, after starting logging (by way of

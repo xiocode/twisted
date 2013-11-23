@@ -11,6 +11,7 @@ from __future__ import division, absolute_import
 import sys
 import time
 import warnings
+
 from datetime import datetime
 
 from zope.interface import Interface
@@ -29,6 +30,7 @@ from twisted.python.logger import (
     globalLogBeginner as newGlobalLogBeginner,
 )
 
+from twisted.python.logger._global import LogBeginner
 from twisted.python.logger._legacy import publishToNewObserver as _publishNew
 
 
@@ -170,9 +172,16 @@ class LogPublisher:
         self._observerPublisher = observerPublisher
         self._publishPublisher = publishPublisher
         self._legacyObservers = []
+        if logBeginner is None:
+            # This default behavior is really only used for testing.
+            beginnerPublisher = NewPublisher()
+            beginnerPublisher.addObserver(observerPublisher)
+            logBeginner = LogBeginner(beginnerPublisher, NullFile(), sys,
+                                      warnings)
         self._logBeginner = logBeginner
         self._warningsModule = warningsModule
         self._oldshowwarning = warningsModule.showwarning
+        self.showwarning = self._logBeginner.showwarning
 
 
     @property
@@ -252,28 +261,6 @@ class LogPublisher:
         actualEventDict['time'] = time.time()
 
         _publishNew(self._publishPublisher, actualEventDict, textFromEventDict)
-
-
-    def showwarning(self, message, category, filename, lineno, file=None,
-                    line=None):
-        """
-        Twisted-enabled wrapper around L{warnings.showwarning}.
-
-        If C{file} is C{None}, the default behaviour is to emit the warning to
-        the log system, otherwise the original L{warnings.showwarning} Python
-        function is called.
-        """
-        if file is None:
-            self.msg(warning=message, category=reflect.qual(category),
-                     filename=filename, lineno=lineno,
-                     format="%(filename)s:%(lineno)s: %(category)s: "
-                     "%(warning)s")
-        else:
-            if sys.version_info < (2, 6):
-                self._oldshowwarning(message, category, filename, lineno, file)
-            else:
-                self._oldshowwarning(message, category, filename, lineno, file,
-                                     line)
 
 
 synchronize(LogPublisher)

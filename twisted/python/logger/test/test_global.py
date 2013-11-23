@@ -61,9 +61,17 @@ class LogBeginnerTests(unittest.TestCase):
         class NotSys(object):
             stdout = object()
             stderr = object()
-        self.sysModule = NotSys
+        class NotWarnings(object):
+            def __init__(self):
+                self.warnings = []
+            def showwarning(self, message, category, filename, lineno,
+                            file=None, line=None):
+                self.warnings.append((message, category, filename, lineno,
+                                      file, line))
+        self.sysModule = NotSys()
+        self.warningsModule = NotWarnings()
         self.beginner = LogBeginner(self.publisher, self.errorStream,
-                                    self.sysModule)
+                                    self.sysModule, self.warningsModule)
 
 
     def test_beginLoggingTo_addObservers(self):
@@ -179,3 +187,26 @@ class LogBeginnerTests(unittest.TestCase):
         self.beginner.beginLoggingTo((), redirectStandardIO=False)
         self.assertIdentical(self.sysModule.stdout, oldOut)
         self.assertIdentical(self.sysModule.stderr, oldErr)
+
+
+    def test_warningsModule(self):
+        """
+        L{LogBeginner.beginLoggingTo} will redirect the warnings of its
+        warnings module into the logging system.
+        """
+        self.warningsModule.showwarning("a message", DeprecationWarning,
+                                        __file__, 1)
+        x = []
+        self.beginner.beginLoggingTo([x.append])
+        self.warningsModule.showwarning("another message", DeprecationWarning,
+                                        __file__, 2)
+        self.assertEquals(self.warningsModule.warnings,
+                          [("a message", DeprecationWarning, __file__, 1,
+                            None, None)])
+        compareEvents(
+            self, x,
+            [dict(warning="another message",
+                  category=(DeprecationWarning.__module__ + '.' +
+                            DeprecationWarning.__name__),
+                  filename=__file__, lineno=2)]
+        )

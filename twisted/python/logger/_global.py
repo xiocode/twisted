@@ -8,8 +8,10 @@ and implementation of logic for managing that global state.
 """
 
 import sys
+import warnings
 
 from twisted.python.compat import currentframe
+from twisted.python.reflect import qual
 
 from ._buffer import LimitedHistoryLogObserver
 from ._observer import LogPublisher
@@ -66,23 +68,26 @@ class LogBeginner(object):
         L{sys} module) which will be replaced when redirecting standard I/O.
     """
 
-    def __init__(self, publisher, errorStream, stdio):
+    def __init__(self, publisher, errorStream, stdio, warningsModule):
         self._initialBuffer = LimitedHistoryLogObserver()
         self._publisher = publisher
         self._log = Logger(observer=publisher)
         self._stdio = stdio
-        fileObserver = FileLogObserver(errorStream,
-                                       lambda event: formatEvent(event)+"\n")
-        predicate = LogLevelFilterPredicate(defaultLogLevel=LogLevel.critical)
+        self._warningsModule = warningsModule
         self._temporaryObserver = LogPublisher(
             self._initialBuffer,
-            FilteringLogObserver(fileObserver, [predicate])
+            FilteringLogObserver(
+                FileLogObserver(errorStream,
+                                lambda event: formatEvent(event)+"\n"),
+                [LogLevelFilterPredicate(defaultLogLevel=LogLevel.critical)])
         )
         publisher.addObserver(self._temporaryObserver)
+        self._oldshowwarning = warningsModule.showwarning
 
 
     def beginLoggingTo(self, observers, discardBuffer=False,
-                       redirectStandardIO=True):
+                       redirectStandardIO=True,
+                       redirectWarnings=True):
         """
         Begin logging to the given set of observers.  This will:
 
@@ -98,6 +103,9 @@ class LogBeginner(object):
             4. Stop logging critical errors from the L{LogPublisher} as strings
                to the C{errorStream} associated with this L{LogBeginner}, and
                allow them to be logged normally.
+
+            5. Re-direct warnings from the L{warnings} module associated with
+               this L{LogBeginner} to log messages.
 
         @note: Since a L{LogBeginner} is designed to encapsulate the transition
             between process-startup and log-system-configuration, this method
@@ -136,8 +144,32 @@ class LogBeginner(object):
                                                     observer=self._publisher),
                                       level=level)
             setattr(self._stdio, stream, loggingFile)
+        self._warningsModule.showwarning = self.showwarning
+
+
+    def showwarning(self, message, category, filename, lineno, file=None,
+                    line=None):
+        """
+        Twisted-enabled wrapper around L{warnings.showwarning}.
+
+        If C{file} is C{None}, the default behaviour is to emit the warning to
+        the log system, otherwise the original L{warnings.showwarning} Python
+        function is called.
+        """
+        if file is None:
+            self._log.info(
+                "{filename}:{lineno}: {category}: {warning}",
+                warning=message, category=qual(category), filename=filename,
+                lineno=lineno
+            )
+        else:
+            if sys.version_info < (2, 6):
+                self._oldshowwarning(message, category, filename, lineno, file)
+            else:
+                self._oldshowwarning(message, category, filename, lineno, file,
+                                     line)
 
 
 
 globalLogPublisher = LogPublisher()
-globalLogBeginner = LogBeginner(globalLogPublisher, sys.stderr, sys)
+globalLogBeginner = LogBeginner(globalLogPublisher, sys.stderr, sys, warnings)
