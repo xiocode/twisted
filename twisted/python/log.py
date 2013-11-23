@@ -186,14 +186,14 @@ class LogPublisher:
         return [x.legacyObserver for x in self._legacyObservers]
 
 
-    def _startLogging(self, other):
+    def _startLogging(self, other, setStdout):
         """
         Begin logging to the L{LogBeginner} associated with this
         L{LogPublisher}.
         """
         wrapped = LegacyLogObserverWrapper(other)
         self._legacyObservers.append(wrapped)
-        self._logBeginner.beginLoggingTo([wrapped], True)
+        self._logBeginner.beginLoggingTo([wrapped], True, setStdout)
 
 
     def addObserver(self, other):
@@ -634,11 +634,8 @@ def startLoggingWithObserver(observer, setStdout=1):
     if not _oldshowwarning:
         _oldshowwarning = warnings.showwarning
         warnings.showwarning = showwarning
-    theLogPublisher._startLogging(observer)
+    theLogPublisher._startLogging(observer, setStdout)
     msg("Log opened.")
-    if setStdout:
-        sys.stdout = logfile
-        sys.stderr = logerr
 
 
 
@@ -678,10 +675,11 @@ class NullFile:
 
 def discardLogs():
     """
-    Throw away all logs.
+    Discard messages logged via the global C{logfile} object.
     """
     global logfile
     logfile = NullFile()
+
 
 
 # Prevent logfile from being erased on reload.  This only works in cpython.

@@ -128,12 +128,13 @@ class LogBeginner(object):
         self._previousBegin = filename, lineno
         # TODO: honor redirectStandardIO
         if redirectStandardIO:
-            streams = ['stdout', 'stderr']
+            streams = [('stdout', LogLevel.info), ('stderr', LogLevel.error)]
         else:
             streams = []
-        for stream in streams:
+        for (stream, level) in streams:
             loggingFile = LoggingFile(logger=Logger(namespace=stream,
-                                                    observer=self._publisher))
+                                                    observer=self._publisher),
+                                      level=level)
             setattr(self._stdio, stream, loggingFile)
 
 
