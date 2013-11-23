@@ -157,7 +157,7 @@ class LogBeginner(object):
         function is called.
         """
         if file is None:
-            self._log.info(
+            self._log.warn(
                 "{filename}:{lineno}: {category}: {warning}",
                 warning=message, category=qual(category), filename=filename,
                 lineno=lineno
