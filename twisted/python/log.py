@@ -21,12 +21,10 @@ from twisted.python import _reflectpy3 as reflect
 from twisted.python import failure
 from twisted.python.threadable import synchronize
 from twisted.python.logger import (
-    Logger as NewLogger,
-    LogLevel as NewLogLevel,
+    Logger as NewLogger, LogLevel as NewLogLevel,
     textFileLogObserver as newFileLogObserver,
     STDLibLogObserver as NewSTDLibLogObserver,
-    LegacyLogObserverWrapper, LoggingFile,
-    LogPublisher as NewPublisher,
+    LegacyLogObserverWrapper, LoggingFile, LogPublisher as NewPublisher,
     globalLogPublisher as newGlobalLogPublisher,
     globalLogBeginner as newGlobalLogBeginner,
 )
