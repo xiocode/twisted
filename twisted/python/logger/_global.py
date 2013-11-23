@@ -17,6 +17,7 @@ from ._filter import FilteringLogObserver, LogLevelFilterPredicate
 from ._logger import Logger
 from ._format import formatEvent
 from ._levels import LogLevel
+from ._io import LoggingFile
 from ._file import FileLogObserver
 
 MORE_THAN_ONCE_WARNING = (
@@ -60,12 +61,16 @@ class LogBeginner(object):
     @ivar _temporaryObserver: If not C{None}, an L{ILogObserver} that observes
         events on C{_publisher} for this L{LogBeginner}.
     @type _temporaryObserver: L{ILogObserver} or L{NoneType}
+
+    @ivar _stdio: An object with C{stderr} and C{stdout} attributes (like the
+        L{sys} module) which will be replaced when redirecting standard I/O.
     """
 
-    def __init__(self, publisher, errorStream):
+    def __init__(self, publisher, errorStream, stdio):
         self._initialBuffer = LimitedHistoryLogObserver()
         self._publisher = publisher
         self._log = Logger(observer=publisher)
+        self._stdio = stdio
         fileObserver = FileLogObserver(errorStream,
                                        lambda event: formatEvent(event)+"\n")
         predicate = LogLevelFilterPredicate(defaultLogLevel=LogLevel.critical)
@@ -76,17 +81,21 @@ class LogBeginner(object):
         publisher.addObserver(self._temporaryObserver)
 
 
-    def beginLoggingTo(self, observers, discardBuffer=False):
+    def beginLoggingTo(self, observers, discardBuffer=False,
+                       redirectStandardIO=True):
         """
         Begin logging to the given set of observers.  This will:
 
             1. Add all the observers given in C{observers} to the
                L{LogPublisher} associated with this L{LogBeginner}.
 
-            2. Re-play any messages that were previously logged to that
+            2. Optionally re-direct standard output and standard error streams
+               to the logging system.
+
+            3. Re-play any messages that were previously logged to that
                publisher to the new observers, if C{discardBuffer} is not set.
 
-            3. Stop logging critical errors from the L{LogPublisher} as strings
+            4. Stop logging critical errors from the L{LogPublisher} as strings
                to the C{errorStream} associated with this L{LogBeginner}, and
                allow them to be logged normally.
 
@@ -117,8 +126,17 @@ class LogBeginner(object):
                            fileNow=filename, lineNow=lineno,
                            fileThen=previousFile, lineThen=previousLine)
         self._previousBegin = filename, lineno
+        # TODO: honor redirectStandardIO
+        if redirectStandardIO:
+            streams = ['stdout', 'stderr']
+        else:
+            streams = []
+        for stream in streams:
+            loggingFile = LoggingFile(logger=Logger(namespace=stream,
+                                                    observer=self._publisher))
+            setattr(self._stdio, stream, loggingFile)
 
 
 
 globalLogPublisher = LogPublisher()
-globalLogBeginner = LogBeginner(globalLogPublisher, sys.stderr)
+globalLogBeginner = LogBeginner(globalLogPublisher, sys.stderr, sys)

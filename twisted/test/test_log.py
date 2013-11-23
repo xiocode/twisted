@@ -588,9 +588,12 @@ class FileObserverTestCase(LogPublisherTestCaseMixin,
         """
         self._startLoggingCleanup()
         newPublisher = NewLogPublisher()
+        class SysModule(object):
+            stdout = object()
+            stderr = object()
         tempLogPublisher = LogPublisher(
             newPublisher, newPublisher,
-            logBeginner=LogBeginner(newPublisher, StringIO())
+            logBeginner=LogBeginner(newPublisher, StringIO(), SysModule)
         )
         # Trial reports warnings in two ways.  First, it intercepts the global
         # 'showwarning' function *itself*, after starting logging (by way of

@@ -5,6 +5,8 @@
 Test cases for L{twisted.python.logger._global}.
 """
 
+from __future__ import print_function
+
 import io
 
 from twisted.trial import unittest
@@ -18,6 +20,36 @@ from ..test.test_stdlib import nextLine
 
 
 
+def compareEvents(test, actualEvents, expectedEvents):
+    """
+    Compare two sequences of log events, examining only the the keys which are
+    present in both.
+
+    @param test: a test case doing the comparison
+    @type test: L{unittest.TestCase}
+
+    @param actualEvents: A list of log events that were emitted by a logger.
+    @type actualEvents: L{list} of L{dict}
+
+    @param expectedEvents: A list of log events that were expected by a test.
+    @type expected: L{list} of L{dict}
+    """
+    if len(actualEvents) != len(expectedEvents):
+        test.assertEquals(actualEvents, expectedEvents)
+    allMergedKeys = set()
+    for event in expectedEvents:
+        allMergedKeys |= set(event.keys())
+    def simplify(event):
+        copy = event.copy()
+        for key in event.keys():
+            if key not in allMergedKeys:
+                copy.pop(key)
+        return copy
+    simplifiedActual = [simplify(event) for event in actualEvents]
+    test.assertEquals(simplifiedActual, expectedEvents)
+
+
+
 class LogBeginnerTests(unittest.TestCase):
     """
     Tests for L{LogBeginner}.
@@ -26,7 +58,12 @@ class LogBeginnerTests(unittest.TestCase):
     def setUp(self):
         self.publisher = LogPublisher()
         self.errorStream = io.StringIO()
-        self.buffer = LogBeginner(self.publisher, self.errorStream)
+        class NotSys(object):
+            stdout = object()
+            stderr = object()
+        self.sysModule = NotSys
+        self.beginner = LogBeginner(self.publisher, self.errorStream,
+                                    self.sysModule)
 
 
     def test_beginLoggingTo_addObservers(self):
@@ -41,7 +78,7 @@ class LogBeginnerTests(unittest.TestCase):
         o1 = lambda e: events1.append(e)
         o2 = lambda e: events2.append(e)
 
-        self.buffer.beginLoggingTo((o1, o2))
+        self.beginner.beginLoggingTo((o1, o2))
         self.publisher(event)
 
         self.assertEquals([event], events1)
@@ -62,7 +99,7 @@ class LogBeginnerTests(unittest.TestCase):
         o2 = lambda e: events2.append(e)
 
         self.publisher(event)  # Before beginLoggingTo; this is buffered
-        self.buffer.beginLoggingTo((o1, o2))
+        self.beginner.beginLoggingTo((o1, o2))
 
         self.assertEquals([event], events1)
         self.assertEquals([event], events2)
@@ -78,35 +115,20 @@ class LogBeginnerTests(unittest.TestCase):
         events2 = []
         self.publisher(dict(event="prebuffer"))
         firstFilename, firstLine = nextLine()
-        self.buffer.beginLoggingTo([events1.append])
+        self.beginner.beginLoggingTo([events1.append])
         self.publisher(dict(event="postbuffer"))
         secondFilename, secondLine = nextLine()
-        self.buffer.beginLoggingTo([events2.append])
+        self.beginner.beginLoggingTo([events2.append])
         self.publisher(dict(event="postwarn"))
         warning = dict(log_format=MORE_THAN_ONCE_WARNING,
                        log_level=LogLevel.warn,
                        fileNow=secondFilename, lineNow=secondLine,
                        fileThen=firstFilename, lineThen=firstLine)
 
-        def compareEvents(actualEvents, expectedEvents):
-            if len(actualEvents) != len(expectedEvents):
-                self.assertEquals(actualEvents, expectedEvents)
-            allMergedKeys = set()
-            for event in expectedEvents:
-                allMergedKeys |= set(event.keys())
-            def simplify(event):
-                copy = event.copy()
-                for key in event.keys():
-                    if key not in allMergedKeys:
-                        copy.pop(key)
-                return copy
-            simplifiedActual = [simplify(event) for event in actualEvents]
-            self.assertEquals(simplifiedActual, expectedEvents)
-
-        compareEvents(events1,
+        compareEvents(self, events1,
                       [dict(event="prebuffer"), dict(event="postbuffer"),
                        warning, dict(event="postwarn")])
-        compareEvents(events2, [warning, dict(event="postwarn")])
+        compareEvents(self, events2, [warning, dict(event="postwarn")])
 
 
     def test_criticalLogging(self):
@@ -125,6 +147,35 @@ class LogBeginnerTests(unittest.TestCase):
         longer written to the output stream.
         """
         log = Logger(observer=self.publisher)
-        self.buffer.beginLoggingTo(())
+        self.beginner.beginLoggingTo(())
         log.critical("another critical message")
         self.assertEquals(self.errorStream.getvalue(), u'')
+
+
+    def test_beginLoggingTo_redirectStandardIO(self):
+        """
+        L{LogBeginner.beginLoggingTo} will re-direct the standard output and
+        error streams by setting the C{stdio} and C{stderr} attributes on its
+        sys module object.
+        """
+        x = []
+        self.beginner.beginLoggingTo([x.append])
+        print("Hello, world.", file=self.sysModule.stdout)
+        compareEvents(self, x, [dict(log_namespace="stdout",
+                                     message="Hello, world.")])
+        del x[:]
+        print("Error, world.", file=self.sysModule.stderr)
+        compareEvents(self, x, [dict(log_namespace="stderr",
+                                     message="Error, world.")])
+
+
+    def test_beginLoggingTo_dontRedirect(self):
+        """
+        L{LogBeginner.beginLoggingTo} will leave the existing stdout/stderr in
+        place if it has been told not to replace them.
+        """
+        oldOut = self.sysModule.stdout
+        oldErr = self.sysModule.stderr
+        self.beginner.beginLoggingTo((), redirectStandardIO=False)
+        self.assertIdentical(self.sysModule.stdout, oldOut)
+        self.assertIdentical(self.sysModule.stderr, oldErr)
