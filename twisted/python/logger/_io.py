@@ -9,7 +9,6 @@ File-like object that logs.
 import sys
 
 from ._levels import LogLevel
-from ._logger import Logger
 
 
 
@@ -30,11 +29,10 @@ class LoggingFile(object):
     @type softspace: L{int}
     """
 
-    defaultLogger = Logger()
     softspace = 0
 
 
-    def __init__(self, level=LogLevel.info, encoding=None, logger=None):
+    def __init__(self, logger, level=LogLevel.info, encoding=None):
         """
         @param level: the log level to emit events with.
 
@@ -42,8 +40,7 @@ class LoggingFile(object):
             C{write()}.  If C{None}, use C{sys.getdefaultencoding()}.
         @type encoding: L{str}
 
-        @param log: The logger to send events to.  If C{None}, use
-            L{LoggingFile.defaultLogger}.
+        @param log: The logger to send events to.
         @type log: L{Logger}
         """
         self.level = level

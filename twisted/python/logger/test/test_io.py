@@ -13,6 +13,7 @@ from twisted.trial import unittest
 
 from .._levels import LogLevel
 from .._logger import Logger
+from .._observer import LogPublisher
 from .._io import LoggingFile
 
 
@@ -21,6 +22,14 @@ class LoggingFileTests(unittest.TestCase):
     """
     Tests for L{LoggingFile}.
     """
+
+    def setUp(self):
+        """
+        Create a logger for test L{LoggingFile} instances to use.
+        """
+        self.publisher = LogPublisher()
+        self.logger = Logger(observer=self.publisher)
+
 
     def test_softspace(self):
         """
@@ -33,7 +42,7 @@ class LoggingFileTests(unittest.TestCase):
         """
         Some L{LoggingFile} attributes are read-only.
         """
-        f = LoggingFile()
+        f = LoggingFile(self.logger)
 
         self.assertRaises(AttributeError, setattr, f, "closed", True)
         self.assertRaises(AttributeError, setattr, f, "encoding", "utf-8")
@@ -46,7 +55,7 @@ class LoggingFileTests(unittest.TestCase):
         """
         Some L{LoggingFile} methods are unsupported.
         """
-        f = LoggingFile()
+        f = LoggingFile(self.logger)
 
         self.assertRaises(IOError, f.read)
         self.assertRaises(IOError, f.next)
@@ -62,7 +71,7 @@ class LoggingFileTests(unittest.TestCase):
         """
         Default level is L{LogLevel.info} if not set.
         """
-        f = LoggingFile()
+        f = LoggingFile(self.logger)
         self.assertEquals(f.level, LogLevel.info)
 
         f = LoggingFile(level=LogLevel.error)
@@ -73,7 +82,7 @@ class LoggingFileTests(unittest.TestCase):
         """
         Default encoding is C{sys.getdefaultencoding()} if not set.
         """
-        f = LoggingFile()
+        f = LoggingFile(self.logger)
         self.assertEquals(f.encoding, sys.getdefaultencoding())
 
         f = LoggingFile(encoding="utf-8")
@@ -84,7 +93,7 @@ class LoggingFileTests(unittest.TestCase):
         """
         Reported mode is C{"w"}.
         """
-        f = LoggingFile()
+        f = LoggingFile(self.logger)
         self.assertEquals(f.mode, "w")
 
 
@@ -92,7 +101,7 @@ class LoggingFileTests(unittest.TestCase):
         """
         The C{newlines} attribute is C{None}.
         """
-        f = LoggingFile()
+        f = LoggingFile(self.logger)
         self.assertEquals(f.newlines, None)
 
 
@@ -100,28 +109,10 @@ class LoggingFileTests(unittest.TestCase):
         """
         The C{name} attribute is fixed.
         """
-        f = LoggingFile()
+        f = LoggingFile(self.logger)
         self.assertEquals(
             f.name,
             "<LoggingFile twisted.python.logger._io.LoggingFile#info>"
-        )
-
-
-    def test_log(self):
-        """
-        Default logger is created if not set.
-        """
-        f = LoggingFile()
-        self.assertEquals(
-            f.log.namespace,
-            "twisted.python.logger._io.LoggingFile"
-        )
-
-        log = Logger()
-        f = LoggingFile(logger=log)
-        self.assertEquals(
-            f.log.namespace,
-            "twisted.python.logger.test.test_io"
         )
 
 
@@ -129,7 +120,7 @@ class LoggingFileTests(unittest.TestCase):
         """
         L{LoggingFile.close} closes the file.
         """
-        f = LoggingFile()
+        f = LoggingFile(self.logger)
         f.close()
 
         self.assertEquals(f.closed, True)
@@ -140,7 +131,7 @@ class LoggingFileTests(unittest.TestCase):
         """
         L{LoggingFile.flush} does nothing.
         """
-        f = LoggingFile()
+        f = LoggingFile(self.logger)
         f.flush()
 
 
@@ -148,7 +139,7 @@ class LoggingFileTests(unittest.TestCase):
         """
         L{LoggingFile.fileno} returns C{-1}.
         """
-        f = LoggingFile()
+        f = LoggingFile(self.logger)
         self.assertEquals(f.fileno(), -1)
 
 
@@ -156,7 +147,7 @@ class LoggingFileTests(unittest.TestCase):
         """
         L{LoggingFile.isatty} returns C{False}.
         """
-        f = LoggingFile()
+        f = LoggingFile(self.logger)
         self.assertEquals(f.isatty(), False)
 
 

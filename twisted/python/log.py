@@ -21,6 +21,7 @@ from twisted.python import _reflectpy3 as reflect
 from twisted.python import failure
 from twisted.python.threadable import synchronize
 from twisted.python.logger import (
+    Logger as NewLogger,
     LogLevel as NewLogLevel,
     textFileLogObserver as newFileLogObserver,
     STDLibLogObserver as NewSTDLibLogObserver,
@@ -685,9 +686,11 @@ def discardLogs():
 
 # Prevent logfile from being erased on reload.  This only works in cpython.
 if 'logfile' not in globals():
-    logfile = LoggingFile(level=NewLogLevel.info,
+    logfile = LoggingFile(logger=NewLogger(),
+                          level=NewLogLevel.info,
                           encoding=getattr(sys.stdout, "encoding", None))
-    logerr = LoggingFile(level=NewLogLevel.error,
+    logerr = LoggingFile(logger=NewLogger(),
+                         level=NewLogLevel.error,
                          encoding=getattr(sys.stderr, "encoding", None))
 
 
