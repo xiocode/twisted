@@ -52,7 +52,7 @@ def formatEvent(event):
 
         return formatWithCall(format, event)
 
-    except BaseException as e:
+    except Exception as e:
         return formatUnformattableEvent(event, e)
 
 
