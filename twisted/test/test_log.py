@@ -519,10 +519,7 @@ class FileObserverTestCase(LogPublisherTestCaseMixin,
         Cleanup after a startLogging() call that mutates the hell out of some
         global state.
         """
-        origOrigShowwarnings = warnings.showwarning
-        origShowwarnings = log._oldshowwarning
-        self.addCleanup(setattr, warnings, 'showwarning', origOrigShowwarnings)
-        self.addCleanup(setattr, log, "_oldshowwarning", origShowwarnings)
+        self.addCleanup(log.theLogPublisher._stopLogging)
         self.addCleanup(setattr, sys, 'stdout', sys.stdout)
         self.addCleanup(setattr, sys, 'stderr', sys.stderr)
 

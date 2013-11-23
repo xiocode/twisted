@@ -162,7 +162,7 @@ class LogPublisher:
 
 
     def __init__(self, observerPublisher=None, publishPublisher=None,
-                 logBeginner=None):
+                 logBeginner=None, warningsModule=warnings):
         if publishPublisher is None:
             publishPublisher = NewPublisher()
             if observerPublisher is None:
@@ -173,6 +173,8 @@ class LogPublisher:
         self._publishPublisher = publishPublisher
         self._legacyObservers = []
         self._logBeginner = logBeginner
+        self._warningsModule = warningsModule
+        self._oldshowwarning = warningsModule.showwarning
 
 
     @property
@@ -191,9 +193,19 @@ class LogPublisher:
         Begin logging to the L{LogBeginner} associated with this
         L{LogPublisher}.
         """
+        self._warningsModule.showwarning = self.showwarning
         wrapped = LegacyLogObserverWrapper(other)
         self._legacyObservers.append(wrapped)
         self._logBeginner.beginLoggingTo([wrapped], True, setStdout)
+
+
+    def _stopLogging(self):
+        """
+        Clean-up hook for fixing potentially global state.  Only for testing of
+        this module itself.  If you want less global state, use the new
+        warnings system in L{twisted.python.logger}.
+        """
+        self._warningsModule.showwarning = self._oldshowwarning
 
 
     def addObserver(self, other):
@@ -260,10 +272,10 @@ class LogPublisher:
                      "%(warning)s")
         else:
             if sys.version_info < (2, 6):
-                _oldshowwarning(message, category, filename, lineno, file)
+                self._oldshowwarning(message, category, filename, lineno, file)
             else:
-                _oldshowwarning(message, category, filename, lineno, file,
-                                line)
+                self._oldshowwarning(message, category, filename, lineno, file,
+                                     line)
 
 
 synchronize(LogPublisher)
@@ -605,10 +617,6 @@ class StdioOnnaStick:
             msg(line, printed=1, isError=self.isError)
 
 
-if '_oldshowwarning' not in globals():
-    _oldshowwarning = None
-
-
 
 def startLogging(file, *a, **kw):
     """
@@ -630,10 +638,6 @@ def startLoggingWithObserver(observer, setStdout=1):
     (defaults to yes), also redirect sys.stdout and sys.stderr
     to the specified file.
     """
-    global _oldshowwarning
-    if not _oldshowwarning:
-        _oldshowwarning = warnings.showwarning
-        warnings.showwarning = showwarning
     theLogPublisher._startLogging(observer, setStdout)
     msg("Log opened.")
 
