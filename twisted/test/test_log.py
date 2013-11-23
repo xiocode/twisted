@@ -582,12 +582,10 @@ class FileObserverTestCase(LogPublisherTestCaseMixin,
         class SysModule(object):
             stdout = object()
             stderr = object()
-        class WarningsModule(object):
-            showwarning = object()
         tempLogPublisher = LogPublisher(
             newPublisher, newPublisher,
             logBeginner=LogBeginner(newPublisher, StringIO(), SysModule,
-                                    WarningsModule)
+                                    warnings)
         )
         # Trial reports warnings in two ways.  First, it intercepts the global
         # 'showwarning' function *itself*, after starting logging (by way of
@@ -599,7 +597,6 @@ class FileObserverTestCase(LogPublisherTestCaseMixin,
         # test, we first replace the global log publisher's 'showwarning' in
         # the module with our own.
         self.patch(log, "theLogPublisher", tempLogPublisher)
-        self.patch(log, "showwarning", tempLogPublisher.showwarning)
         # And, one last thing, pretend we're starting from a fresh import, or
         # warnings.warn won't be patched at all.
         log._oldshowwarning = None
@@ -615,6 +612,7 @@ class FileObserverTestCase(LogPublisherTestCaseMixin,
         newPublisher(evt)
         newPublisher.addObserver(preStartObserver)
         log.startLogging(fakeFile, setStdout=False)
+        self.addCleanup(tempLogPublisher._stopLogging)
         self.assertEquals(received, [])
         warnings.warn("hello!")
         output = fakeFile.getvalue()

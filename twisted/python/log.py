@@ -211,7 +211,8 @@ class LogPublisher:
         this module itself.  If you want less global state, use the new
         warnings system in L{twisted.python.logger}.
         """
-        self._warningsModule.showwarning = self._oldshowwarning
+        if self._warningsModule.showwarning == self.showwarning:
+            self._warningsModule.showwarning = self._oldshowwarning
 
 
     def addObserver(self, other):
