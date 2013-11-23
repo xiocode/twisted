@@ -74,7 +74,7 @@ class LoggingFileTests(unittest.TestCase):
         f = LoggingFile(self.logger)
         self.assertEquals(f.level, LogLevel.info)
 
-        f = LoggingFile(level=LogLevel.error)
+        f = LoggingFile(self.logger, level=LogLevel.error)
         self.assertEquals(f.level, LogLevel.error)
 
 
@@ -85,7 +85,7 @@ class LoggingFileTests(unittest.TestCase):
         f = LoggingFile(self.logger)
         self.assertEquals(f.encoding, sys.getdefaultencoding())
 
-        f = LoggingFile(encoding="utf-8")
+        f = LoggingFile(self.logger, encoding="utf-8")
         self.assertEquals(f.encoding, "utf-8")
 
 
@@ -112,7 +112,7 @@ class LoggingFileTests(unittest.TestCase):
         f = LoggingFile(self.logger)
         self.assertEquals(
             f.name,
-            "<LoggingFile twisted.python.logger._io.LoggingFile#info>"
+            "<LoggingFile twisted.python.logger.test.test_io#info>"
         )
 
 
