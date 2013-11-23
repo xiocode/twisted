@@ -200,7 +200,6 @@ class LogPublisher:
         Begin logging to the L{LogBeginner} associated with this
         L{LogPublisher}.
         """
-        self._warningsModule.showwarning = self.showwarning
         wrapped = LegacyLogObserverWrapper(other)
         self._legacyObservers.append(wrapped)
         self._logBeginner.beginLoggingTo([wrapped], True, setStdout)

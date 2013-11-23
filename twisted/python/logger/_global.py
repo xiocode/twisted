@@ -128,6 +128,7 @@ class LogBeginner(object):
             if not discardBuffer:
                 self._initialBuffer.replayTo(self._publisher)
             self._temporaryObserver = None
+            self._warningsModule.showwarning = self.showwarning
         else:
             previousFile, previousLine = self._previousBegin
             self._log.warn(MORE_THAN_ONCE_WARNING,
@@ -144,7 +145,6 @@ class LogBeginner(object):
                                                     observer=self._publisher),
                                       level=level)
             setattr(self._stdio, stream, loggingFile)
-        self._warningsModule.showwarning = self.showwarning
 
 
     def showwarning(self, message, category, filename, lineno, file=None,
