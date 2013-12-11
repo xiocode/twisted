@@ -76,7 +76,7 @@ def formatUnformattableEvent(event, error):
             u"Unable to format event {event!r}: {error}"
             .format(event=event, error=error)
         )
-    except:
+    except BaseException:
         # Yikes, something really nasty happened.
         #
         # Try to recover as much formattable data as possible; hopefully at

@@ -165,7 +165,7 @@ class SaveLoadTests(TestCase):
         log = Logger(observer=events.append)
         try:
             1/0
-        except:
+        except ZeroDivisionError:
             f = Failure()
             log.failure("a message about failure", f)
         import sys
