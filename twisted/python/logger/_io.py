@@ -197,6 +197,7 @@ class LoggingFile(object):
         """
         raise IOError("unsupported operation")
 
+
     read       = _unsupported
     next       = _unsupported
     readline   = _unsupported

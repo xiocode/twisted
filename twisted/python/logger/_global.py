@@ -22,11 +22,15 @@ from ._levels import LogLevel
 from ._io import LoggingFile
 from ._file import FileLogObserver
 
+
+
 MORE_THAN_ONCE_WARNING = (
     "Warning: primary log target selected twice at <{fileNow}:{lineNow}> - "
     "previously selected at <{fileThen:logThen}>.  Remove one of the calls to "
     "beginLoggingTo."
 )
+
+
 
 class LogBeginner(object):
     """
@@ -77,8 +81,9 @@ class LogBeginner(object):
         self._temporaryObserver = LogPublisher(
             self._initialBuffer,
             FilteringLogObserver(
-                FileLogObserver(errorStream,
-                                lambda event: formatEvent(event)+"\n"),
+                FileLogObserver(
+                    errorStream, lambda event: formatEvent(event) + "\n"
+                ),
                 [LogLevelFilterPredicate(defaultLogLevel=LogLevel.critical)])
         )
         publisher.addObserver(self._temporaryObserver)
@@ -121,8 +126,10 @@ class LogBeginner(object):
         """
         caller = currentframe(1)
         filename, lineno = caller.f_code.co_filename, caller.f_lineno
+
         for observer in observers:
             self._publisher.addObserver(observer)
+
         if self._temporaryObserver is not None:
             self._publisher.removeObserver(self._temporaryObserver)
             if not discardBuffer:
@@ -131,19 +138,24 @@ class LogBeginner(object):
             self._warningsModule.showwarning = self.showwarning
         else:
             previousFile, previousLine = self._previousBegin
-            self._log.warn(MORE_THAN_ONCE_WARNING,
-                           fileNow=filename, lineNow=lineno,
-                           fileThen=previousFile, lineThen=previousLine)
+            self._log.warn(
+                MORE_THAN_ONCE_WARNING,
+                fileNow=filename, lineNow=lineno,
+                fileThen=previousFile, lineThen=previousLine,
+            )
+
         self._previousBegin = filename, lineno
         # TODO: honor redirectStandardIO
         if redirectStandardIO:
-            streams = [('stdout', LogLevel.info), ('stderr', LogLevel.error)]
+            streams = [("stdout", LogLevel.info), ("stderr", LogLevel.error)]
         else:
             streams = []
+
         for (stream, level) in streams:
-            loggingFile = LoggingFile(logger=Logger(namespace=stream,
-                                                    observer=self._publisher),
-                                      level=level)
+            loggingFile = LoggingFile(
+                logger=Logger(namespace=stream, observer=self._publisher),
+                level=level,
+            )
             setattr(self._stdio, stream, loggingFile)
 
 
@@ -159,15 +171,16 @@ class LogBeginner(object):
         if file is None:
             self._log.warn(
                 "{filename}:{lineno}: {category}: {warning}",
-                warning=message, category=qual(category), filename=filename,
-                lineno=lineno
+                warning=message, category=qual(category),
+                filename=filename, lineno=lineno,
             )
         else:
             if sys.version_info < (2, 6):
                 self._oldshowwarning(message, category, filename, lineno, file)
             else:
-                self._oldshowwarning(message, category, filename, lineno, file,
-                                     line)
+                self._oldshowwarning(
+                    message, category, filename, lineno, file, line
+                )
 
 
 

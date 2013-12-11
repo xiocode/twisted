@@ -18,6 +18,8 @@ from ._observer import ILogObserver
 from ._stdlib import (toStdlibLogLevelMapping, fromStdlibLogLevelMapping,
                       StringifiableFromEvent)
 
+
+
 class LegacyLogger(object):
     """
     A logging object that provides some compatibility with the
@@ -159,7 +161,7 @@ class LegacyLogObserverWrapper(object):
             event["system"] = system
 
         # Format new style -> old style
-        if event.get("log_format", None) is not None and 'format' not in event:
+        if event.get("log_format", None) is not None and "format" not in event:
             # Create an object that implements __str__() in order to defer the
             # work of formatting until it's needed by a legacy log observer.
             event["format"] = "%(log_legacy)s"

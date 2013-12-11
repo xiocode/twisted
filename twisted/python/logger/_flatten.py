@@ -162,7 +162,7 @@ def flatFormat(event):
     for literalText, fieldName, formatSpec, conversion in formatFields:
         key = keyFlattener.flatKey(fieldName, formatSpec, conversion or "s")
         s.extend([literalText, unicode(fieldValues[key])])
-    return u''.join(s)
+    return u"".join(s)
 
 
 
