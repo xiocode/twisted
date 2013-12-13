@@ -189,6 +189,30 @@ class LogBeginnerTests(unittest.TestCase):
         self.assertIdentical(self.sysModule.stderr, oldErr)
 
 
+    def test_beginLoggingTo_preservesEncoding(self):
+        """
+        When L{LogBeginner.beginLoggingTo} redirects stdout/stderr streams, the
+        replacement streams will preserve the encoding of the replaced streams,
+        to minimally disrupt any application relying on a specific encoding.
+        """
+
+        weird = io.TextIOWrapper(io.BytesIO(), "shift-JIS")
+        weirderr = io.TextIOWrapper(io.BytesIO(), "big5")
+
+        self.sysModule.stdout = weird
+        self.sysModule.stderr = weirderr
+
+        x = []
+        self.beginner.beginLoggingTo([x.append])
+        self.assertEquals(self.sysModule.stdout.encoding, "shift-JIS")
+        self.assertEquals(self.sysModule.stderr.encoding, "big5")
+
+        self.sysModule.stdout.write(b"\x97\x9B\n")
+        self.sysModule.stderr.write(b"\xBC\xFC\n")
+        compareEvents(self, x, [dict(message=u'\u674e'),
+                                dict(message=u'\u7469')])
+
+
     def test_warningsModule(self):
         """
         L{LogBeginner.beginLoggingTo} will redirect the warnings of its
