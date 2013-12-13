@@ -194,8 +194,13 @@ class Foo(object):
     <h3>Format strings</h3>
 
     <p>
-        Format strings provide observers with a standard way to format an event as text, via the function <code class="API" base="twisted.python.logger">formatEvent</code>.
-        Format strings should be <code class="python">unicode</code> or UTF-8-encoded <code class="python">bytes</code>, and use <a href="http://www.python.org/dev/peps/pep-3101/">PEP 3101</a> syntax to describe how the event should be rendered as text.
+        Format strings provide observers with a standard way to format an event as text suitable for a human being to read, via the function <code class="API" base="twisted.python.logger">formatEvent</code>.
+        When writing a format string, take care to present it in a manner which would make as much sense as possible to a human reader.
+        Particularly, format strings should <em>not</em> be written with an eye towards parseability or machine-readability.
+        If you want to save your log events along with their structure and then analyze them later, see the next section, on <a href="#saving-events-for-later">"saving events for later"</a>.
+    <p>
+    </p>
+        Format strings should be <code class="python">unicode</code> or UTF-8-encoded <code class="python">bytes</code>, and use <a href="http://www.python.org/dev/peps/pep-3101/">PEP 3101</a> syntax to describe how the event should be rendered as human-readable text.
         There are two variations from PEP 3101 in the format strings used by this module:
     </p>
 
@@ -203,6 +208,9 @@ class Foo(object):
         <li>
             Positional (numerical) field names (eg. <code class="python">{0}</code>) are not permitted.
             Because event keys are provided via keyword arguments, and the logging system adds additional keys, the order of event attributes is non-deterministic, which means positional field names do not make sense in this context.
+            However, this is not an accidental limitation, but an intentional design decision.
+            As software evolves, log messages often grow to include additional information, while still logging the same conceptual event.
+            By using meaningful names rather than opaque indexes for log values, these identifiers are more robust against future changes in the format of messages and the information provided.
         </li>
         <li>
             Field names ending in parentheses (eg. <code class="python">{foo()}</code>) will call the referenced object with no arguments, then call <code class="python">str</code> on the result, rather than calling <code class="python">str</code> on the referenced object directly.
@@ -217,7 +225,7 @@ log.info("{request.uri} useful, but expensive: {request.usefulButExpensive()}",
         </li>
     </ol>
 
-    <h2>Saving events for later</h2>
+    <h2><a name="saving-events-for-later"></a>Saving events for later</h2>
 
     <p>
         For compatibility reasons, <code>twistd</code> will log to a text-based format by default.
@@ -389,11 +397,11 @@ log.info("Hello")
 
     <p>
         When the global log publisher is created, it uses a <code class="API" base="twisted.python.logger">LimitedHistoryLogObserver</code> (see below) to store events that are logged by the application in memory until logging is started.
-        Logging is started by registering the first set of observers with the global log publisher by calling <code class="API" base="twisted.python.logger.globalLogPublisher">startLoggingWithObservers</code>:
+        Logging is started by registering the first set of observers with the global log publisher by calling <code class="API" base="twisted.python.logger.LogBeginner">beginLoggingTo</code>:
     </p>
 
     <pre class="python">
-from twisted.python.logger import globalLogPublisher
+from twisted.python.logger import globalLogBeginner
 from myobservers import PrintingObserver
 
 log = Logger()
@@ -402,14 +410,14 @@ log.info("Hello")
 
 observers = [PrintingObserver()]
 
-globalLogPublisher.startLoggingWithObservers(observers)
+globalLogBeginner.beginLoggingTo(observers)
 
 log.info("Hello, again")
     </pre>
 
     <p>
-        What this does is add the given observers (in this example, the <code class="python">PrintingObserver</code>) with the global log observer, then forwards all of the events that were stored in memory prior to calling <code class="API" base="twisted.python.logger.globalLogPublisher">startLoggingWithObservers</code> to these observers, and gets rid of the <code class="API" base="twisted.python.logger">LimitedHistoryLogObserver</code>, as it is no longer needed.
-        It is an error to call <code class="API" base="twisted.python.logger.globalLogPublisher">startLoggingWithObservers</code> more than once.
+        What this does is add the given observers (in this example, the <code class="python">PrintingObserver</code>) with the global log observer, then forwards all of the events that were stored in memory prior to calling <code class="API" base="twisted.python.logger.LogBeginner">beginLoggingTo</code> to these observers, and gets rid of the <code class="API" base="twisted.python.logger">LimitedHistoryLogObserver</code>, as it is no longer needed.
+        It is an error to call <code class="API" base="twisted.python.logger.LogBeginner">beginLoggingTo</code> more than once.
     </p>
 
 
@@ -440,10 +448,9 @@ log.info("Hello, again")
 
         <dt><code class="API" base="twisted.python.logger">FilteringLogObserver</code></dt>
         <dd>
-            Forwards events to another observer after applying a set of filter predicates.
+            Forwards events to another observer after applying a set of filter predicates (providers of <code class="API" base="twisted.python.logger">ILogFilterPredicate</code>).
             <code class="API" base="twisted.python.logger">LogLevelFilterPredicate</code> is a predicate that be configured to keep track of which log levels to filter for different namespaces, and will filter out events that are not at the appropriate level or higher.
         </dd>
-
     </dl>
 
 
