@@ -6,6 +6,8 @@
 Filtering log observer.
 """
 
+from functools import partial
+
 from zope.interface import Interface, implementer
 
 from twisted.python.constants import NamedConstant, Names
@@ -38,6 +40,40 @@ class ILogFilterPredicate(Interface):
 
 
 
+def shouldLogEvent(predicates, event):
+    """
+    Determine whether an event should be logged, based on the result of
+    C{predicates}.
+
+    By default, the result is C{True}; so if there are no predicates,
+    everything will be logged.
+
+    If any predicate returns C{yes}, then we will immediately return True.
+
+    If any predicate returns C{no}, then we will immediately return False.
+
+    As predicates return C{maybe}, we keep calling the next predicate until we
+    run out, at which point we return True.
+
+    @param event: An event
+    @type event: L{dict}
+
+    @return: True if the message should be forwarded on, False if not.
+    @rtype: L{bool}
+    """
+    for predicate in predicates:
+        result = predicate(event)
+        if result == PredicateResult.yes:
+            return True
+        if result == PredicateResult.no:
+            return False
+        if result == PredicateResult.maybe:
+            continue
+        raise TypeError("Invalid predicate result: {0!r}".format(result))
+    return True
+
+
+
 @implementer(ILogObserver)
 class FilteringLogObserver(object):
     """
@@ -55,40 +91,18 @@ class FilteringLogObserver(object):
             the wrapped observer.
         @type predicates: ordered iterable of predicates
         """
-        self.observer = observer
-        self.predicates = list(predicates)
-
-
-    def shouldLogEvent(self, event):
-        """
-        Determine whether an event should be logged, based C{self.predicates}.
-
-        @param event: An event
-        @type event: L{dict}
-
-        @return: yes, no, or maybe
-        @rtype: L{NamedConstant} from L{PredicateResult}
-        """
-        for predicate in self.predicates:
-            result = predicate(event)
-            if result == PredicateResult.yes:
-                return True
-            if result == PredicateResult.no:
-                return False
-            if result == PredicateResult.maybe:
-                continue
-            raise TypeError("Invalid predicate result: {0!r}".format(result))
-        return True
+        self._observer = observer
+        self._shouldLogEvent = partial(shouldLogEvent, list(predicates))
 
 
     def __call__(self, event):
         """
         Forward to next observer if predicate allows it.
         """
-        if self.shouldLogEvent(event):
+        if self._shouldLogEvent(event):
             if "log_trace" in event:
                 event["log_trace"].append((self, self.observer))
-            self.observer(event)
+            self._observer(event)
 
 
 
