@@ -91,9 +91,9 @@ class FilteringLogObserver(object):
             the wrapped observer.
         @type predicates: ordered iterable of predicates
 
-        @param observer: An observer to which this observer will forward
+        @param otherObserver: An observer to which this observer will forward
             events when C{predictates} yield a negative result.
-        @type observer: L{ILogObserver}
+        @type otherObserver: L{ILogObserver}
         """
         self._observer = observer
         self._shouldLogEvent = partial(shouldLogEvent, list(predicates))
