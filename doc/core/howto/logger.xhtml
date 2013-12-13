@@ -336,7 +336,61 @@ def simpleObserver(event):
         However, let's say you're trying to interact with a system that logs messages like so:
     </p>
 
-    
+    <a href="listings/logger/ad_hoc.py" class="py-listing">ad_hoc.py</a>
+
+    <p>
+        In this example, the <code>AdHoc</code> object is not itself serializable, but it has two relevant fields, which the log message's format string calls out as attributes of the <code>log_source</code> field, as described above: <code>a</code> and <code>b</code>.
+    </p>
+
+    <p>
+        To analyze this event, we can't pursue the same strategy shown above in <code>loader-math.py</code>.
+        We don't have any fields of the log event to examine directly; <code>a</code> and <code>b</code> are not present as keys themselves.
+        We could look for the <code>log_source</code> key within the event and access its <code>a</code> and <code>b</code> attributes, but that wouldn't work once the event had been serialized and loaded again, since an <code>AdHoc</code> instance isn't a basic type that can be saved to JSON.
+    </p>
+
+    <p>
+        Luckily, <code class="API">twisted.python.logger</code> provides an API for doing just this: <code class="API" base="twisted.python.logger">extractField</code>.
+        You use it like so:
+    </p>
+
+    <a href="listings/logger/analyze.py" class="py-listing">analyze.py</a>
+
+    <p>
+        This <code>analyze</code> function can then be used in two ways.
+        First, you can analyze your application "live", as it's running.
+    </p>
+
+    <a href="listings/logger/online_analyze.py" class="py-listing">online_analyze.py</a>
+
+    <p>
+        If you run this script, you will see that it extracts the values from the <code>AdHoc</code> object's log message.
+    </p>
+
+    <p>
+        However, you can also analyze output from a saved log file, using the exact same code.
+        First, you'll need to produce a log file with a message from an AdHoc object in it:
+    </p>
+
+    <a href="listings/logger/ad_hoc_save.py" class="py-listing">ad_hoc_save.py</a>
+
+    <p>
+        If you run that script, it will produce a <code>log.json</code> file which can be analyzed in the same manner as the <code>loader.py</code> example above:
+    </p>
+
+    <a href="listings/logger/offline_analyze.py" class="py-listing">offline_analyze.py</a>
+
+    <p>
+        When doing analysis, it always seems like you should have saved more structured data for later.
+        However, often log messages are written early on in development, in an ad-hoc way, before a solid understanding has developed about what information will be useful and what will be redundant.
+        Log messages are often, unavoidably, a stream-of-consciousness commentary on what is going on as a system is being developed.
+    </p>
+
+    <p>
+        <code>extractField</code> lets you acknowledge the messy reality of how log messages are written, but still take advantage of structured analysis later on.
+        Just always be sure to use event format fields, not string concatenation, to reference information about a particular event, and you'll be able to easily pull apart hastily-written ad-hoc messages from multiple versions of a system, either as it's running or once you've saved a log file.
+    </p>
+
+    <!-- TODO: explain filtering -->
 
     <h2>Registering an observer</h2>
 
