@@ -145,7 +145,6 @@ class LogBeginner(object):
             )
 
         self._previousBegin = filename, lineno
-        # TODO: honor redirectStandardIO
         if redirectStandardIO:
             streams = [("stdout", LogLevel.info), ("stderr", LogLevel.error)]
         else:
