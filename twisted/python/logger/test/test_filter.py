@@ -35,24 +35,33 @@ class FilteringLogObserverTests(unittest.TestCase):
             self.fail(e)
 
 
-    def filterWith(self, *filters):
+    def filterWith(self, filters, other=False):
         """
         Apply a set of pre-defined filters on a known set of events and return
         the filtered list of event numbers.
 
-        The pre-defined events are four events with a C{count} attribute set
-        to C{0}, C{1}, C{2}, and C{3}.
+        The pre-defined events are four events with a C{count} attribute set to
+        C{0}, C{1}, C{2}, and C{3}.
 
         @param filters: names of the filters to apply.
+
             Options are:
-            C{"twoMinus"} (count <=2),
-            C{"twoPlus"} (count >= 2),
-            C{"notTwo"} (count != 2),
-            C{"no"} (False).
+
+                - C{"twoMinus"} (count <=2),
+
+                - C{"twoPlus"} (count >= 2),
+
+                - C{"notTwo"} (count != 2),
+
+                - C{"no"} (False).
+
         @type filters: iterable of str
 
-        @return: event numbers
-        @rtype: L{list} of L{int}
+        @param other: Whether to return a list of filtered events as well.
+        @type other: L{bool}
+
+        @return: event numbers or 2-tuple of lists of event numbers.
+        @rtype: L{list} of L{int} or 2-L{tuple} of L{list} of L{int}
         """
         events = [
             dict(count=0),
@@ -133,11 +142,20 @@ class FilteringLogObserverTests(unittest.TestCase):
 
         predicates = (getattr(Filters, f) for f in filters)
         eventsSeen = []
-        trackingObserver = lambda e: eventsSeen.append(e)
-        filteringObserver = FilteringLogObserver(trackingObserver, predicates)
+        eventsNotSeen = []
+        trackingObserver = eventsSeen.append
+        if other:
+            extra = [eventsNotSeen.append]
+        else:
+            extra = []
+        filteringObserver = FilteringLogObserver(trackingObserver, predicates,
+                                                 *extra)
         for e in events:
             filteringObserver(e)
 
+        if extra:
+            return ([e["count"] for e in eventsSeen],
+                    [e["count"] for e in eventsNotSeen])
         return [e["count"] for e in eventsSeen]
 
 
@@ -145,28 +163,35 @@ class FilteringLogObserverTests(unittest.TestCase):
         """
         No filters: all events come through.
         """
-        self.assertEquals(self.filterWith(), [0, 1, 2, 3])
+        self.assertEquals(self.filterWith([]), [0, 1, 2, 3])
 
 
     def test_shouldLogEvent_noFilter(self):
         """
         Filter with negative predicate result.
         """
-        self.assertEquals(self.filterWith("notTwo"), [0, 1, 3])
+        self.assertEquals(self.filterWith(["notTwo"]), [0, 1, 3])
+
+
+    def test_shouldLogEvent_otherObserver(self):
+        """
+        Filtered results get sent to the other observer, if passed.
+        """
+        self.assertEquals(self.filterWith(["notTwo"], True), ([0, 1, 3], [2]))
 
 
     def test_shouldLogEvent_yesFilter(self):
         """
         Filter with positive predicate result.
         """
-        self.assertEquals(self.filterWith("twoPlus"), [0, 1, 2, 3])
+        self.assertEquals(self.filterWith(["twoPlus"]), [0, 1, 2, 3])
 
 
     def test_shouldLogEvent_yesNoFilter(self):
         """
         Series of filters with positive and negative predicate results.
         """
-        self.assertEquals(self.filterWith("twoPlus", "no"), [2, 3])
+        self.assertEquals(self.filterWith(["twoPlus", "no"]), [2, 3])
 
 
     def test_shouldLogEvent_yesYesNoFilter(self):
@@ -174,7 +199,7 @@ class FilteringLogObserverTests(unittest.TestCase):
         Series of filters with positive, positive and negative predicate
         results.
         """
-        self.assertEquals(self.filterWith("twoPlus", "twoMinus", "no"),
+        self.assertEquals(self.filterWith(["twoPlus", "twoMinus", "no"]),
                           [0, 1, 2, 3])
 
 
@@ -182,7 +207,7 @@ class FilteringLogObserverTests(unittest.TestCase):
         """
         Filter with invalid predicate result.
         """
-        self.assertRaises(TypeError, self.filterWith, "bogus")
+        self.assertRaises(TypeError, self.filterWith, ["bogus"])
 
 
     def test_call(self):

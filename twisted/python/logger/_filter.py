@@ -81,18 +81,23 @@ class FilteringLogObserver(object):
     based on applying a series of L{ILogFilterPredicate}s.
     """
 
-    def __init__(self, observer, predicates):
+    def __init__(self, observer, predicates, otherObserver=lambda event: None):
         """
         @param observer: An observer to which this observer will forward
-            events.
+            events when C{predictates} yield a positive result.
         @type observer: L{ILogObserver}
 
         @param predicates: Predicates to apply to events before forwarding to
             the wrapped observer.
         @type predicates: ordered iterable of predicates
+
+        @param observer: An observer to which this observer will forward
+            events when C{predictates} yield a negative result.
+        @type observer: L{ILogObserver}
         """
         self._observer = observer
         self._shouldLogEvent = partial(shouldLogEvent, list(predicates))
+        self._otherObserver = otherObserver
 
 
     def __call__(self, event):
@@ -103,6 +108,8 @@ class FilteringLogObserver(object):
             if "log_trace" in event:
                 event["log_trace"].append((self, self.observer))
             self._observer(event)
+        else:
+            self._otherObserver(event)
 
 
 
