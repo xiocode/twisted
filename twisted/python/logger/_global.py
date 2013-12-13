@@ -151,9 +151,11 @@ class LogBeginner(object):
             streams = []
 
         for (stream, level) in streams:
+            oldStream = getattr(self._stdio, stream)
             loggingFile = LoggingFile(
                 logger=Logger(namespace=stream, observer=self._publisher),
                 level=level,
+                encoding=getattr(oldStream, "encoding", None),
             )
             setattr(self._stdio, stream, loggingFile)
 
