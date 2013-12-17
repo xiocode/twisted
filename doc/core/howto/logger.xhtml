@@ -122,7 +122,7 @@ class Foo(object):
 
     <p>
         All <code class="API" base="twisted.python.logger">Logger</code>s have a namespace, which can be used to categorize events.
-        Namespaces may be specified by passing in a <code class="python">namespace</code> argument to <code class="API" base="twisted.python.logger">Logger</code>'s initializer, but if none is given, the logger will derive its own namespace by using the module name of the callable that instantiated it, or, in the case of a class, by using the fully qualified name of the class.
+        Namespaces may be specified by passing in a <code class="python">namespace</code> argument to <code class="API" base="twisted.python.logger">Logger</code>'s initializer, but if none is given, the logger will derive its namespace from the module name of the callable that instantiated it, or, in the case of a class, from the fully qualified name of the class.
         A <code class="API" base="twisted.python.logger">Logger</code> will add a <code class="python">log_namespace</code> key to the events it emits.
     </p>
 
@@ -158,8 +158,8 @@ class Foo(object):
 
         <dt><code class="API" base="twisted.python.logger.LogLevel">error</code></dt>
         <dd>
-            Error conditions: Events indicating a systemic failure, such as programming errors in the form of unhandled exceptions, loss of connectivity to an external system without which no useful work can proceed, such as a database or API endpoint, or resource exhaustion.
-            Similarly to warnings, errors that are related to operational parameters may be actionable to system administrators and should provide references to resources which an administrator might use to resolve them.
+            Error conditions: Events indicating a systemic failure.  For example, resource exhaustion, or the loss of connectivity to an external system, such as a database or API endpoint, without which no useful work can proceed.
+            Similar to warnings, errors related to operational parameters may be actionable to system administrators and should provide references to resources which an administrator might use to resolve them.
         </dd>
 
         <dt><code class="API" base="twisted.python.logger.LogLevel">critical</code></dt>
