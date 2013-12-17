@@ -232,7 +232,7 @@ log.info("{request.uri} useful, but expensive: {request.usefulButExpensive()}",
         For compatibility reasons, <code>twistd</code> will log to a text-based format by default.
         However, it's much better to use a structured log file format which preserves information about the events being logged.
         <code>twisted.python.logger</code> provides APIs: <code class="API" base="twisted.python.logger">jsonFileLogObserver</code> <code class="API" base="twisted.python.logger">eventsFromJSONLogFile</code> which allow you to save and retrieve structured log events with a basic level of fidelity.
-        Log events are serialized as JSON dictionaries, with as lenient serialization rules as possible; any unknown values are replaced with simple placeholder values.
+        Log events are serialized as JSON dictionaries, with serialization rules that are as lenient as possible; any unknown values are replaced with simple placeholder values.
     </p>
 
     <p>
@@ -382,8 +382,8 @@ def simpleObserver(event):
 
     <p>
         When doing analysis, it always seems like you should have saved more structured data for later.
-        However, often log messages are written early on in development, in an ad-hoc way, before a solid understanding has developed about what information will be useful and what will be redundant.
-        Log messages are often, unavoidably, a stream-of-consciousness commentary on what is going on as a system is being developed.
+        However, log messages are often written early on in development, in an ad-hoc way, before a solid understanding has developed about what information will be useful and what will be redundant.
+        Log messages are therefore a stream-of-consciousness commentary on what is going on as a system is being developed.
     </p>
 
     <p>
