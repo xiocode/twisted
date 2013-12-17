@@ -7,8 +7,8 @@ class MyObject(object):
         self.value = value
 
     def doSomething(self, something):
-        self.log.critical(
-            "object with value {log_source.value} doing {something}",
+        self.log.info(
+            "Object with value {log_source.value!r} doing {something}.",
             something=something
         )
 
