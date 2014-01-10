@@ -11,7 +11,8 @@ from twisted.trial.unittest import TestCase
 
 from twisted.python.failure import Failure
 
-from twisted.python.logger import formatEvent, LogLevel
+from .._format import formatEvent
+from .._levels import LogLevel
 from .._flatten import extractField
 from .._json import eventAsJSON, eventFromJSON
 from .._logger import Logger

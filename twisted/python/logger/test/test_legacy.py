@@ -19,9 +19,11 @@ from .._levels import LogLevel
 from .._observer import ILogObserver
 from .._legacy import LegacyLogger
 from .._legacy import LegacyLogObserverWrapper
+from .._format import formatEvent
 
-from twisted.python.logger._format import formatEvent
 from .test_logger import TestLogger
+
+
 
 class TestLegacyLogger(LegacyLogger):
     """
