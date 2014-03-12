@@ -3,50 +3,28 @@
 :LastChangedRevision: $LastChangedRevision$
 :LastChangedBy: $LastChangedBy$
 
+
 Symbolic Constants
 ==================
-
-
-
-
 
 
 Overview
 --------
 
+It is often useful to define names which will be treated as constants.
+:api:`twisted.python.constants <twisted.python.constants>` provides APIs for defining such symbolic constants with minimal overhead and some useful features beyond those afforded by the common Python idioms for this task.
 
-  
-It is often useful to define names which will be treated as
-constants.  :api:`twisted.python.constants <twisted.python.constants>` provides APIs
-for defining such symbolic constants with minimal overhead and some useful
-features beyond those afforded by the common Python idioms for this task.
-
-  
-
-
-This document will explain how to use these APIs and what circumstances
-they might be helpful in.
-
-  
-
+This document will explain how to use these APIs and what circumstances they might be helpful in.
 
 
 Constant Names
 --------------
 
-
-  
-Constants which have no value apart from their name and identity can be
-defined by subclassing :api:`twisted.python.constants.Names <Names>` .
+Constants which have no value apart from their name and identity can be defined by subclassing :api:`twisted.python.constants.Names <Names>` .
 Consider this example, in which some HTTP request method constants are defined.
-
-  
-
-
 
 .. code-block:: python
 
-    
     from twisted.python.constants import NamedConstant, Names
     class METHOD(Names):
         """
@@ -57,44 +35,22 @@ Consider this example, in which some HTTP request method constants are defined.
         POST = NamedConstant()
         DELETE = NamedConstant()
 
+Only direct subclasses of ``Names`` are supported (i.e., you cannot subclass ``METHOD`` to add new constants the collection).
 
-
-  
-Only direct subclasses of ``Names`` are supported (i.e., you
-cannot subclass ``METHOD`` to add new constants the collection).
-
-  
-
-
-Given this definition, constants can be looked up by name using attribute
-access on the ``METHOD`` object:
-
-  
-
-
+Given this definition, constants can be looked up by name using attribute access on the ``METHOD`` object:
 
 .. code-block:: console
 
-    
     >>> METHOD.GET
     <METHOD=GET>
     >>> METHOD.PUT
     <METHOD=PUT>
     >>>
 
-
-
-  
-If it's necessary to look up constants based on user input of some sort, a
-safe way to do it is using ``lookupByName`` :
-
-  
-
-
+If it's necessary to look up constants based on user input of some sort, a safe way to do it is using ``lookupByName`` :
 
 .. code-block:: console
 
-    
     >>> METHOD.lookupByName('GET')
     <METHOD=GET>
     >>> METHOD.lookupByName('__doc__')
@@ -105,43 +61,20 @@ safe way to do it is using ``lookupByName`` :
     ValueError: __doc__
     >>>
 
+As demonstrated, it is safe because any name not associated with a constant (even those special names initialized by Python itself) will result in ``ValueError`` being raised, not some other object not intended to be used the way the constants are used.
 
-
-  
-As demonstrated, it is safe because any name not associated with a constant
-(even those special names initialized by Python itself) will result
-in ``ValueError`` being raised, not some other object not intended to
-be used the way the constants are used.
-
-  
-
-
-The constants can also be enumerated using the ``iterconstants`` 
-method.
-
-  
-
-
+The constants can also be enumerated using the ``iterconstants`` method.
 
 .. code-block:: console
 
-    
     >>> list(METHOD.iterconstants())
     [<METHOD=GET>, <METHOD=PUT>, <METHOD=POST>, <METHOD=DELETE>]
     >>>
 
-
-
-  
 And constants can also be compared, either for equality or identity:
-
-  
-
-
 
 .. code-block:: console
 
-    
     >>> METHOD.GET is METHOD.GET
     True
     >>> METHOD.GET == METHOD.GET
@@ -152,20 +85,12 @@ And constants can also be compared, either for equality or identity:
     False
     >>>
 
-
-
-  
-Custom functionality can also be associated with constants defined this
-way.  A subclass of ``Names`` may define class methods to implement
-such functionality.  Consider this redefinition of ``METHOD`` :
-
-  
-
-
+Custom functionality can also be associated with constants defined this way.
+A subclass of ``Names`` may define class methods to implement such functionality.
+Consider this redefinition of ``METHOD`` :
 
 .. code-block:: python
 
-    
     from twisted.python.constants import NamedConstant, Names
     class METHOD(Names):
         """
@@ -183,18 +108,10 @@ such functionality.  Consider this redefinition of ``METHOD`` :
             """
             return method is cls.GET
 
-
-
-  
 This functionality can be used as any class methods are used:
-
-  
-
-
 
 .. code-block:: console
 
-    
     >>> METHOD.isIdempotent(METHOD.GET)
     True
     >>> METHOD.isIdempotent(METHOD.POST)
@@ -202,27 +119,14 @@ This functionality can be used as any class methods are used:
     >>>
 
 
-
-  
-
 Constants With Values
 ---------------------
 
-
-  
-Constants with a particular associated value are supported by
-the :api:`twisted.python.constants.Values <Values>` base
-class.  Consider this example, in which some HTTP status code constants are
-defined.
-
-
-  
-
-
+Constants with a particular associated value are supported by the :api:`twisted.python.constants.Values <Values>` base class.
+Consider this example, in which some HTTP status code constants are defined.
 
 .. code-block:: python
 
-    
     from twisted.python.constants import ValueConstant, Values
     class STATUS(Values):
         """
@@ -232,71 +136,36 @@ defined.
         FOUND = ValueConstant("302")
         NOT_FOUND = ValueConstant("404")
 
-
-
-  
-As with ``Names`` , constants are accessed as attributes of the
-class object:
-
-  
-
-
+As with ``Names`` , constants are accessed as attributes of the class object:
 
 .. code-block:: console
 
-    
     >>> STATUS.OK
     <STATUS=OK>
     >>> STATUS.FOUND
     <STATUS=FOUND>
     >>>
 
-
-
-  
-Additionally, the values of the constants can be accessed using
-the ``value`` attribute of one these objects:
-
-  
-
-
+Additionally, the values of the constants can be accessed using the ``value`` attribute of one these objects:
 
 .. code-block:: console
 
-    
     >>> STATUS.OK.value
     '200'
     >>>
 
-
-
-  
 And as with ``Names`` , constants can be looked up by name:
-
-  
-
-
 
 .. code-block:: console
 
-    
     >>> STATUS.lookupByName('NOT_FOUND')
     <STATUS=NOT_FOUND>
     >>>
 
-
-
-  
-Constants on a ``Values`` subclass can also be looked up by
-value:
-
-  
-
-
+Constants on a ``Values`` subclass can also be looked up by value:
 
 .. code-block:: console
 
-    
     >>> STATUS.lookupByValue('404')
     <STATUS=NOT_FOUND>
     >>> STATUS.lookupByValue('500')
@@ -307,40 +176,21 @@ value:
     ValueError: 500
     >>>
 
-
-
-  
-Multiple constants may have the same value.  If they do,
-``lookupByValue`` will find the one which is defined first.
-
-  
-
+Multiple constants may have the same value.
+If they do, ``lookupByValue`` will find the one which is defined first.
 
 Iteration is also supported:
 
-  
-
-
-
 .. code-block:: console
 
-    
     >>> list(STATUS.iterconstants())
     [<STATUS=OK>, <STATUS=FOUND>, <STATUS=NOT_FOUND>]
     >>>
 
-
-
-  
 And constants can be compared for equality and identity:
-
-  
-
-
 
 .. code-block:: console
 
-    
     >>> STATUS.OK == STATUS.OK
     True
     >>> STATUS.OK is STATUS.OK
@@ -351,19 +201,10 @@ And constants can be compared for equality and identity:
     False
     >>>
 
-
-
-  
-And, as with ``Names`` , a subclass of ``Values`` can
-define methods:
-
-  
-
-
+And, as with ``Names`` , a subclass of ``Values`` can define methods:
 
 .. code-block:: python
 
-    
     from twisted.python.constants import ValueConstant, Values
     class STATUS(Values):
         """
@@ -382,18 +223,10 @@ define methods:
             """
             return status not in (cls.NO_CONTENT, cls.NOT_MODIFIED)
 
-
-
-  
 This functionality can be used as any class methods are used:
-
-  
-
-
 
 .. code-block:: console
 
-    
     >>> STATUS.hasBody(STATUS.OK)
     True
     >>> STATUS.hasBody(STATUS.NO_CONTENT)
@@ -401,35 +234,19 @@ This functionality can be used as any class methods are used:
     >>>
 
 
-
-  
-
 Constants As Flags
 ------------------
-
-
   
-Integers are often used as a simple set for constants.  The values for
-these constants are assigned as powers of two so that bits in the integer can
-be set to represent them.  Individual bits are often called *flags* .
-:api:`twisted.python.constants.Flags <Flags>` supports this
-use-case, including allowing constants with particular bits to be set, for
-interoperability with other tools.
+Integers are often used as a simple set for constants.
+The values for these constants are assigned as powers of two so that bits in the integer can be set to represent them.
+Individual bits are often called *flags* .
+:api:`twisted.python.constants.Flags <Flags>` supports this use-case, including allowing constants with particular bits to be set, for interoperability with other tools.
 
-  
-
-
-POSIX filesystem access control is traditionally done using a bitvector
-defining which users and groups may perform which operations on a file.  This
-state might be represented using ``Flags`` as follows:
-
-  
-
-
+POSIX filesystem access control is traditionally done using a bitvector defining which users and groups may perform which operations on a file.
+This state might be represented using ``Flags`` as follows:
 
 .. code-block:: python
 
-    
     from twisted.python.constants import FlagConstant, Flags
     class Permission(Flags):
         """
@@ -446,21 +263,10 @@ state might be represented using ``Flags`` as follows:
         USER_WRITE = FlagConstant()
         USER_READ = FlagConstant()
 
-
-
-  
-
-As for the previous types of constants, these can be accessed as attributes
-of the class object:
-
-
-  
-
-
+As for the previous types of constants, these can be accessed as attributes of the class object:
 
 .. code-block:: console
 
-    
     >>> Permission.USER_READ
     <Permission=USER_READ>
     >>> Permission.USER_WRITE
@@ -469,56 +275,28 @@ of the class object:
     <Permission=USER_EXECUTE>
     >>>
 
-
-
-  
-These constant objects also have a ``value`` attribute giving
-their integer value:
-
-  
-
-
+These constant objects also have a ``value`` attribute giving their integer value:
 
 .. code-block:: console
 
-    
     >>> Permission.USER_READ.value
     256
     >>>
 
-
-
-  
 And these constants can be looked up by name or value:
-
-  
-
-
 
 .. code-block:: console
 
-    
     >>> Permission.lookupByName('USER_READ') is Permission.USER_READ
     True
     >>> Permission.lookupByValue(256) is Permission.USER_READ
     True
     >>>
 
-
-
-  
-Constants can also be combined using the logical operators ``&`` 
-(*and* ), ``|`` (*or* ), and ``^`` 
-(*exclusive or* ).
-
-
-  
-
-
+Constants can also be combined using the logical operators ``&`` (*and* ), ``|`` (*or* ), and ``^`` (*exclusive or* ).
 
 .. code-block:: console
 
-    
     >>> Permission.USER_READ | Permission.USER_WRITE
     <Permission={USER_READ,USER_WRITE}>
     >>> (Permission.USER_READ | Permission.USER_WRITE) & Permission.USER_WRITE
@@ -527,18 +305,10 @@ Constants can also be combined using the logical operators ``&``
     <Permission=USER_READ>
     >>>
 
-
-
-  
 These combined constants can be deconstructed via iteration:
-
-  
-
-
 
 .. code-block:: console
 
-    
     >>> mode = Permission.USER_READ | Permission.USER_WRITE
     >>> list(mode)
     [<Permission=USER_READ>, <Permission=USER_WRITE>]
@@ -548,18 +318,10 @@ These combined constants can be deconstructed via iteration:
     False
     >>>
 
-
-
-  
 They can also be inspected via boolean operations:
-
-  
-
-
 
 .. code-block:: console
 
-    
     >>> Permission.USER_READ & mode
     <Permission=USER_READ>
     >>> bool(Permission.USER_READ & mode)
@@ -570,62 +332,30 @@ They can also be inspected via boolean operations:
     False
     >>>
 
-
-
-  
 The unary operator ``~`` (*not* ) is also defined:
-
-  
-
-
 
 .. code-block:: console
 
-    
     >>> ~Permission.USER_READ
     <Permission={GROUP_EXECUTE,GROUP_READ,GROUP_WRITE,OTHER_EXECUTE,OTHER_READ,OTHER_WRITE,USER_EXECUTE,USER_WRITE}>
     >>>
 
-
-
-  
-Constants created using these operators also have a ``value`` 
-attribute.
-
-  
-
-
+Constants created using these operators also have a ``value`` attribute.
 
 .. code-block:: console
 
-    
     >>> (~Permission.USER_WRITE).value
     383
     >>>
 
+Note the care taken to ensure the ``~`` operator is applied first and the ``value`` attribute is looked up second.
 
-
-  
-
-Note the care taken to ensure the ``~`` operator is applied first
-and the ``value`` attribute is looked up second.
-
-
-  
-
-
-A ``Flags`` subclass can also define methods, just as
-a ``Names`` or ``Values`` subclass may.  For example,
-``Permission`` might benefit from a method to format a flag as a
-string in the traditional style.  Consider this addition to that class:
-
-  
-
-
+A ``Flags`` subclass can also define methods, just as a ``Names`` or ``Values`` subclass may.
+For example, ``Permission`` might benefit from a method to format a flag as a string in the traditional style.
+Consider this addition to that class:
 
 .. code-block:: python
 
-    
     from twisted.python import filepath
     from twisted.python.constants import FlagConstant, Flags
     class Permission(Flags):
@@ -638,20 +368,10 @@ string in the traditional style.  Consider this addition to that class:
             """
             return filepath.Permissions(permissions.value).shorthand()
 
-
-
-  
 Use this like any other class method:
-
-  
-
-
 
 .. code-block:: console
 
-    
     >>> Permission.format(Permission.USER_READ | Permission.USER_WRITE | Permission.GROUP_READ | Permission.OTHER_READ)
     'rw-r--r--'
     >>>
-
-
