@@ -1085,18 +1085,27 @@ class OrderedConstantsTests(TestCase):
 
 
 class NamedLetters(Names):
+    """
+    Some letters, named.
+    """
     alpha = NamedConstant()
     beta  = NamedConstant()
 
 
 
 class MoreNamedLetters(Names):
+    """
+    Some more letters, named.
+    """
     digamma = NamedConstant()
     zeta  = NamedConstant()
 
 
 
 class ValuedLetters(Values):
+    """
+    Some more letters, with cooresponding unicode values.
+    """
     # Note u'\u0391' < u'\u03dc' > u'\u0396', o we are ensuring here that the
     # definition order different from the order of the values, which let's us
     # test that we're not somehow ordering by value and happen the get the same
@@ -1108,6 +1117,9 @@ class ValuedLetters(Values):
 
 
 class PizzaToppings(Flags):
+    """
+    Some pizza toppings, with obviously meaningful bitwise values.
+    """
     # Note 1<<1 < 1<<4 > 1<<2, so we are ensuring here that the definition
     # order different from the order of the values, which let's us test that
     # we're not somehow ordering by value and happen the get the same results.
