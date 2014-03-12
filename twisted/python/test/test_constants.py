@@ -878,89 +878,96 @@ class OrderedConstantsTests(TestCase):
     The ordering of constants that are not in the same container is not
     defined.
     """
-    def test_orderedNameConstants(self):
+    def test_orderedNameConstants_lt(self):
         """
         L{twisted.python.constants.NamedConstant} preserves definition
-        order.
+        order in C{<} comparisons.
         """
         class Letters(Names):
-            alpha   = NamedConstant()
-            beta    = NamedConstant()
-            gamma   = NamedConstant()
-            delta   = NamedConstant()
-            epsilon = NamedConstant()
-            digamma = NamedConstant()
-            zeta    = NamedConstant()
-            eta     = NamedConstant()
+            alpha = NamedConstant()
+            beta  = NamedConstant()
 
-        self.assertTrue(
-            Letters.alpha < Letters.beta < Letters.gamma < Letters.delta <
-            Letters.epsilon < Letters.digamma < Letters.zeta < Letters.eta,
-            "< failed"
-        )
-
-        self.assertTrue(
-            Letters.eta > Letters.zeta > Letters.digamma > Letters.epsilon >
-            Letters.delta > Letters.gamma > Letters.beta > Letters.alpha,
-            "> failed"
-        )
+        self.assertTrue(Letters.alpha < Letters.beta)
 
 
-    def test_orderedValueConstants(self):
+    def test_orderedNameConstants_gt(self):
+        """
+        L{twisted.python.constants.NamedConstant} preserves definition
+        order in C{>} comparisons.
+        """
+        class Letters(Names):
+            alpha = NamedConstant()
+            beta  = NamedConstant()
+
+        self.assertTrue(Letters.beta > Letters.alpha)
+
+
+    def test_orderedValueConstants_lt(self):
         """
         L{twisted.python.constants.ValueConstant} preserves definition
-        order.
+        order in C{<} comparisons.
         """
+        # Note u'\u0391' < u'\u03dc' > u'\u0396', so we are ensuring here that
+        # we're not ordering by value and accidentally getting the right answer
+        # here.
+
         class Letters(Values):
             alpha   = ValueConstant(u'\u0391')
-            beta    = ValueConstant(u'\u0392')
-            gamma   = ValueConstant(u'\u0393')
-            delta   = ValueConstant(u'\u0394')
-            epsilon = ValueConstant(u'\u0395')
             digamma = ValueConstant(u'\u03dc')
             zeta    = ValueConstant(u'\u0396')
-            eta     = ValueConstant(u'\u0397')
 
-        self.assertTrue(
-            Letters.alpha < Letters.beta < Letters.gamma < Letters.delta <
-            Letters.epsilon < Letters.digamma < Letters.zeta < Letters.eta,
-            "< failed"
-        )
-
-        self.assertTrue(
-            Letters.eta > Letters.zeta > Letters.digamma > Letters.epsilon >
-            Letters.delta > Letters.gamma > Letters.beta > Letters.alpha,
-            "> failed"
-        )
+        self.assertTrue(Letters.alpha < Letters.digamma)
+        self.assertTrue(Letters.digamma < Letters.zeta)
 
 
-    def test_orderedFlagConstants(self):
+    def test_orderedValueConstants_gt(self):
+        """
+        L{twisted.python.constants.ValueConstant} preserves definition
+        order in C{>} comparisons.
+        """
+        # Note u'\u0391' < u'\u03dc' > u'\u0396', so we are ensuring here that
+        # we're not ordering by value and accidentally getting the right answer
+        # here.
+
+        class Letters(Values):
+            alpha   = ValueConstant(u'\u0391')
+            digamma = ValueConstant(u'\u03dc')
+            zeta    = ValueConstant(u'\u0396')
+
+        self.assertTrue(Letters.digamma > Letters.alpha)
+        self.assertTrue(Letters.zeta > Letters.digamma)
+
+
+    def test_orderedFlagConstants_lt(self):
         """
         L{twisted.python.constants.FlagConstant} preserves definition
-        order.
+        order in C{<} comparisons.
         """
+        # Note 1<<1 < 1<<4 > 1<<2, so we are ensuring here that we're not
+        # ordering by value and accidentally getting the right answer
+        # here.
+
         class PizzaToppings(Flags):
             mozzarella = FlagConstant(1 << 1)
             pesto      = FlagConstant(1 << 4)
             pepperoni  = FlagConstant(1 << 2)
-            sausage    = FlagConstant(1 << 3)
-            ham        = FlagConstant(1 << 7)
-            peppers    = FlagConstant(1 << 5)
-            olives     = FlagConstant(1 << 7)
-            onion      = FlagConstant(1 << 6)
 
-        self.assertTrue(
-            PizzaToppings.mozzarella < PizzaToppings.pesto <
-            PizzaToppings.pepperoni < PizzaToppings.sausage <
-            PizzaToppings.ham < PizzaToppings.peppers <
-            PizzaToppings.olives < PizzaToppings.onion,
-            "< failed"
-        )
+        self.assertTrue(PizzaToppings.mozzarella < PizzaToppings.pesto)
+        self.assertTrue(PizzaToppings.pesto < PizzaToppings.pepperoni)
 
-        self.assertTrue(
-            PizzaToppings.onion > PizzaToppings.olives >
-            PizzaToppings.peppers > PizzaToppings.ham >
-            PizzaToppings.sausage > PizzaToppings.pepperoni >
-            PizzaToppings.pesto > PizzaToppings.mozzarella,
-            "> failed"
-        )
+    def test_orderedFlagConstants_gt(self):
+        """
+        L{twisted.python.constants.FlagConstant} preserves definition
+        order in C{>} comparisons.
+        """
+        # Note 1<<1 < 1<<4 > 1<<2, so we are ensuring here that we're not
+        # ordering by value and accidentally getting the right answer
+        # here.
+
+        class PizzaToppings(Flags):
+            mozzarella = FlagConstant(1 << 1)
+            pesto      = FlagConstant(1 << 4)
+            pepperoni  = FlagConstant(1 << 2)
+
+        self.assertTrue(PizzaToppings.pesto > PizzaToppings.mozzarella)
+        self.assertTrue(PizzaToppings.pepperoni > PizzaToppings.pesto)
