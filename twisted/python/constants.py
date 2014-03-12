@@ -45,6 +45,66 @@ class _Constant(object):
         return "<%s=%s>" % (self._container.__name__, self.name)
 
 
+    def __lt__(self, other):
+        """
+        Implements C{<}.  Order is defined by instantiation order.
+
+        @param other: An object.
+
+        @return: C{NotImplemented} if C{other} is not a constant of
+           the same class as this constant, or C{True} if this
+           constant is defined before C{other}.
+        """
+        if not isinstance(other, self.__class__):
+            return NotImplemented
+        return self._index < other._index
+
+
+    def __le__(self, other):
+        """
+        Implements C{<=}.  Order is defined by instantiation order.
+
+        @param other: An object.
+
+        @return: C{NotImplemented} if C{other} is not a constant of
+           the same class as this constant; or C{True} if this
+           constant is or is defined before C{other}.
+        """
+        if not isinstance(other, self.__class__):
+            return NotImplemented
+        return self is other or self._index < other._index
+
+
+    def __gt__(self, other):
+        """
+        Implements C{>}.  Order is defined by instantiation order.
+
+        @param other: An object.
+
+        @return: C{NotImplemented} if C{other} is not a constant of
+           the same class as this constant, or C{True} if this
+           constant is defined after C{other}.
+        """
+        if not isinstance(other, self.__class__):
+            return NotImplemented
+        return self._index > other._index
+
+
+    def __ge__(self, other):
+        """
+        Implements C{>}.  Order is defined by instantiation order.
+
+        @param other: An object.
+
+        @return: C{NotImplemented} if C{other} is not a constant of
+           the same class as this constant, or C{True} if this
+           constant is or is defined after C{other}.
+        """
+        if not isinstance(other, self.__class__):
+            return NotImplemented
+        return self is other or self._index > other._index
+
+
     def _realize(self, container, name, value):
         """
         Complete the initialization of this L{_Constant}.

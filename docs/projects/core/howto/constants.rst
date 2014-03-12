@@ -47,7 +47,7 @@ Given this definition, constants can be looked up by name using attribute access
     <METHOD=PUT>
     >>>
 
-If it's necessary to look up constants based on user input of some sort, a safe way to do it is using ``lookupByName`` :
+If it's necessary to look up constants from a string (e.g. based on user input of some sort), a safe way to do it is using ``lookupByName`` :
 
 .. code-block:: console
 
@@ -63,7 +63,7 @@ If it's necessary to look up constants based on user input of some sort, a safe 
 
 As demonstrated, it is safe because any name not associated with a constant (even those special names initialized by Python itself) will result in ``ValueError`` being raised, not some other object not intended to be used the way the constants are used.
 
-The constants can also be enumerated using the ``iterconstants`` method.
+The constants can also be enumerated using the ``iterconstants`` method:
 
 .. code-block:: console
 
@@ -71,7 +71,7 @@ The constants can also be enumerated using the ``iterconstants`` method.
     [<METHOD=GET>, <METHOD=PUT>, <METHOD=POST>, <METHOD=DELETE>]
     >>>
 
-And constants can also be compared, either for equality or identity:
+Constants can be compared for equality or identity:
 
 .. code-block:: console
 
@@ -85,9 +85,27 @@ And constants can also be compared, either for equality or identity:
     False
     >>>
 
-Custom functionality can also be associated with constants defined this way.
-A subclass of ``Names`` may define class methods to implement such functionality.
-Consider this redefinition of ``METHOD`` :
+Ordered comparisons (and therefore sorting) also work.
+The order is defined to be the same as the instantiation order of the constants:
+
+.. code-block:: python
+
+    >>> from twisted.python.constants import NamedConstant, Names
+    >>> class Letters(Names):
+    ...   a = NamedConstant()
+    ...   b = NamedConstant()
+    ...   c = NamedConstant()
+    ... 
+    >>> Letters.a < Letters.b < Letters.c
+    True
+    >>> Letters.a > Letters.b 
+    False
+    >>> sorted([Letters.b, Letters.a, Letters.c])
+    [<Letters=a>, <Letters=b>, <Letters=c>]
+    >>> 
+
+A subclass of ``Names`` may define class methods to implement custom functionality.
+Consider this definition of ``METHOD`` :
 
 .. code-block:: python
 
@@ -154,7 +172,7 @@ Additionally, the values of the constants can be accessed using the ``value`` at
     '200'
     >>>
 
-And as with ``Names`` , constants can be looked up by name:
+As with ``Names`` , constants can be looked up by name:
 
 .. code-block:: console
 
@@ -187,7 +205,7 @@ Iteration is also supported:
     [<STATUS=OK>, <STATUS=FOUND>, <STATUS=NOT_FOUND>]
     >>>
 
-And constants can be compared for equality and identity:
+Constants can be compared for equality, identity and ordering:
 
 .. code-block:: console
 
@@ -199,9 +217,15 @@ And constants can be compared for equality and identity:
     False
     >>> STATUS.OK == STATUS.NOT_FOUND
     False
+    >>> STATUS.NOT_FOUND > STATUS.OK
+    True
+    >>> STATUS.FOUND < STATUS.OK
+    False
     >>>
 
-And, as with ``Names`` , a subclass of ``Values`` can define methods:
+Note that like ``Names`` , ``Values`` are ordered by instantiation order, not by value, though either order is the same in the above example.
+
+As with ``Names`` , a subclass of ``Values`` can define custom methods:
 
 .. code-block:: python
 
@@ -283,7 +307,7 @@ These constant objects also have a ``value`` attribute giving their integer valu
     256
     >>>
 
-And these constants can be looked up by name or value:
+These constants can be looked up by name or value:
 
 .. code-block:: console
 
