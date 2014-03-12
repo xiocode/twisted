@@ -51,11 +51,14 @@ class _Constant(object):
 
         @param other: An object.
 
-        @return: C{NotImplemented} if C{other} is not a constant of
-           the same class as this constant, or C{True} if this
-           constant is defined before C{other}.
+        @return: C{NotImplemented} if C{other} is not a constant belonging to
+            the same container as this constant, C{True} if this constant is
+            defined before C{other}, otherwise C{False}.
         """
-        if not isinstance(other, self.__class__):
+        if (
+            not isinstance(other, self.__class__) or
+            not self._container == other._container
+        ):
             return NotImplemented
         return self._index < other._index
 
@@ -66,11 +69,14 @@ class _Constant(object):
 
         @param other: An object.
 
-        @return: C{NotImplemented} if C{other} is not a constant of
-           the same class as this constant; or C{True} if this
-           constant is or is defined before C{other}.
+        @return: C{NotImplemented} if C{other} is not a constant belonging to
+            the same container as this constant, C{True} if this constant is
+            defined before or equal to C{other}, otherwise C{False}.
         """
-        if not isinstance(other, self.__class__):
+        if (
+            not isinstance(other, self.__class__) or
+            not self._container == other._container
+        ):
             return NotImplemented
         return self is other or self._index < other._index
 
@@ -81,11 +87,14 @@ class _Constant(object):
 
         @param other: An object.
 
-        @return: C{NotImplemented} if C{other} is not a constant of
-           the same class as this constant, or C{True} if this
-           constant is defined after C{other}.
+        @return: C{NotImplemented} if C{other} is not a constant belonging to
+            the same container as this constant, C{True} if this constant is
+            defined after C{other}, otherwise C{False}.
         """
-        if not isinstance(other, self.__class__):
+        if (
+            not isinstance(other, self.__class__) or
+            not self._container == other._container
+        ):
             return NotImplemented
         return self._index > other._index
 
@@ -96,11 +105,14 @@ class _Constant(object):
 
         @param other: An object.
 
-        @return: C{NotImplemented} if C{other} is not a constant of
-           the same class as this constant, or C{True} if this
-           constant is or is defined after C{other}.
+        @return: C{NotImplemented} if C{other} is not a constant belonging to
+            the same container as this constant, C{True} if this constant is
+            defined after or equal to C{other}, otherwise C{False}.
         """
-        if not isinstance(other, self.__class__):
+        if (
+            not isinstance(other, self.__class__) or
+            not self._container == other._container
+        ):
             return NotImplemented
         return self is other or self._index > other._index
 
