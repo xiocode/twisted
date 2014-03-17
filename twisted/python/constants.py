@@ -101,7 +101,7 @@ class _Constant(object):
 
     def __ge__(self, other):
         """
-        Implements C{>}.  Order is defined by instantiation order.
+        Implements C{>=}.  Order is defined by instantiation order.
 
         @param other: An object.
 

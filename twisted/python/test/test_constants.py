@@ -1106,8 +1106,8 @@ class ValuedLetters(Values):
     """
     Some more letters, with cooresponding unicode values.
     """
-    # Note u'\u0391' < u'\u03dc' > u'\u0396', o we are ensuring here that the
-    # definition order different from the order of the values, which let's us
+    # Note u'\u0391' < u'\u03dc' > u'\u0396'.  We are ensuring here that the
+    # definition is order different from the order of the values, which lets us
     # test that we're not somehow ordering by value and happen the get the same
     # results.
     alpha   = ValueConstant(u'\u0391')
@@ -1121,7 +1121,7 @@ class PizzaToppings(Flags):
     Some pizza toppings, with obviously meaningful bitwise values.
     """
     # Note 1<<1 < 1<<4 > 1<<2, so we are ensuring here that the definition
-    # order different from the order of the values, which let's us test that
+    # order is different from the order of the values, which lets us test that
     # we're not somehow ordering by value and happen the get the same results.
     mozzarella = FlagConstant(1 << 1)
     pesto      = FlagConstant(1 << 4)
