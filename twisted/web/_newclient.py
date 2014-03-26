@@ -405,7 +405,7 @@ class HTTPClientParser(HTTPParser):
         to keep track of this response's state.
         """
         parts = status.split(' ', 2)
-        if len(parts) != 3:
+        if len(parts) < 2:
             raise ParseError("wrong number of parts", status)
 
         try:
@@ -413,10 +413,14 @@ class HTTPClientParser(HTTPParser):
         except ValueError:
             raise ParseError("non-integer status code", status)
 
+        reason = ''
+        if len(parts) == 3:
+            reason = parts[2]
+
         self.response = Response._construct(
             self.parseVersion(parts[0]),
             statusCode,
-            parts[2],
+            reason,
             self.headers,
             self.transport,
             self.request)
